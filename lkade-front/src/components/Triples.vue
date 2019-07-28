@@ -30,7 +30,7 @@
 
         <el-button type="info" @click="dialogVisible=true">新增关系</el-button>
 
-        <el-dialog title="新增关系" :visible.sync="dialogVisible" width="50%">
+        <el-dialog title="新增关系" :visible.sync="dialogVisible" width="50%" :before-close="handleClose">
           Subject: <el-input type="text" v-model="inserts.sid" placeholder=""></el-input>
           Predicate: <el-input type="text" v-model="inserts.p" placeholder=""></el-input>
           Object: <el-input type="text" v-model="inserts.oid" placeholder=""></el-input>
@@ -98,7 +98,7 @@ export default {
         .then(function (response) {
           _this.tripleData = response.data.ret;
           if (response.data.ret.length > 0) {
-            _this.inserts.sid = response.data.ret[0].s;
+            _this.inserts = { sid: response.data.ret[0].s, p: '', oid: '', old_tid: '' };
           }
         })
         .catch(function (error) {
@@ -145,11 +145,10 @@ export default {
         });
     },
     handleClose(done) {
-      this.$confirm('确认关闭？')
-        .then(_ => {
-          done();
-        })
-        .catch(_ => {});
+      this.inserts.p = "";
+      this.inserts.oid = "";
+      this.inserts.old_tid = "";
+      done();
     },
     handleRemove(func, fid) {
       this.$confirm('确认删除？')

@@ -8,4 +8,4 @@ popd
 
 pushd lkade-front
 
-npm dev run
+npm run dev

@@ -88,13 +88,19 @@ export default {
   methods: {
     search_entity(queryStr) {
       if (queryStr !== null) this.searchStr = queryStr;
+      let _this = this;
       this.axios
         .get('http://127.0.0.1:26551/api/triples', {
           params: {
             entity: this.searchStr
           }
         })
-        .then(response => (this.tripleData = response.data.ret))
+        .then(function (response) {
+          _this.tripleData = response.data.ret;
+          if (response.data.ret.length > 0) {
+            _this.inserts.sid = response.data.ret[0].s;
+          }
+        })
         .catch(function (error) {
           console.log(error);
         });

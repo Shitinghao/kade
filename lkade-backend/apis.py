@@ -3,7 +3,7 @@ import sys, os, time
 import urllib.parse
 import bottle, platform
 import traceback
-from bottle import route, template, request, response
+from bottle import route, template, request, response, static_file
 from pymongo import MongoClient
 from datetime import datetime
 import logging
@@ -125,6 +125,10 @@ def removetriple():
 	del_result = dbcd.triples.delete_one({'_id': ObjectId(tid)})
 	ret = {'status':'ok','ret': 'ok'}
 	return json.dumps(ret, ensure_ascii = False)
+
+@app.route('/', method='GET')
+def index():
+	return static_file('index.html', root='views')
 
 #from gevent import monkey; monkey.patch_all()
 #bottle.run(app, host='0.0.0.0', port=26551, server='gevent')

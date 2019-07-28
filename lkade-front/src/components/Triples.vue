@@ -170,6 +170,7 @@ export default {
         .then(function (response) {
           _this.msgStr = response.data.ret;
           _this.search_entity(_this.nowsearchStr);
+          _this.inserts = { sid: '', p: '', oid: '', old_tid: '' };
         })
         .catch(function (error) {
           console.log(error);

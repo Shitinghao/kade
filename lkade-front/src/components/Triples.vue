@@ -31,7 +31,7 @@
         <el-button type="info" @click="dialogVisible=true">新增关系</el-button>
 
         <el-dialog title="新增关系" :visible.sync="dialogVisible" width="50%" :before-close="handleClose">
-          Subject: <el-input type="text" v-model="inserts.sid" placeholder=""></el-input>
+          Subject: <el-input type="text" v-model="inserts.sid" placeholder="" :disabled="true"></el-input>
           Predicate: <el-input type="text" v-model="inserts.p" placeholder=""></el-input>
           Object: <el-input type="text" v-model="inserts.oid" placeholder=""></el-input>
           <span slot="footer" class="dialog-footer">

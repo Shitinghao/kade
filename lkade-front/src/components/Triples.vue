@@ -16,12 +16,29 @@
                 </el-tooltip>
               </template>
             </el-table-column>
-            <el-table-column prop="oper" label="Operation" width="180">
+            <el-table-column label="Operation" width="180">
+              <template slot-scope="scope">
+                <el-tooltip class="item" effect="dark" :content="scope.row.id" placement="top-end" v-if="scope.row.id !== ''">
+                  <el-button type="danger" size="medium" @click="handleRemove(remove_ment2ent, scope.row.id)">删除</el-button>
+                </el-tooltip>
+              </template>
             </el-table-column>
           </el-table>
         </div>
 
-        <hr/>
+        <hr />
+
+        <el-button type="info" @click="dialogVisible=true">新增关系</el-button>
+
+        <el-dialog title="新增关系" :visible.sync="dialogVisible" width="50%">
+          Subject: <el-input type="text" v-model="inserts.sid" placeholder=""></el-input>
+          Predicate: <el-input type="text" v-model="inserts.p" placeholder=""></el-input>
+          Object: <el-input type="text" v-model="inserts.oid" placeholder=""></el-input>
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="dialogVisible=false">取 消</el-button>
+            <el-button type="primary" @click="submitInsertTriple">确 定</el-button>
+          </span>
+        </el-dialog>
 
         <div class="grid-content">
           <el-table :data="tripleData" style="width: 100%" :default-sort="{prop: 'p', order: 'descending'}" center="True">
@@ -37,7 +54,15 @@
                 <span v-if="scope.row.oid === ''">{{scope.row.oname}}</span>
               </template>
             </el-table-column>
-            <el-table-column prop="oper" label="Operation" width="180">
+            <el-table-column label="Operation" width="180">
+              <template slot-scope="scope">
+                <el-tooltip class="item" effect="dark" :content="scope.row.id" placement="top-end" v-if="scope.row.id !== ''">
+                  <el-button type="danger"  size="medium" @click="handleRemove(remove_triple, scope.row.id)">删除</el-button>
+                </el-tooltip>
+                <el-tooltip class="item" effect="dark" :content="scope.row.id" placement="top-end" v-if="scope.row.id !== ''">
+                  <el-button type="info" size="medium" @click="modify_triple(scope.row.id)">修改</el-button>
+                </el-tooltip>
+              </template>
             </el-table-column>
           </el-table>
         </div>
@@ -53,7 +78,11 @@ export default {
     return {
       searchStr: '',
       tripleData: [],
-      ment2entData: []
+      ment2entData: [],
+      msgStr: '',
+      nowsearchStr: '',
+      dialogVisible: false,
+      inserts: {sid: '', p: '', oid: '', old_tid: ''}
     }
   },
   methods: {
@@ -77,6 +106,72 @@ export default {
         })
         .then(response => (this.ment2entData = response.data.ret))
         .catch(function (error) { 
+          console.log(error);
+        });
+      this.nowsearchStr = this.searchStr;
+    },
+    modify_triple(tid) {
+      let thetriple = this.tripleData.filter(elem => (elem.id === tid));
+      if (thetriple.length === 1) {
+        this.inserts = {
+          sid: thetriple[0].s,
+          p: thetriple[0].p,
+          oid: thetriple[0].oname,
+          old_tid: tid
+        }
+      }
+      this.dialogVisible = true;
+    },
+    remove_triple(tid) {
+      let _this = this;
+      this.axios
+        .get('http://127.0.0.1:26551/api/removetriple', {
+          params: {
+            id: tid
+          }
+        })
+        .then(function (response) {
+          _this.msgStr = response.data.ret;
+          _this.search_entity(_this.nowsearchStr);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    handleClose(done) {
+      this.$confirm('确认关闭？')
+        .then(_ => {
+          done();
+        })
+        .catch(_ => {});
+    },
+    handleRemove(func, fid) {
+      this.$confirm('确认删除？')
+        .then(_ => {
+          func(fid);
+        })
+        .catch(_ => {});
+    },
+    submitInsertTriple() {
+      this.dialogVisible = false;
+      let _this = this;
+      if (this.inserts.old_tid !== "") {
+        this.remove_triple(this.inserts.old_tid);
+        this.inserts.old_tid = "";
+      }
+      this.axios
+        .get('http://127.0.0.1:26551/api/newtriple', {
+          params: {
+            sid: this.inserts.sid,
+            p: this.inserts.p,
+            oid: this.inserts.oid
+          }
+        })
+        .then(function (response) {
+          _this.msgStr = response.data.ret;
+          _this.search_entity(_this.nowsearchStr);
+        })
+        .catch(function (error) {
           console.log(error);
         });
     }

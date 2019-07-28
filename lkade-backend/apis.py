@@ -8,6 +8,7 @@ from pymongo import MongoClient
 from datetime import datetime
 import logging
 import logging.handlers
+from bson.objectid import ObjectId
 
 
 DB = 'local'
@@ -77,7 +78,7 @@ def triples():
 	for x in xx:
 		if x['o'].endswith('</a>') and x['o'].startswith('<a'): oid, oname = SplitHref(x['o'])
 		else: oid, oname = '', RemoveHref(x['o'])
-		item = {'s':x['s'], 'p':x['p'], 'oid':oid, 'oname':oname}
+		item = {'id':str(x['_id']), 's':x['s'], 'p':x['p'], 'oid':oid, 'oname':oname}
 		ret.append(item)
 	ret = {'status':'ok','ret': ret}
 	return json.dumps(ret, ensure_ascii = False)
@@ -90,20 +91,39 @@ def ment2ent():
 	xx = dbcd.ment2ent.find({'m': mention}).limit(1000)
 	ent = list(xx)
 	if GetEntitybyID(mention) is not None: ent.append({'m':mention, 'e':mention})
-	ret = [{'mention': x['m'], 'eid': x['e'], 'ename': GetEntitybyID(x['e'])[config['entity_name_field']]} for x in ent]
+	ret = [{'id':str(x.get('_id', '')), 'mention': x['m'], 'eid': x['e'], 'ename': GetEntitybyID(x['e'])[config['entity_name_field']]} for x in ent]
 	ret = {'status':'ok','ret': ret}
 	return json.dumps(ret, ensure_ascii = False)
 
-@app.route('/api/new_entity', method = ['GET', 'POST'])
-def ment2ent():
-	mention = request.params.q
+@app.route('/api/newentity', method = ['GET', 'POST'])
+def newentity():
+	name = request.params.name
 	ok = True
-	if len(mention) > 200: ok = False
-	xx = dbcd.ment2ent.find({'m': mention}).limit(1000)
-	ent = list(xx)
-	if GetEntitybyID(mention) is not None: ent.append({'m':mention, 'e':mention})
-	ret = [{'mention': x['m'], 'eid': x['e'], 'ename': GetEntitybyID(x['e'])[config['entity_name_field']]} for x in ent]
-	ret = {'status':'ok','ret': ret}
+	ditem = {config['entity_name_field']: name}
+	ditem = dbcd.entities.insert_one(ditem)
+	ret = {'status':'ok','ret': ditem}
+	return json.dumps(ret, ensure_ascii = False)
+
+@app.route('/api/newtriple', method = ['GET', 'POST'])
+def newtriple():
+	sid = request.params.sid
+	p = request.params.p
+	oid = request.params.oid
+	oname = request.params.oname
+	assert '<' not in oid and '>' not in oname
+	ostr = oid
+	if oname != '': ostr = '<a href="%s">%s</a>' % (oid, oname)
+	ditem = {'s': sid, 'p': p, 'o': ostr}
+	ins_result = dbcd.triples.insert_one(ditem)
+	ret = {'status':'ok','ret': 'succ'}
+	return json.dumps(ret, ensure_ascii = False)
+
+@app.route('/api/removetriple', method = ['GET', 'POST'])
+def removetriple():
+	tid = request.params.id
+	ok = True
+	del_result = dbcd.triples.delete_one({'_id': ObjectId(tid)})
+	ret = {'status':'ok','ret': 'ok'}
 	return json.dumps(ret, ensure_ascii = False)
 
 #from gevent import monkey; monkey.patch_all()

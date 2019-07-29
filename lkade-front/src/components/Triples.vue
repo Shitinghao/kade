@@ -2,10 +2,10 @@
   <div class="triples">
     <el-row type="flex" class="row-bg" justify="center">
       <el-col :span="18">
-        <el-input type="text" :name="searchStr" v-model="searchStr" placeholder="搜索" suffix-icon="el-icon-search"></el-input>
+        <el-input type="text" :name="searchStr" v-model="searchStr" placeholder="搜索" suffix-icon="el-icon-search" style="width:80%" ></el-input>
         <el-button @click="search_entity(null)">搜索</el-button>
 
-        <div class="grid-content">
+        <div class="grid-content content_style">
           <el-table :data="entityData" style="width: 100%" :default-sort="{prop: 'eid', order: 'descending'}" center="True">
             <el-table-column label="Entity" sortable>
               <template slot-scope="scope">
@@ -24,52 +24,69 @@
           </el-table>
         </div>
 
-        <el-button type="info" @click="entDialogVisible=true">新增实体</el-button>
+        <hr/>
 
-        <el-dialog title="新增实体" :visible.sync="entDialogVisible" width="50%" :before-close="handleClose">
-          Name: <el-input type="text" v-model="ent_inserts.ename" placeholder=""></el-input>
-          <span slot="footer" class="dialog-footer">
+       <div class="content_style">
+         <div style="">
+           <el-button type="info" @click="entDialogVisible=true" style="float: right;">新增实体</el-button>
+           <el-dialog title="新增实体" :visible.sync="entDialogVisible" width="50%" :before-close="handleClose">
+             <label for="" style="float: left;">name:</label>
+             <el-input type="text" v-model="ent_inserts.ename" placeholder="请输入新增实体：name"></el-input>
+             <span slot="footer" class="dialog-footer">
             <el-button @click="dialogVisible=false">取 消</el-button>
             <el-button type="primary" @click="submitInsertTriple">确 定</el-button>
           </span>
-        </el-dialog>
+           </el-dialog>
+         </div>
+         <div class="grid-content">
+           <el-table :data="ment2entData" style="width: 100%" :default-sort="{prop: 'eid', order: 'descending'}" center="True">
+             <el-table-column prop="mention" label="Mention" sortable>
+             </el-table-column>
+             <el-table-column label="Entity" sortable>
+               <template slot-scope="scope">
+                 <el-tooltip class="item" effect="dark" :content="scope.row.eid" placement="top-end">
+                   <a @click="search_entity(scope.row.eid)" class="buttonText">{{scope.row.ename}}</a>
+                 </el-tooltip>
+               </template>
+             </el-table-column>
+             <el-table-column label="Operation" width="180">
+               <template slot-scope="scope">
+                 <el-tooltip class="item" effect="dark" :content="scope.row.id" placement="top-end" v-if="scope.row.id !== ''">
+                   <el-button type="danger" size="medium" @click="handleRemove(remove_ment2ent, scope.row.id)">删除</el-button>
+                 </el-tooltip>
+               </template>
+             </el-table-column>
+           </el-table>
+         </div>
+       </div>
 
-        <hr />
+        <hr/>
+       <div class="content_style">
 
-        <div class="grid-content">
-          <el-table :data="ment2entData" style="width: 100%" :default-sort="{prop: 'eid', order: 'descending'}" center="True">
-            <el-table-column prop="mention" label="Mention" sortable>
-            </el-table-column>
-            <el-table-column label="Entity" sortable>
-              <template slot-scope="scope">
-                <el-tooltip class="item" effect="dark" :content="scope.row.eid" placement="top-end">
-                  <a @click="search_entity(scope.row.eid)" class="buttonText">{{scope.row.ename}}</a>
-                </el-tooltip>
-              </template>
-            </el-table-column>
-            <el-table-column label="Operation" width="180">
-              <template slot-scope="scope">
-                <el-tooltip class="item" effect="dark" :content="scope.row.id" placement="top-end" v-if="scope.row.id !== ''">
-                  <el-button type="danger" size="medium" @click="handleRemove(remove_ment2ent, scope.row.id)">删除</el-button>
-                </el-tooltip>
-              </template>
-            </el-table-column>
-          </el-table>
+
+        <div class="btn-group">
+          <el-button type="info" @click="dialogVisible=true" style="float: right;">新增关系</el-button>
+
+          <el-dialog title="新增关系" :visible.sync="dialogVisible" width="50%" :before-close="handleClose">
+            <div class="input_style">
+              <label for="" style="float: left;">Subject: </label>
+              <el-input type="text" v-model="inserts.sid" placeholder="" :disabled="true"></el-input>
+            </div>
+            <div class="input_style">
+              <label for="" style="float: left;"> Predicate:</label>
+              <el-input type="text" v-model="inserts.p" placeholder=""></el-input>
+            </div>
+            <div class="input_style">
+              <label for="" style="float: left;"> Object:</label>
+              <el-input type="text" v-model="inserts.oid" placeholder=""></el-input>
+            </div>
+            <span slot="footer" class="dialog-footer">
+            <el-button @click="dialogVisible=false">取 消</el-button>
+            <el-button type="primary" @click="submitInsertTriple">确 定</el-button>
+          </span>
+          </el-dialog>
         </div>
 
-        <hr />
-
-        <el-button type="info" @click="dialogVisible=true">新增关系</el-button>
-
-        <el-dialog title="新增关系" :visible.sync="dialogVisible" width="50%" :before-close="handleClose">
-          Subject: <el-input type="text" v-model="inserts.sid" placeholder="" :disabled="true"></el-input>
-          Predicate: <el-input type="text" v-model="inserts.p" placeholder=""></el-input>
-          Object: <el-input type="text" v-model="inserts.oid" placeholder=""></el-input>
-          <span slot="footer" class="dialog-footer">
-            <el-button @click="dialogVisible=false">取 消</el-button>
-            <el-button type="primary" @click="submitInsertTriple">确 定</el-button>
-          </span>
-        </el-dialog>
 
         <div class="grid-content">
           <el-table :data="tripleData" style="width: 100%" :default-sort="{prop: 'p', order: 'descending'}" center="True">
@@ -97,6 +114,7 @@
             </el-table-column>
           </el-table>
         </div>
+       </div>
       </el-col>
     </el-row>
   </div>
@@ -279,4 +297,10 @@ li {
 a {
   color: #42b983;
 }
+  .content_style{
+    box-shadow: 0 0 3px lightgrey;margin: 30px 0;padding: 20px;
+  }
+  .input_style{
+    margin: 10px;
+  }
 </style>

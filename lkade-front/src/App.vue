@@ -1,13 +1,18 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
-    <Triples></Triples>
+    <!--<img src="./assets/logo.png">-->
     <router-view />
+    <Triples></Triples>
+
+
   </div>
 </template>
 
 <script>
 import Triples from './components/Triples.vue'
+
+// import
+
 export default {
   name: 'App',
   components: {

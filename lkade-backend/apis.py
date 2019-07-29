@@ -21,7 +21,7 @@ config = {
 	}
 
 
-dbcd = client.cndbpedia
+db = client.cndbpedia
 
 app = bottle.app()
 
@@ -56,10 +56,15 @@ def RemoveHref(x):
 	return re.sub('<a[^>]*>', '', x).replace('</a>', '')
 
 def GetEntitybyID(sid):
-	return dbcd.entities.find_one( {'_id': sid} )
+	return db.entities.find_one( {'_id': sid} )
 
 def GetEntityName(ent):
 	return ent[config['entity_name_field']]
+
+def TestSpecialChars(sr): 
+	for ch in '<>"' + "'":
+		if ch in sr: return True
+	return False
 
 def SplitHref(zz):
 	zz = zz.replace('</a>', '')
@@ -77,7 +82,7 @@ def triples():
 	if len(entity) > 200: ok = False
 	procO = RemoveHref if keephref == '' else (lambda x:x)
 	entity = entity.replace('"', '').replace('"', '')
-	xx = dbcd.triples.find({'s': entity}).limit(1000)
+	xx = db.triples.find({'s': entity}).limit(1000)
 	for x in xx:
 		if x['o'].endswith('</a>') and x['o'].startswith('<a'): oid, oname = SplitHref(x['o'])
 		else: oid, oname = '', RemoveHref(x['o'])
@@ -91,54 +96,159 @@ def ment2ent():
 	mention = request.params.q
 	ok = True
 	if len(mention) > 200: ok = False
-	xx = dbcd.ment2ent.find({'m': mention}).limit(1000)
-	ents = list(xx)
-	ent = GetEntitybyID(mention)
-	if ent is not None: 
-		ents.append({'m':mention, 'e':mention, 'isent': True})
+
+	rets = []
+	entx = GetEntitybyID(mention)
+	if entx is not None: 
+		ent = mention
+		rets.append({'m':mention, 'e':ent, 'isent': True})
+		rets.extend(db.ment2ent.find({'e': ent}))
+
+	xx = db.ment2ent.find({'m': mention}).limit(1000)
+	rets.extend(list(xx))
 	ret = [{'id':str(x.get('_id', '')), 'mention': x['m'], \
 		 'eid': x['e'], 'ename': GetEntityName(GetEntitybyID(x['e'])),
-		 'isent': x.get('isent', False)} for x in ents]
+		 'isent': x.get('isent', False)} for x in rets]
 	ret = {'status':'ok','ret': ret}
 	return json.dumps(ret, ensure_ascii = False)
 
-@app.route('/api/newentity', method = ['GET', 'POST'])
+
+def precheck_new_entity(name):
+	if name == '': return '名称不能为空'
+	if '<' in name or '>' in name or "'" in name or '"' in name: return '名称不能包含特殊符号'
+	ditem = {config['entity_name_field']: name}
+	exists = db.entities.find_one(ditem)
+	if exists: return '实体已经存在'
+
+@app.route('/api/new_entity/precheck', method = ['GET', 'POST'])
+def pprecheck_new_entity():
+	name = request.params.name
+	msg = precheck_new_entity(name)
+	ret = {'status': 'error' if msg else 'ok', 'msg': msg}
+	return json.dumps(ret, ensure_ascii=False)
+
+@app.route('/api/new_entity', method = ['GET', 'POST'])
 def newentity():
 	name = request.params.name
-	ok = True
-	ditem = {config['entity_name_field']: name}
-	ditem = dbcd.entities.insert_one(ditem)
-	ret = {'status':'ok','ret': ditem}
+	msg = precheck_new_entity(name)
+	ret = {'status': 'error' if msg else 'ok', 'msg': msg}
+	if not msg:
+		ditem = {config['entity_name_field']: name}
+		db.entities.insert_one(ditem)
 	return json.dumps(ret, ensure_ascii = False)
 
-@app.route('/api/newtriple', method = ['GET', 'POST'])
-def newtriple():
+
+
+def precheck_new_triple(sid, p, oid, oname, old_tid):
+	if GetEntitybyID(sid) is None: return '实体不存在'
+	if p == '': return '属性不能为空'
+	if TestSpecialChars(p): return '属性不能包含特殊符号'
+	query = {'s': sid, 'p': p}
+	exists = list(db.entities.find(query))
+	if old_tid != '':
+		exists = [x for x in exists if x['_id'] != ObjectId(old_tid)]
+	if oid != '':
+		pass
+	if oname != '':
+		pass
+
+@app.route('/api/new_triple/precheck', method = ['GET', 'POST'])
+def pprecheck_new_triple():
 	sid = request.params.sid
 	p = request.params.p
 	oid = request.params.oid
 	oname = request.params.oname
-	assert '<' not in oid and '>' not in oname
-	ostr = oid
-	if oname != '': ostr = '<a href="%s">%s</a>' % (oid, oname)
-	ditem = {'s': sid, 'p': p, 'o': ostr}
-	ins_result = dbcd.triples.insert_one(ditem)
-	ret = {'status':'ok','ret': 'succ'}
-	return json.dumps(ret, ensure_ascii = False)
+	old_tid = request.params.old_tid
+	msg = precheck_new_triple(sid, p, oid, oname, old_tid)
+	ret = {'status': 'error' if msg else 'ok', 'msg': msg}
+	return json.dumps(ret, ensure_ascii=False)
 
-@app.route('/api/removetriple', method = ['GET', 'POST'])
-def removetriple():
+@app.route('/api/new_triple', method = ['GET', 'POST'])
+def new_triple():
+	sid = request.params.sid
+	p = request.params.p
+	oid = request.params.oid
+	oname = request.params.oname
+	old_tid = request.params.old_tid
+	msg = precheck_new_triple(sid, p, oid, oname, oldtid)
+	ret = {'status': 'error' if msg else 'ok', 'msg': msg}
+	if not msg:
+		ostr = oid
+		if oname != '': ostr = '<a href="%s">%s</a>' % (oid, oname)
+		ditem = {'s': sid, 'p': p, 'o': ostr}
+		db.triples.insert_one(ditem)
+	return json.dumps(ret, ensure_ascii=False)
+
+
+def precheck_new_ment2ent(eid, mention):
+	if mention == '': return '别名不能为空'
+	if db.entities.find_one({'_id': eid}) is None: return '实体不存在'
+	ditem = {'m': mention, 'e': eid}
+	if db.ment2ent.find_one(ditem) is not None: return '库中已存在此关系'
+
+@app.route('/api/new_ment2ent/precheck', method = ['GET', 'POST'])
+def pprecheck_new_ment2ent():
+	eid = request.params.eid
+	mention = request.params.mention
+	msg = precheck_new_ment2ent(eid, mention)
+	ret = {'status': 'error' if msg else 'ok', 'msg': msg}
+	return json.dumps(ret, ensure_ascii=False)
+
+@app.route('/api/new_ment2ent', method = ['GET', 'POST'])
+def new_ment2ent():
+	eid = request.params.eid
+	mention = request.params.mention
+	msg = precheck_new_ment2ent(eid, mention)
+	ret = {'status': 'error' if msg else 'ok', 'msg': msg}
+	if not msg:
+		ditem = {'m': mention, 'e': eid}
+		db.ment2ent.insert_one(ditem)
+	return json.dumps(ret, ensure_ascii=False)
+
+@app.route('/api/remove_triple', method = ['GET', 'POST'])
+def remove_triple():
 	tid = request.params.id
 	ok = True
-	del_result = dbcd.triples.delete_one({'_id': ObjectId(tid)})
-	ret = {'status':'ok','ret': 'ok'}
-	return json.dumps(ret, ensure_ascii = False)
+	del_result = db.triples.delete_one({'_id': ObjectId(tid)})
+	status = 'ok' if del_result.acknowledged else 'error'
+	ret = {'status':status, 'ret': 'ok'}
+	return json.dumps(ret, ensure_ascii=False)
 
-@app.route('/api/removement2ent', method = ['GET', 'POST'])
-def removement2ent():
+@app.route('/api/remove_ment2ent', method = ['GET', 'POST'])
+def remove_ment2ent():
 	tid = request.params.id
 	ok = True
-	del_result = dbcd.ment2ent.delete_one({'_id': ObjectId(tid)})
-	ret = {'status':'ok','ret': 'ok'}
+	del_result = db.ment2ent.delete_one({'_id': ObjectId(tid)})
+	status = 'ok' if del_result.acknowledged else 'error'
+	ret = {'status':status, 'ret': 'ok'}
+	return json.dumps(ret, ensure_ascii = False)
+
+def RemoveEntity(ent):
+    db.ment2ent.delete_many({'e': ent})
+    db.triples.delete_many({'s': ent})
+    return db.entities.delete_one({'_id': ent})
+
+def EntityRelatedInfos(ent):
+	tris = []
+	for x in db.ment2ent.find({'e': ent}):
+		tris.append({'s':x['e'], 'p': '别名', 'o':x['m']})
+	for x in db.triples.find({'s': ent}):
+		tris.append({'s':x['s'], 'p': x['p'], 'o':x['o']})
+	return tris
+
+@app.route('/api/info_remove_entity', method = ['GET', 'POST'])
+def info_remove_entity():
+	eid = request.params.id
+	ret = {'status':'ok','ret': EntityRelatedInfos(eid)}
+	return json.dumps(ret, ensure_ascii = False)
+
+@app.route('/api/remove_entity', method = ['GET', 'POST'])
+def remove_entity():
+	eid = request.params.id
+	ok = True
+	del_result = RemoveEntity(eid)
+	status = 'ok' if del_result.acknowledged else 'error'
+	ret = {'status':status, 'ret': 'ok'}
 	return json.dumps(ret, ensure_ascii = False)
 
 @app.route('/', method='GET')

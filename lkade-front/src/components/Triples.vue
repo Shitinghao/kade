@@ -6,6 +6,29 @@
         <el-button @click="search_entity(null)">搜索</el-button>
 
         <div class="grid-content content_style">
+          <div style="">
+            <el-button type="info" @click="entDialogVisible=true" class="addBtn_style">新增实体</el-button>
+            <el-dialog title="新增实体" :visible.sync="entDialogVisible" width="50%" :before-close="handleClose">
+              <label for="" style="float: left;">name:</label>
+              <el-input type="text" v-model="ent_inserts.ename" placeholder="请输入新增实体的名称"></el-input>
+              <span slot="footer" class="dialog-footer">
+                <el-button @click="entDialogVisible=false">取 消</el-button>
+                <el-button type="primary" @click="submitNewEntity">确 定</el-button>
+              </span>
+            </el-dialog>
+            <el-dialog title="删除实体" :visible.sync="entDelDialogVisible" width="50%">
+              <span>将要删除实体 {{ent_dels.eid}} , 以下关系也将被同步删除：</span>
+              <el-table :data="delEntData" style="width: 100%" center="True">
+                <el-table-column prop="s" label="Subject"></el-table-column>
+                <el-table-column prop="p" label="Preidcate"></el-table-column>
+                <el-table-column prop="o" label="Object"></el-table-column>
+              </el-table>
+              <span slot="footer" class="dialog-footer">
+                <el-button @click="entDelDialogVisible=false">取 消</el-button>
+                <el-button type="primary" @click="remove_entity(ent_dels.eid)">确 定</el-button>
+              </span>
+            </el-dialog>
+          </div>
           <el-table :data="entityData" style="width: 100%" :default-sort="{prop: 'eid', order: 'descending'}" center="True">
             <el-table-column label="Entity" sortable>
               <template slot-scope="scope">
@@ -17,48 +40,51 @@
             <el-table-column label="Operation" width="180">
               <template slot-scope="scope">
                 <el-tooltip class="item" effect="dark" :content="scope.row.eid" placement="top-end" v-if="scope.row.eid !== ''">
-                  <el-button type="danger" size="medium" @click="handleRemove(remove_entity, scope.row.id)">删除</el-button>
+                  <el-button type="danger" size="medium" @click="showRemoveEntDialog(scope.row.eid)">删除</el-button>
                 </el-tooltip>
               </template>
             </el-table-column>
           </el-table>
+
         </div>
         <hr/>
-       <div class="content_style">
-         <div style="">
-           <el-button type="info" @click="entDialogVisible=true" class="addBtn_style">新增实体</el-button>
-           <el-dialog title="新增实体" :visible.sync="entDialogVisible" width="50%" :before-close="handleClose">
-             <label for="" style="float: left;">name:</label>
-             <el-input type="text" v-model="ent_inserts.ename" placeholder="请输入新增实体：name"></el-input>
-             <span slot="footer" class="dialog-footer">
-            <el-button @click="dialogVisible=false">取 消</el-button>
-            <el-button type="primary" @click="submitInsertTriple">确 定</el-button>
-          </span>
-           </el-dialog>
-         </div>
-         <div style="clear: both"></div>
-         <hr class="hr_style"/>
-         <div class="grid-content">
-           <el-table :data="ment2entData" style="width: 100%" :default-sort="{prop: 'eid', order: 'descending'}" center="True">
-             <el-table-column prop="mention" label="Mention" sortable>
-             </el-table-column>
-             <el-table-column label="Entity" sortable>
-               <template slot-scope="scope">
-                 <el-tooltip class="item" effect="dark" :content="scope.row.eid" placement="top-end">
-                   <a @click="search_entity(scope.row.eid)" class="buttonText">{{scope.row.ename}}</a>
-                 </el-tooltip>
-               </template>
-             </el-table-column>
-             <el-table-column label="Operation" width="180">
-               <template slot-scope="scope">
-                 <el-tooltip class="item" effect="dark" :content="scope.row.id" placement="top-end" v-if="scope.row.id !== ''">
-                   <el-button type="danger" size="medium" @click="handleRemove(remove_ment2ent, scope.row.id)">删除</el-button>
-                 </el-tooltip>
-               </template>
-             </el-table-column>
-           </el-table>
-         </div>
-       </div>
+        <div class="content_style">
+          <div style="clear: both"></div>
+          <hr class="hr_style" />
+          <div class="grid-content">
+            <el-table :data="ment2entData" style="width: 100%" :default-sort="{prop: 'eid', order: 'descending'}" center="True">
+              <el-table-column prop="mention" label="Mention" sortable>
+              </el-table-column>
+              <el-table-column label="Entity" sortable>
+                <template slot-scope="scope">
+                  <el-tooltip class="item" effect="dark" :content="scope.row.eid" placement="top-end">
+                    <a @click="search_entity(scope.row.eid)" class="buttonText">{{scope.row.ename}}</a>
+                  </el-tooltip>
+                </template>
+              </el-table-column>
+              <el-table-column label="Operation" width="180">
+                <template slot-scope="scope">
+                  <el-tooltip class="item" effect="dark" :content="scope.row.id" placement="top-end" v-if="scope.row.id !== ''">
+                    <el-button type="danger" size="medium" @click="handleRemove(remove_ment2ent, scope.row.id)">删除</el-button>
+                  </el-tooltip>
+                  <el-tooltip class="item" effect="dark" :content="scope.row.eid" placement="top-end" v-if="scope.row.id === ''">
+                    <el-button type="info" size="medium" @click="showNewM2EDialog(scope.row.eid)">新增别名</el-button>
+                  </el-tooltip>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <el-dialog title="新增别名" :visible.sync="m2eDialogVisible" width="50%" :before-close="handleClose">
+            <label for="" style="float: left;"> Entity:</label>
+            <el-input type="text" v-model="m2e_inserts.eid" placeholder="" :disabled="true"></el-input>
+            <label for="" style="float: left;"> Mention:</label>
+            <el-input type="text" v-model="m2e_inserts.mention" placeholder="请输入新的别名"></el-input>
+            <span slot="footer" class="dialog-footer">
+              <el-button @click="m2eDialogVisible=false">取 消</el-button>
+              <el-button type="primary" @click="submitNewM2E">确 定</el-button>
+            </span>
+          </el-dialog>
+        </div>
 
         <hr/>
        <div class="content_style">
@@ -82,7 +108,7 @@
             </div>
             <span slot="footer" class="dialog-footer">
             <el-button @click="dialogVisible=false">取 消</el-button>
-            <el-button type="primary" @click="submitInsertTriple">确 定</el-button>
+            <el-button type="primary" @click="submitNewTriple">确 定</el-button>
           </span>
           </el-dialog>
         </div>
@@ -129,12 +155,16 @@ export default {
       entityData: [],
       tripleData: [],
       ment2entData: [],
-      msgStr: '',
+      delEntData: [],
       nowsearchStr: '',
       dialogVisible: false,
       entDialogVisible: false,
+      m2eDialogVisible: false,
+      entDelDialogVisible: false,
+      ent_dels: { eid: '' },
       inserts: { sid: '', p: '', oid: '', old_tid: '' },
-      ent_inserts: { ename: '' }
+      ent_inserts: { ename: '' },
+      m2e_inserts: { mention: '', eid: '' }
     }
   },
   methods: {
@@ -149,9 +179,6 @@ export default {
         })
         .then(function (response) {
           _this.tripleData = response.data.ret;
-          if (response.data.ret.length > 0) {
-            _this.inserts = { sid: response.data.ret[0].s, p: '', oid: '', old_tid: '' };
-          }
         })
         .catch(function (error) {
           console.log(error);
@@ -171,6 +198,7 @@ export default {
               eid: x.eid,
               ename: x.ename
             });
+            _this.inserts = { sid: x.eid, p: '', oid: '', old_tid: '' }
           });
         })
         .catch(function (error) { 
@@ -190,59 +218,74 @@ export default {
       }
       this.dialogVisible = true;
     },
+    showNewM2EDialog(eid) {
+      this.m2e_inserts.eid = eid;
+      this.m2eDialogVisible = true;
+    },
+
+    simple_remove(_this, url, pparams) {
+      this.axios
+        .get(url, {
+          params: pparams
+        })
+        .then(function (response) {
+          _this.search_entity(_this.nowsearchStr);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+
     remove_triple(tid) {
-      let _this = this;
-      this.axios
-        .get('http://127.0.0.1:26551/api/removetriple', {
-          params: {
+      this.simple_remove(this, 'http://127.0.0.1:26551/api/remove_triple', {
             id: tid
-          }
-        })
-        .then(function (response) {
-          _this.msgStr = response.data.ret;
-          _this.search_entity(_this.nowsearchStr);
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+          });
     },
+
     remove_ment2ent(tid) {
-      let _this = this;
-      this.axios
-        .get('http://127.0.0.1:26551/api/removement2ent', {
-          params: {
+      this.simple_remove(this, 'http://127.0.0.1:26551/api/remove_ment2ent', {
             id: tid
-          }
-        })
-        .then(function (response) {
-          _this.msgStr = response.data.ret;
-          _this.search_entity(_this.nowsearchStr);
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+          });
     },
+
     remove_entity(tid) {
       let _this = this;
       this.axios
-        .get('http://127.0.0.1:26551/api/removeentity', {
+        .get('http://127.0.0.1:26551/api/remove_entity', {
           params: {
             id: tid
           }
         })
         .then(function (response) {
-          _this.msgStr = response.data.ret;
           _this.search_entity(_this.nowsearchStr);
+          _this.entDelDialogVisible = false;
+          _this.ent_dels.sid = "";
         })
         .catch(function (error) {
           console.log(error);
         });
     },
+
+
+    showRemoveEntDialog(eid) {
+      let _this = this;
+      this.ent_dels.eid = eid;
+      this.axios
+        .get('http://127.0.0.1:26551/api/info_remove_entity', {
+          params: {
+            id: eid
+          }
+        })
+        .then(function (response) {
+          _this.delEntData = response.data.ret;
+          _this.entDelDialogVisible = true;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+
     handleClose(done) {
-      this.inserts.p = "";
-      this.inserts.oid = "";
-      this.inserts.old_tid = "";
-      done();
     },
     handleRemove(func, fid) {
       this.$confirm('确认删除？')
@@ -251,32 +294,88 @@ export default {
         })
         .catch(_ => {});
     },
-    submitInsertTriple() {
-      this.dialogVisible = false;
+
+
+    submitNewTriple() {
       let _this = this;
-      if (this.inserts.old_tid !== "") {
-        this.remove_triple(this.inserts.old_tid);
-        this.inserts.old_tid = "";
-      }
-      this.axios
-        .get('http://127.0.0.1:26551/api/newtriple', {
-          params: {
-            sid: this.inserts.sid,
-            p: this.inserts.p,
-            oid: this.inserts.oid
+      this.checkAndSubmit(this, 'http://127.0.0.1:26551/api/new_triple', {
+          sid: this.inserts.sid,
+          p: this.inserts.p,
+          oid: this.inserts.oid,
+          old_tid: this.inserts.old_tid
+        },
+        function (response) {
+          if (_this.inserts.old_tid !== "") {
+            _this.remove_triple(this.inserts.old_tid);
+            _this.inserts.old_tid = "";
           }
-        })
-        .then(function (response) {
-          _this.msgStr = response.data.ret;
           _this.search_entity(_this.nowsearchStr);
           _this.inserts = { sid: '', p: '', oid: '', old_tid: '' };
+          _this.dialogVisible = false;
+        },
+        function (response) {
+          _this.$message.error(response.data.msg);
+        }
+      );
+    },
+
+    submitNewEntity() {
+      let _this = this;
+      this.checkAndSubmit(this, 'http://127.0.0.1:26551/api/new_entity', {
+            name: this.ent_inserts.ename
+        },
+        function (response) {
+          _this.search_entity(_this.nowsearchStr);
+          _this.m2e_inserts.mention = "";
+          _this.entDialogVisible = false;
+        },
+        function (response) {
+          _this.$message.error(response.data.msg);
+        }
+      )
+    },
+
+    checkAndSubmit(_this, url, pparams, succ_func, fail_func) {
+      _this.axios
+        .get(url + '/precheck', {
+          params: pparams
+        })
+        .then(function (response) {
+          if (response.data.status !== "ok") {
+            fail_func(response)
+          } else {
+            _this.axios
+              .get(url, {
+                params: pparams
+              })
+              .then(succ_func)
+              .catch(function (error) {
+                console.log(error);
+              });
+          }
         })
         .catch(function (error) {
           console.log(error);
         });
+    },
+
+
+    submitNewM2E() {
+      let _this = this;
+      this.checkAndSubmit(this, 'http://127.0.0.1:26551/api/new_ment2ent', {
+            mention: this.m2e_inserts.mention,
+            eid: this.m2e_inserts.eid
+        },
+        function (response) {
+          _this.search_entity(_this.nowsearchStr);
+          _this.m2e_inserts.mention = "";
+          _this.m2eDialogVisible = false;
+        },
+        function (response) {
+          _this.$message.error(response.data.msg);
+        }
+      )
     }
-  },
-  mounted() {
   }
 }
 </script>

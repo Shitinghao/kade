@@ -23,12 +23,10 @@
             </el-table-column>
           </el-table>
         </div>
-
         <hr/>
-
        <div class="content_style">
          <div style="">
-           <el-button type="info" @click="entDialogVisible=true" style="float: right;">新增实体</el-button>
+           <el-button type="info" @click="entDialogVisible=true" class="addBtn_style">新增实体</el-button>
            <el-dialog title="新增实体" :visible.sync="entDialogVisible" width="50%" :before-close="handleClose">
              <label for="" style="float: left;">name:</label>
              <el-input type="text" v-model="ent_inserts.ename" placeholder="请输入新增实体：name"></el-input>
@@ -38,6 +36,8 @@
           </span>
            </el-dialog>
          </div>
+         <div style="clear: both"></div>
+         <hr class="hr_style"/>
          <div class="grid-content">
            <el-table :data="ment2entData" style="width: 100%" :default-sort="{prop: 'eid', order: 'descending'}" center="True">
              <el-table-column prop="mention" label="Mention" sortable>
@@ -65,7 +65,7 @@
 
 
         <div class="btn-group">
-          <el-button type="info" @click="dialogVisible=true" style="float: right;">新增关系</el-button>
+          <el-button type="info" @click="dialogVisible=true" class="addBtn_style">新增关系</el-button>
 
           <el-dialog title="新增关系" :visible.sync="dialogVisible" width="50%" :before-close="handleClose">
             <div class="input_style">
@@ -86,8 +86,8 @@
           </span>
           </el-dialog>
         </div>
-
-
+        <div style="clear: both"></div>
+         <hr class="hr_style"/>
         <div class="grid-content">
           <el-table :data="tripleData" style="width: 100%" :default-sort="{prop: 'p', order: 'descending'}" center="True">
             <el-table-column prop="s" label="Subject" sortable>
@@ -302,5 +302,15 @@ a {
   }
   .input_style{
     margin: 10px;
+  }
+  /*table hr*/
+  .hr_style{
+    border:0;
+    background-color:#F56C6C;
+    height:1px;
+  }
+  .addBtn_style{
+    float: right;
+    margin-bottom: 10px;
   }
 </style>

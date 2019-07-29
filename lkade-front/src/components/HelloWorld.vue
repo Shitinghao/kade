@@ -3,12 +3,17 @@
     <nav></nav>
     <h1>{{ msg }}</h1>
     <!--<h2>Essential Links</h2>-->
+    <Triples></Triples>
   </div>
 </template>
 
 <script>
+import Triples from './Triples.vue'
 export default {
   name: 'HelloWorld',
+  components: {
+    Triples
+  },
   data () {
     return {
       msg: 'Welcome to Kade'

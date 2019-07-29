@@ -58,6 +58,9 @@ def RemoveHref(x):
 def GetEntitybyID(sid):
 	return dbcd.entities.find_one( {'_id': sid} )
 
+def GetEntityName(ent):
+	return ent[config['entity_name_field']]
+
 def SplitHref(zz):
 	zz = zz.replace('</a>', '')
 	if '<a>' in zz: eid = ename = zz.split('<a>')[-1]
@@ -89,9 +92,13 @@ def ment2ent():
 	ok = True
 	if len(mention) > 200: ok = False
 	xx = dbcd.ment2ent.find({'m': mention}).limit(1000)
-	ent = list(xx)
-	if GetEntitybyID(mention) is not None: ent.append({'m':mention, 'e':mention})
-	ret = [{'id':str(x.get('_id', '')), 'mention': x['m'], 'eid': x['e'], 'ename': GetEntitybyID(x['e'])[config['entity_name_field']]} for x in ent]
+	ents = list(xx)
+	ent = GetEntitybyID(mention)
+	if ent is not None: 
+		ents.append({'m':mention, 'e':mention, 'isent': True})
+	ret = [{'id':str(x.get('_id', '')), 'mention': x['m'], \
+		 'eid': x['e'], 'ename': GetEntityName(GetEntitybyID(x['e'])),
+		 'isent': x.get('isent', False)} for x in ents]
 	ret = {'status':'ok','ret': ret}
 	return json.dumps(ret, ensure_ascii = False)
 
@@ -123,6 +130,14 @@ def removetriple():
 	tid = request.params.id
 	ok = True
 	del_result = dbcd.triples.delete_one({'_id': ObjectId(tid)})
+	ret = {'status':'ok','ret': 'ok'}
+	return json.dumps(ret, ensure_ascii = False)
+
+@app.route('/api/removement2ent', method = ['GET', 'POST'])
+def removement2ent():
+	tid = request.params.id
+	ok = True
+	del_result = dbcd.ment2ent.delete_one({'_id': ObjectId(tid)})
 	ret = {'status':'ok','ret': 'ok'}
 	return json.dumps(ret, ensure_ascii = False)
 

@@ -6,6 +6,37 @@
         <el-button @click="search_entity(null)">搜索</el-button>
 
         <div class="grid-content">
+          <el-table :data="entityData" style="width: 100%" :default-sort="{prop: 'eid', order: 'descending'}" center="True">
+            <el-table-column label="Entity" sortable>
+              <template slot-scope="scope">
+                <el-tooltip class="item" effect="dark" :content="scope.row.eid" placement="top-end">
+                  <a @click="search_entity(scope.row.eid)" class="buttonText">{{scope.row.ename}}</a>
+                </el-tooltip>
+              </template>
+            </el-table-column>
+            <el-table-column label="Operation" width="180">
+              <template slot-scope="scope">
+                <el-tooltip class="item" effect="dark" :content="scope.row.eid" placement="top-end" v-if="scope.row.eid !== ''">
+                  <el-button type="danger" size="medium" @click="handleRemove(remove_entity, scope.row.id)">删除</el-button>
+                </el-tooltip>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+
+        <el-button type="info" @click="entDialogVisible=true">新增实体</el-button>
+
+        <el-dialog title="新增实体" :visible.sync="entDialogVisible" width="50%" :before-close="handleClose">
+          Name: <el-input type="text" v-model="ent_inserts.ename" placeholder=""></el-input>
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="dialogVisible=false">取 消</el-button>
+            <el-button type="primary" @click="submitInsertTriple">确 定</el-button>
+          </span>
+        </el-dialog>
+
+        <hr />
+
+        <div class="grid-content">
           <el-table :data="ment2entData" style="width: 100%" :default-sort="{prop: 'eid', order: 'descending'}" center="True">
             <el-table-column prop="mention" label="Mention" sortable>
             </el-table-column>
@@ -57,7 +88,7 @@
             <el-table-column label="Operation" width="180">
               <template slot-scope="scope">
                 <el-tooltip class="item" effect="dark" :content="scope.row.id" placement="top-end" v-if="scope.row.id !== ''">
-                  <el-button type="danger"  size="medium" @click="handleRemove(remove_triple, scope.row.id)">删除</el-button>
+                  <el-button type="danger" size="medium" @click="handleRemove(remove_triple, scope.row.id)">删除</el-button>
                 </el-tooltip>
                 <el-tooltip class="item" effect="dark" :content="scope.row.id" placement="top-end" v-if="scope.row.id !== ''">
                   <el-button type="info" size="medium" @click="modify_triple(scope.row.id)">修改</el-button>
@@ -77,12 +108,15 @@ export default {
   data () {
     return {
       searchStr: '',
+      entityData: [],
       tripleData: [],
       ment2entData: [],
       msgStr: '',
       nowsearchStr: '',
       dialogVisible: false,
-      inserts: {sid: '', p: '', oid: '', old_tid: ''}
+      entDialogVisible: false,
+      inserts: { sid: '', p: '', oid: '', old_tid: '' },
+      ent_inserts: { ename: '' }
     }
   },
   methods: {
@@ -110,7 +144,17 @@ export default {
             q: this.searchStr
           }
         })
-        .then(response => (this.ment2entData = response.data.ret))
+        .then(function (response) {
+          _this.ment2entData = response.data.ret;
+          let ents = response.data.ret.filter(x => (x.isent));
+          _this.entityData = [];
+          ents.forEach(function (x) {
+            _this.entityData.push({
+              eid: x.eid,
+              ename: x.ename
+            });
+          });
+        })
         .catch(function (error) { 
           console.log(error);
         });
@@ -132,6 +176,38 @@ export default {
       let _this = this;
       this.axios
         .get('http://127.0.0.1:26551/api/removetriple', {
+          params: {
+            id: tid
+          }
+        })
+        .then(function (response) {
+          _this.msgStr = response.data.ret;
+          _this.search_entity(_this.nowsearchStr);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    remove_ment2ent(tid) {
+      let _this = this;
+      this.axios
+        .get('http://127.0.0.1:26551/api/removement2ent', {
+          params: {
+            id: tid
+          }
+        })
+        .then(function (response) {
+          _this.msgStr = response.data.ret;
+          _this.search_entity(_this.nowsearchStr);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
+    remove_entity(tid) {
+      let _this = this;
+      this.axios
+        .get('http://127.0.0.1:26551/api/removeentity', {
           params: {
             id: tid
           }

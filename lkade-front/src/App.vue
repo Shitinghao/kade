@@ -11,7 +11,7 @@
         </div>
         <div class="right">
           <router-link class="nav-item" to="/login">登录</router-link>
-          <router-link class="nav-item" to="/regin">注册</router-link>
+          <router-link class="nav-item" to="/reg">注册</router-link>
         </div>
         <div style="clear: both;"></div>
       </p>

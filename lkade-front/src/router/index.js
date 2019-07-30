@@ -3,11 +3,13 @@ import Router from 'vue-router'
 import HelloWorld from '@/components/HelloWorld'
 import list from '@/components/list'
 import login from '@/components/login'
+import reg from '@/components/reg'
 import nodeGraph from '@/components/nodeGraph'
 
 Vue.use(Router)
 
 export default new Router({
+  mode:'history',
   routes: [
     {
       path: '/login',
@@ -17,9 +19,9 @@ export default new Router({
     {
       path: '/',
       name: 'HelloWorld',
-      // meta:{
-      //   requireAuth:true
-      // },
+      meta:{
+        requireAuth:true
+      },
       component: HelloWorld
 
     },
@@ -32,6 +34,11 @@ export default new Router({
       path: '/nodeGraph',
       name: 'nodeGraph',
       component: nodeGraph
+    },
+    {
+      path: '/reg',
+      name: 'reg',
+      component: reg
     }
   ]
 })

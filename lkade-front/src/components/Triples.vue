@@ -201,7 +201,7 @@ export default {
             _this.inserts = { sid: x.eid, p: '', oid: '', old_tid: '' }
           });
         })
-        .catch(function (error) { 
+        .catch(function (error) {
           console.log(error);
         });
       this.nowsearchStr = this.searchStr;

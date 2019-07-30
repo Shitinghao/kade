@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>kade 登录</h1>
+    <h1>kade 注册</h1>
     <!--<div class="login">-->
     <el-container>
       <el-main>
@@ -32,7 +32,7 @@
 
 <script>
 export default {
-  name: 'login',
+  name: 'reg',
   data() {
     var checkName = (rule, value, callback) => {
       if (!value) {

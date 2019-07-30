@@ -14,31 +14,55 @@ export default new Router({
     {
       path: '/login',
       name: 'login',
+      meta: {
+        isLogin: false,
+        keepAlive: false
+      },
       component: login
     },
     {
       path: '/',
-      name: 'HelloWorld',
-      meta:{
-        requireAuth:true
-      },
-      component: HelloWorld
+      redirect: 'login'
+      // name: 'HelloWorld',
+      // meta: {
+      //   requireAuth: true
+      // },
+      // component: HelloWorld
 
     },
     {
       path: '/list',
-      name: 'App',
-      component: list
+      name: 'HelloWorld',
+      meta: {
+        keepAlive: true
+      },
+      component: HelloWorld
     },
     {
       path: '/nodeGraph',
       name: 'nodeGraph',
+      meta: {
+        keepAlive: true
+      },
       component: nodeGraph
     },
     {
       path: '/reg',
       name: 'reg',
+      meta: {
+        isLogin: false,
+        keepAlive: false
+      },
       component: reg
+    },
+    {
+      path: '/list',
+      name: 'list',
+      meta: {
+        keepAlive: true
+      },
+      component: list
     }
+
   ]
 })

@@ -92,7 +92,6 @@
 
         <div class="btn-group">
           <el-button type="info" @click="dialogVisible=true" class="addBtn_style">新增关系</el-button>
-
           <el-dialog title="新增关系" :visible.sync="dialogVisible" width="50%" :before-close="handleClose">
             <div class="input_style">
               <label for="" style="float: left;">Subject: </label>
@@ -104,12 +103,17 @@
             </div>
             <div class="input_style">
               <label for="" style="float: left;"> Object:</label>
-              <el-input type="text" v-model="inserts.oid" placeholder=""></el-input>
+              <el-input type="text" v-model="inserts.oname" placeholder="" v-on:input="objectSuggestion(true)"></el-input>
+              <el-select v-model="inserts.oid" placeholder="实体id" @change="objectSelectEnt($event)">
+                <el-option v-for="item in inserts.options" :key="item.value"
+                           :label="item.label" :value="item.value">
+                </el-option>
+              </el-select>
             </div>
             <span slot="footer" class="dialog-footer">
-            <el-button @click="dialogVisible=false">取 消</el-button>
-            <el-button type="primary" @click="submitNewTriple">确 定</el-button>
-          </span>
+              <el-button @click="dialogVisible=false">取 消</el-button>
+              <el-button type="primary" @click="submitNewTriple">确 定</el-button>
+            </span>
           </el-dialog>
         </div>
         <div style="clear: both"></div>
@@ -162,7 +166,7 @@ export default {
       m2eDialogVisible: false,
       entDelDialogVisible: false,
       ent_dels: { eid: '' },
-      inserts: { sid: '', p: '', oid: '', old_tid: '' },
+      inserts: { sid: '', p: '', oid: '', oname: '', old_tid: '' },
       ent_inserts: { ename: '' },
       m2e_inserts: { mention: '', eid: '' }
     }
@@ -212,10 +216,12 @@ export default {
         this.inserts = {
           sid: thetriple[0].s,
           p: thetriple[0].p,
-          oid: thetriple[0].oname,
+          oid: thetriple[0].oid,
+          oname: thetriple[0].oname,
           old_tid: tid
         }
       }
+      if (this.inserts.oid !== "") this.objectSuggestion(false);
       this.dialogVisible = true;
     },
     showNewM2EDialog(eid) {
@@ -286,6 +292,7 @@ export default {
     },
 
     handleClose(done) {
+      done();
     },
     handleRemove(func, fid) {
       this.$confirm('确认删除？')
@@ -302,18 +309,19 @@ export default {
           sid: this.inserts.sid,
           p: this.inserts.p,
           oid: this.inserts.oid,
+          oname: this.inserts.oname,
           old_tid: this.inserts.old_tid
         },
-        function (response) {
+        function (response, _this) {
           if (_this.inserts.old_tid !== "") {
-            _this.remove_triple(this.inserts.old_tid);
+            _this.remove_triple(_this.inserts.old_tid);
             _this.inserts.old_tid = "";
           }
           _this.search_entity(_this.nowsearchStr);
           _this.inserts = { sid: '', p: '', oid: '', old_tid: '' };
           _this.dialogVisible = false;
         },
-        function (response) {
+        function (response, _this) {
           _this.$message.error(response.data.msg);
         }
       );
@@ -324,31 +332,33 @@ export default {
       this.checkAndSubmit(this, 'http://127.0.0.1:26551/api/new_entity', {
             name: this.ent_inserts.ename
         },
-        function (response) {
+        function (response, _this) {
           _this.search_entity(_this.nowsearchStr);
           _this.m2e_inserts.mention = "";
           _this.entDialogVisible = false;
         },
-        function (response) {
+        function (response, _this) {
           _this.$message.error(response.data.msg);
         }
       )
     },
 
     checkAndSubmit(_this, url, pparams, succ_func, fail_func) {
+      pparams["precheck"] = 1
       _this.axios
-        .get(url + '/precheck', {
+        .get(url, {
           params: pparams
         })
         .then(function (response) {
           if (response.data.status !== "ok") {
-            fail_func(response)
+            fail_func(response, _this)
           } else {
+            delete pparams["precheck"];
             _this.axios
               .get(url, {
                 params: pparams
               })
-              .then(succ_func)
+              .then(response => succ_func(response, _this))
               .catch(function (error) {
                 console.log(error);
               });
@@ -361,20 +371,55 @@ export default {
 
 
     submitNewM2E() {
-      let _this = this;
       this.checkAndSubmit(this, 'http://127.0.0.1:26551/api/new_ment2ent', {
             mention: this.m2e_inserts.mention,
             eid: this.m2e_inserts.eid
         },
-        function (response) {
+        function (response, _this) {
           _this.search_entity(_this.nowsearchStr);
           _this.m2e_inserts.mention = "";
           _this.m2eDialogVisible = false;
         },
-        function (response) {
+        function (response, _this) {
           _this.$message.error(response.data.msg);
         }
       )
+    },
+
+    objectSelectEnt(obj_ename) {
+      this.inserts.oname = obj_ename;
+    },
+
+    objectSuggestion(update_oid) {
+      let _this = this;
+      this.axios
+        .get('http://127.0.0.1:26551/api/ment2ent', {
+          params: {
+            q: this.inserts.oname,
+            no_other_m: 1
+          }
+        })
+        .then(function (response) {
+          let ents = response.data.ret;
+          //let ents = response.data.ret.filter(x => (x.isent));
+          let new_inserts = JSON.parse(JSON.stringify(_this.inserts)); //deepcopy
+          new_inserts.options = [];
+          ents.forEach(function (x) {
+            new_inserts.options.push({
+              label: x.ename,
+              value: x.eid
+            });
+          });
+          new_inserts.options.push({
+              label: '<不链接实体>',
+              value: ''
+          });
+          if (update_oid) new_inserts.oid = "";
+          _this.inserts = new_inserts;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
     }
   }
 }

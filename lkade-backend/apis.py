@@ -59,6 +59,7 @@ def GetEntitybyID(sid):
 	return db.entities.find_one( {'_id': sid} )
 
 def GetEntityName(ent):
+	if ent is None: return ''
 	return ent[config['entity_name_field']]
 
 def TestSpecialChars(sr): 
@@ -74,6 +75,11 @@ def SplitHref(zz):
 		eid, ename = vv.group(1), vv.group(2)
 	return eid, ename
 
+def SplitDBO(x):
+	if x['o'].endswith('</a>') and x['o'].startswith('<a'): oid, oname = SplitHref(x['o'])
+	else: oid, oname = '', RemoveHref(x['o'])
+	return oid, oname
+
 @app.route('/api/triples', method=['GET', 'POST'])
 def triples():
 	entity = request.params.entity
@@ -84,8 +90,7 @@ def triples():
 	entity = entity.replace('"', '').replace('"', '')
 	xx = db.triples.find({'s': entity}).limit(1000)
 	for x in xx:
-		if x['o'].endswith('</a>') and x['o'].startswith('<a'): oid, oname = SplitHref(x['o'])
-		else: oid, oname = '', RemoveHref(x['o'])
+		oid, oname = SplitDBO(x)
 		item = {'id':str(x['_id']), 's':x['s'], 'p':x['p'], 'oid':oid, 'oname':oname}
 		ret.append(item)
 	ret = {'status':'ok','ret': ret}
@@ -94,6 +99,7 @@ def triples():
 @app.route('/api/ment2ent', method = ['GET', 'POST'])
 def ment2ent():
 	mention = request.params.q
+	no_other_m = request.params.no_other_m
 	ok = True
 	if len(mention) > 200: ok = False
 
@@ -102,7 +108,8 @@ def ment2ent():
 	if entx is not None: 
 		ent = mention
 		rets.append({'m':mention, 'e':ent, 'isent': True})
-		rets.extend(db.ment2ent.find({'e': ent}))
+		if not no_other_m:
+			rets.extend(db.ment2ent.find({'e': ent}))
 
 	xx = db.ment2ent.find({'m': mention}).limit(1000)
 	rets.extend(list(xx))
@@ -144,24 +151,18 @@ def precheck_new_triple(sid, p, oid, oname, old_tid):
 	if p == '': return '属性不能为空'
 	if TestSpecialChars(p): return '属性不能包含特殊符号'
 	query = {'s': sid, 'p': p}
-	exists = list(db.entities.find(query))
+	exists = list(db.triples.find(query))
 	if old_tid != '':
 		exists = [x for x in exists if x['_id'] != ObjectId(old_tid)]
-	if oid != '':
-		pass
+	for xx in exists:
+		ooid, ooname = SplitDBO(xx)
+		if ooid == oid or ooname == oname: return '存在重复关系'
 	if oname != '':
-		pass
-
-@app.route('/api/new_triple/precheck', method = ['GET', 'POST'])
-def pprecheck_new_triple():
-	sid = request.params.sid
-	p = request.params.p
-	oid = request.params.oid
-	oname = request.params.oname
-	old_tid = request.params.old_tid
-	msg = precheck_new_triple(sid, p, oid, oname, old_tid)
-	ret = {'status': 'error' if msg else 'ok', 'msg': msg}
-	return json.dumps(ret, ensure_ascii=False)
+		if TestSpecialChars(oname): return '值不能包含特殊符号'
+	if oid != '':
+		oo = GetEntitybyID(oid)
+		if oo is None: return 'Object实体不存在'
+		if oname != '' and GetEntityName(oo) != oname: return "实体名称不匹配"
 
 @app.route('/api/new_triple', method = ['GET', 'POST'])
 def new_triple():
@@ -170,11 +171,13 @@ def new_triple():
 	oid = request.params.oid
 	oname = request.params.oname
 	old_tid = request.params.old_tid
-	msg = precheck_new_triple(sid, p, oid, oname, oldtid)
+	precheck = request.params.precheck
+	msg = precheck_new_triple(sid, p, oid, oname, old_tid)
 	ret = {'status': 'error' if msg else 'ok', 'msg': msg}
+	if precheck: return json.dumps(ret, ensure_ascii=False)
 	if not msg:
-		ostr = oid
-		if oname != '': ostr = '<a href="%s">%s</a>' % (oid, oname)
+		ostr = oname
+		if oid != '': ostr = '<a href="%s">%s</a>' % (oid, oname)
 		ditem = {'s': sid, 'p': p, 'o': ostr}
 		db.triples.insert_one(ditem)
 	return json.dumps(ret, ensure_ascii=False)
@@ -186,20 +189,14 @@ def precheck_new_ment2ent(eid, mention):
 	ditem = {'m': mention, 'e': eid}
 	if db.ment2ent.find_one(ditem) is not None: return '库中已存在此关系'
 
-@app.route('/api/new_ment2ent/precheck', method = ['GET', 'POST'])
-def pprecheck_new_ment2ent():
-	eid = request.params.eid
-	mention = request.params.mention
-	msg = precheck_new_ment2ent(eid, mention)
-	ret = {'status': 'error' if msg else 'ok', 'msg': msg}
-	return json.dumps(ret, ensure_ascii=False)
-
 @app.route('/api/new_ment2ent', method = ['GET', 'POST'])
 def new_ment2ent():
 	eid = request.params.eid
 	mention = request.params.mention
+	precheck = request.params.precheck
 	msg = precheck_new_ment2ent(eid, mention)
 	ret = {'status': 'error' if msg else 'ok', 'msg': msg}
+	if precheck: return json.dumps(ret, ensure_ascii=False)
 	if not msg:
 		ditem = {'m': mention, 'e': eid}
 		db.ment2ent.insert_one(ditem)

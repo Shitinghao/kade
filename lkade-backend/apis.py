@@ -127,23 +127,17 @@ def precheck_new_entity(name):
 	exists = db.entities.find_one(ditem)
 	if exists: return '实体已经存在'
 
-@app.route('/api/new_entity/precheck', method = ['GET', 'POST'])
-def pprecheck_new_entity():
-	name = request.params.name
-	msg = precheck_new_entity(name)
-	ret = {'status': 'error' if msg else 'ok', 'msg': msg}
-	return json.dumps(ret, ensure_ascii=False)
-
 @app.route('/api/new_entity', method = ['GET', 'POST'])
 def newentity():
 	name = request.params.name
+	precheck = request.params.precheck
 	msg = precheck_new_entity(name)
 	ret = {'status': 'error' if msg else 'ok', 'msg': msg}
+	if precheck: return json.dumps(ret, ensure_ascii=False)
 	if not msg:
 		ditem = {config['entity_name_field']: name}
 		db.entities.insert_one(ditem)
 	return json.dumps(ret, ensure_ascii = False)
-
 
 
 def precheck_new_triple(sid, p, oid, oname, old_tid):

@@ -5,7 +5,7 @@ from bson import ObjectId
 from datetime import datetime
 from bottle import request, response
 
-from utils import connect_db, entity2dict, triple2dict, mention2dict, o_is_entity, parse_href, make_href
+from .utils import connect_db, entity2dict, triple2dict, mention2dict, o_is_entity, parse_href, make_href
 
 app = bottle.app()
 version = '1'
@@ -82,29 +82,29 @@ def query_entity():
     return json.dumps(ret, ensure_ascii=False)
 
 
-@app.route('/api/cndbpedia/infobox/query_entity', method=['GET', 'POST'])
-def query_entity():
-    ret = {
-        'status': 'fail',
-        'res': [],
-        'error': 'connection failed'
-    }
-
-    _id = request.params.idx
-    entity = db.entities.find_one({'_id': _id})
-    if entity is None:
-        ret['status'] = 'fail'
-        ret['error'] = 'entity not found: {}'.format(_id)
-    else:
-        ret['status'] = 'success'
-        ret['res'].append(entity2dict(entity))
-        ret['error'] = ''
-
-    return json.dumps(ret, ensure_ascii=False)
+# @app.route('/api/cndbpedia/infobox/query_entity', method=['GET', 'POST'])
+# def query_entity():
+#     ret = {
+#         'status': 'fail',
+#         'res': [],
+#         'error': 'connection failed'
+#     }
+#
+#     _id = request.params.idx
+#     entity = db.entities.find_one({'_id': _id})
+#     if entity is None:
+#         ret['status'] = 'fail'
+#         ret['error'] = 'entity not found: {}'.format(_id)
+#     else:
+#         ret['status'] = 'success'
+#         ret['res'].append(entity2dict(entity))
+#         ret['error'] = ''
+#
+#     return json.dumps(ret, ensure_ascii=False)
 
 
 @app.route('/api/cndbpedia/graph/add_entity', method=['GET', 'POST'])
-@app.route('/api/cndbpedia/infobox/add_entity', method=['GET', 'POST'])
+# @app.route('/api/cndbpedia/infobox/add_entity', method=['GET', 'POST'])
 def add_entity():
     ret = {
         'status': 'fail',
@@ -130,7 +130,7 @@ def add_entity():
 
 
 @app.route('/api/cndbpedia/graph/update_entity', method=['GET', 'POST'])
-@app.route('/api/cndbpedia/infobox/update_entity', method=['GET', 'POST'])
+# @app.route('/api/cndbpedia/infobox/update_entity', method=['GET', 'POST'])
 def update_entity():
     ret = {
         'status': 'fail',
@@ -166,7 +166,7 @@ def update_entity():
 
 
 @app.route('/api/cndbpedia/graph/delete_entity', method=['GET', 'POST'])
-@app.route('/api/cndbpedia/infobox/delete_entity', method=['GET', 'POST'])
+# @app.route('/api/cndbpedia/infobox/delete_entity', method=['GET', 'POST'])
 def delete_entity():
     ret = {
         'status': 'fail',
@@ -190,7 +190,7 @@ def delete_entity():
 
 
 @app.route('/api/cndbpedia/graph/add_relation', method=['GET', 'POST'])
-@app.route('/api/cndbpedia/infobox/add_relation', method=['GET', 'POST'])
+# @app.route('/api/cndbpedia/infobox/add_relation', method=['GET', 'POST'])
 def add_relation():
     ret = {
         'status': 'fail',
@@ -226,7 +226,7 @@ def add_relation():
 
 
 @app.route('/api/cndbpedia/graph/update_relation', method=['GET', 'POST'])
-@app.route('/api/cndbpedia/infobox/update_relation', method=['GET', 'POST'])
+# @app.route('/api/cndbpedia/infobox/update_relation', method=['GET', 'POST'])
 def update_relation():
     ret = {
         'status': 'fail',
@@ -258,7 +258,7 @@ def update_relation():
 
 
 @app.route('/api/cndbpedia/graph/delete_relation', method=['GET', 'POST'])
-@app.route('/api/cndbpedia/infobox/delete_relation', method=['GET', 'POST'])
+# @app.route('/api/cndbpedia/infobox/delete_relation', method=['GET', 'POST'])
 def delete_relation():
     ret = {
         'status': 'fail',
@@ -278,7 +278,7 @@ def delete_relation():
 
 
 @app.route('/api/cndbpedia/graph/add_attribute', method=['GET', 'POST'])
-@app.route('/api/cndbpedia/infobox/add_attribute', method=['GET', 'POST'])
+# @app.route('/api/cndbpedia/infobox/add_attribute', method=['GET', 'POST'])
 def add_attribute():
     ret = {
         'status': 'fail',
@@ -308,7 +308,7 @@ def add_attribute():
 
 
 @app.route('/api/cndbpedia/graph/update_attribute', method=['GET', 'POST'])
-@app.route('/api/cndbpedia/infobox/update_attribute', method=['GET', 'POST'])
+# @app.route('/api/cndbpedia/infobox/update_attribute', method=['GET', 'POST'])
 def update_attribute():
     ret = {
         'status': 'fail',
@@ -340,7 +340,7 @@ def update_attribute():
 
 
 @app.route('/api/cndbpedia/graph/delete_attribute', method=['GET', 'POST'])
-@app.route('/api/cndbpedia/infobox/delete_attribute', method=['GET', 'POST'])
+# @app.route('/api/cndbpedia/infobox/delete_attribute', method=['GET', 'POST'])
 def delete_attribute():
     ret = {
         'status': 'fail',
@@ -359,105 +359,105 @@ def delete_attribute():
     return json.dumps(ret, ensure_ascii=False)
 
 
-@app.route('/api/cndbpedia/infobox/query_mention', method=['GET', 'POST'])
-def query_mention():
-    ret = {
-        'status': 'fail',
-        'mentions': [],
-        'error': 'connection failed'
-    }
-
-    query = request.params.query
-    for mention in db.ment2ent.find({'m': query}):
-        ret['mentions'].append(mention2dict(mention))
-    for mention in db.ment2ent.find({'e': query}):
-        ret['mentions'].append(mention2dict(mention))
-    if len(ret['mentions']) == 0:
-        ret['status'] = 'fail'
-        ret['error'] = 'mention not found: {}'.format(query)
-    else:
-        ret['status'] = 'success'
-        ret['error'] = ''
-
-    return json.dumps(ret, ensure_ascii=False)
-
-
-@app.route('/api/cndbpedia/infobox/add_mention', method=['GET', 'POST'])
-def add_mention():
-    ret = {
-        'status': 'fail',
-        'idx': '',
-        'error': 'connection failed'
-    }
-
-    m = request.params.m
-    e = request.params.e
-    if db.entities.find_one({'_id': e}) is None:
-        ret['status'] = 'fail'
-        ret['error'] = 'entity not found: {}'.format(e)
-    elif db.ment2ent.find_one({'m': m, 'e': e}) is not None:
-        ret['status'] = 'fail'
-        ret['error'] = 'mention exists: {}-{}'.format(m, e)
-    else:
-        r = db.ment2ent.insert_one({'m': m, 'e': e, 'timestamp': datetime.now()})
-        if not r.acknowledged:
-            ret['status'] = 'fail'
-            ret['error'] = 'insert failed'
-        else:
-            ret['status'] = 'success'
-            ret['error'] = ''
-
-    return json.dumps(ret, ensure_ascii=False)
+# @app.route('/api/cndbpedia/infobox/query_mention', method=['GET', 'POST'])
+# def query_mention():
+#     ret = {
+#         'status': 'fail',
+#         'mentions': [],
+#         'error': 'connection failed'
+#     }
+#
+#     query = request.params.query
+#     for mention in db.ment2ent.find({'m': query}):
+#         ret['mentions'].append(mention2dict(mention))
+#     for mention in db.ment2ent.find({'e': query}):
+#         ret['mentions'].append(mention2dict(mention))
+#     if len(ret['mentions']) == 0:
+#         ret['status'] = 'fail'
+#         ret['error'] = 'mention not found: {}'.format(query)
+#     else:
+#         ret['status'] = 'success'
+#         ret['error'] = ''
+#
+#     return json.dumps(ret, ensure_ascii=False)
 
 
-@app.route('/api/cndbpedia/infobox/update_mention', method=['GET', 'POST'])
-def update_mention():
-    ret = {
-        'status': 'fail',
-        'error': 'connection failed'
-    }
-
-    _id = request.params.idx
-    new_m = request.params.new_m
-    new_e = request.params.new_e
-    if db.ment2ent.find_one({'_id': ObjectId(_id)}) is None:
-        ret['status'] = 'fail'
-        ret['error'] = 'mention not found: {}'.format(_id)
-    elif db.entities.find_one({'_id': new_e}) is None:
-        ret['status'] = 'fail'
-        ret['error'] = 'entity not found: {}'.format(new_e)
-    elif db.ment2ent.find_one({'m': new_m, 'e': new_e}) is not None:
-        ret['status'] = 'fail'
-        ret['error'] = 'mention exists: {}-{}'.format(new_m, new_e)
-    else:
-        r = db.ment2ent.update_one({'_id': ObjectId(_id)}, {'$set': {'m': new_m, 'e': new_e, 'timestamp': datetime.now()}})
-        if not r.acknowledged:
-            ret['status'] = 'fail'
-            ret['error'] = 'update failed'
-        else:
-            ret['status'] = 'success'
-            ret['error'] = ''
-
-    return json.dumps(ret, ensure_ascii=False)
+# @app.route('/api/cndbpedia/infobox/add_mention', method=['GET', 'POST'])
+# def add_mention():
+#     ret = {
+#         'status': 'fail',
+#         'idx': '',
+#         'error': 'connection failed'
+#     }
+#
+#     m = request.params.m
+#     e = request.params.e
+#     if db.entities.find_one({'_id': e}) is None:
+#         ret['status'] = 'fail'
+#         ret['error'] = 'entity not found: {}'.format(e)
+#     elif db.ment2ent.find_one({'m': m, 'e': e}) is not None:
+#         ret['status'] = 'fail'
+#         ret['error'] = 'mention exists: {}-{}'.format(m, e)
+#     else:
+#         r = db.ment2ent.insert_one({'m': m, 'e': e, 'timestamp': datetime.now()})
+#         if not r.acknowledged:
+#             ret['status'] = 'fail'
+#             ret['error'] = 'insert failed'
+#         else:
+#             ret['status'] = 'success'
+#             ret['error'] = ''
+#
+#     return json.dumps(ret, ensure_ascii=False)
 
 
-@app.route('/api/cndbpedia/infobox/delete_mention', method=['GET', 'POST'])
-def delete_mention():
-    ret = {
-        'status': 'fail',
-        'error': 'connection failed'
-    }
+# @app.route('/api/cndbpedia/infobox/update_mention', method=['GET', 'POST'])
+# def update_mention():
+#     ret = {
+#         'status': 'fail',
+#         'error': 'connection failed'
+#     }
+#
+#     _id = request.params.idx
+#     new_m = request.params.new_m
+#     new_e = request.params.new_e
+#     if db.ment2ent.find_one({'_id': ObjectId(_id)}) is None:
+#         ret['status'] = 'fail'
+#         ret['error'] = 'mention not found: {}'.format(_id)
+#     elif db.entities.find_one({'_id': new_e}) is None:
+#         ret['status'] = 'fail'
+#         ret['error'] = 'entity not found: {}'.format(new_e)
+#     elif db.ment2ent.find_one({'m': new_m, 'e': new_e}) is not None:
+#         ret['status'] = 'fail'
+#         ret['error'] = 'mention exists: {}-{}'.format(new_m, new_e)
+#     else:
+#         r = db.ment2ent.update_one({'_id': ObjectId(_id)}, {'$set': {'m': new_m, 'e': new_e, 'timestamp': datetime.now()}})
+#         if not r.acknowledged:
+#             ret['status'] = 'fail'
+#             ret['error'] = 'update failed'
+#         else:
+#             ret['status'] = 'success'
+#             ret['error'] = ''
+#
+#     return json.dumps(ret, ensure_ascii=False)
 
-    _id = request.params.idx
-    r = db.ment2ent.delete_one({'_id': ObjectId(_id)})
-    if not r.acknowledged:
-        ret['status'] = 'fail'
-        ret['error'] = 'delete failed'
-    else:
-        ret['status'] = 'success'
-        ret['error'] = ''
 
-    return json.dumps(ret, ensure_ascii=False)
+# @app.route('/api/cndbpedia/infobox/delete_mention', method=['GET', 'POST'])
+# def delete_mention():
+#     ret = {
+#         'status': 'fail',
+#         'error': 'connection failed'
+#     }
+#
+#     _id = request.params.idx
+#     r = db.ment2ent.delete_one({'_id': ObjectId(_id)})
+#     if not r.acknowledged:
+#         ret['status'] = 'fail'
+#         ret['error'] = 'delete failed'
+#     else:
+#         ret['status'] = 'success'
+#         ret['error'] = ''
+#
+#     return json.dumps(ret, ensure_ascii=False)
 
 
 def main():

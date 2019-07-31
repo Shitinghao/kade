@@ -1,0 +1,7 @@
+{
+  "host": "10.141.208.26",
+  "port": 27017,
+  "db_name": "cndbpedia",
+  "db_user": "gdmdbuser",
+  "db_passwd": "6QEUI8dhnq"
+}

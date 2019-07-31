@@ -2,7 +2,7 @@
   <div class="triples">
     <el-row type="flex" class="row-bg" justify="center">
       <el-col :span="18">
-        <el-input type="text" :name="searchStr" v-model="searchStr" placeholder="搜索" suffix-icon="el-icon-search" style="width:80%" ></el-input>
+        <el-input type="text" :name="searchStr" v-model="searchStr" placeholder="搜索" suffix-icon="el-icon-search" style="width:80%" @keyup.enter.native="search_entity(null)"></el-input>
         <el-button @click="search_entity(null)">搜索</el-button>
 
         <div class="grid-content content_style">
@@ -104,11 +104,14 @@
             <div class="input_style">
               <label for="" style="float: left;"> Object:</label>
               <el-input type="text" v-model="inserts.oname" placeholder="" v-on:input="objectSuggestion(true)"></el-input>
-              <el-select v-model="inserts.oid" placeholder="实体id" @change="objectSelectEnt($event)">
-                <el-option v-for="item in inserts.options" :key="item.value"
-                           :label="item.label" :value="item.value">
-                </el-option>
-              </el-select>
+            </div>
+            <div class="input_style">
+              <label for="" style="float: left;"> 实体ID:</label>
+                <el-select v-model="inserts.oid" placeholder="实体id" @change="objectSelectEnt($event)" style="width: 100%;">
+                  <el-option v-for="item in inserts.options" :key="item.value"
+                             :label="item.label" :value="item.value" style="width: 100%">
+                  </el-option>
+                </el-select>
             </div>
             <span slot="footer" class="dialog-footer">
               <el-button @click="dialogVisible=false">取 消</el-button>
@@ -457,4 +460,7 @@ a {
     float: right;
     margin-bottom: 10px;
   }
+.el-select .el-input .el-select__caret{
+  margin-top: 10px;
+}
 </style>

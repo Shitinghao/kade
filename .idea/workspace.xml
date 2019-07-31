@@ -2,12 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b21652ef-0561-437d-b4ff-4f3a11252775" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lkade-front/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/lkade-front/src/App.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lkade-front/src/components/login.vue" beforeDir="false" afterPath="$PROJECT_DIR$/lkade-front/src/components/login.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lkade-front/src/components/nav.vue" beforeDir="false" afterPath="$PROJECT_DIR$/lkade-front/src/components/nav.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lkade-front/src/components/reg.vue" beforeDir="false" afterPath="$PROJECT_DIR$/lkade-front/src/components/reg.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lkade-front/src/router/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/lkade-front/src/router/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-front/src/components/Triples.vue" beforeDir="false" afterPath="$PROJECT_DIR$/lkade-front/src/components/Triples.vue" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -37,14 +32,14 @@
         <counts>
           <entry key="html" value="40" />
           <entry key="js" value="540" />
-          <entry key="vue" value="2256" />
+          <entry key="vue" value="2343" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="HTML" value="40" />
           <entry key="JavaScript" value="540" />
-          <entry key="Vue.js" value="2256" />
+          <entry key="Vue.js" value="2343" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -90,11 +85,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/lkade-front/src/components/Triples.vue">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="210">
-              <caret line="14" column="5" selection-start-line="14" selection-start-column="5" selection-end-line="14" selection-end-column="5" />
+            <state relative-caret-position="105">
+              <caret line="7" column="48" lean-forward="true" selection-start-line="7" selection-start-column="48" selection-end-line="7" selection-end-column="48" />
               <folding>
                 <element signature="n#style#0;n#el-input#0;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
                 <element signature="n#style#0;n#label#0;n#el-dialog#0;n#div#0;n#div#0;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
@@ -107,6 +102,9 @@
                 <element signature="n#style#0;n#label#0;n#div#0;n#el-dialog#0;n#div#0;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
                 <element signature="n#style#0;n#label#0;n#div#1;n#el-dialog#0;n#div#0;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
                 <element signature="n#style#0;n#label#0;n#div#2;n#el-dialog#0;n#div#0;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+                <element signature="n#style#0;n#label#0;n#div#3;n#el-dialog#0;n#div#0;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+                <element signature="n#style#0;n#el-select#0;n#div#0;n#div#3;n#el-dialog#0;n#div#0;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+                <element signature="n#style#0;n#el-option#0;n#el-select#0;n#div#3;n#el-dialog#0;n#div#0;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
                 <element signature="n#style#0;n#div#1;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
                 <element signature="n#style#0;n#el-table#0;n#div#2;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
               </folding>
@@ -170,11 +168,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lkade-front/src/components/login.vue">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="307">
-              <caret line="90" column="22" lean-forward="true" selection-start-line="90" selection-start-column="22" selection-end-line="90" selection-end-column="22" />
+            <state relative-caret-position="172">
+              <caret line="81" column="4" lean-forward="true" selection-start-line="81" selection-start-column="4" selection-end-line="81" selection-end-column="4" />
             </state>
           </provider>
         </entry>
@@ -217,12 +215,12 @@
         <option value="$PROJECT_DIR$/lkade-front/src/components/list.vue" />
         <option value="$PROJECT_DIR$/lkade-front/src/components/HelloWorld.vue" />
         <option value="$PROJECT_DIR$/lkade-front/src/main.js" />
-        <option value="$PROJECT_DIR$/lkade-front/src/components/Triples.vue" />
         <option value="$PROJECT_DIR$/lkade-front/src/components/reg.vue" />
         <option value="$PROJECT_DIR$/lkade-front/src/App.vue" />
         <option value="$PROJECT_DIR$/lkade-front/src/router/index.js" />
         <option value="$PROJECT_DIR$/lkade-front/src/components/nav.vue" />
         <option value="$PROJECT_DIR$/lkade-front/src/components/login.vue" />
+        <option value="$PROJECT_DIR$/lkade-front/src/components/Triples.vue" />
       </list>
     </option>
   </component>
@@ -241,7 +239,7 @@
     </packageJsonPaths>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="640" />
+    <option name="x" value="344" />
     <option name="y" value="23" />
     <option name="width" value="1865" />
     <option name="height" value="834" />
@@ -331,10 +329,10 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="25853000" />
+    <option name="totallyTimeSpent" value="27618000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="640" y="23" width="1865" height="834" extended-state="0" />
+    <frame x="344" y="23" width="1865" height="834" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.11713666" />
@@ -432,28 +430,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lkade-front/src/components/Triples.vue">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="14" column="5" selection-start-line="14" selection-start-column="5" selection-end-line="14" selection-end-column="5" />
-          <folding>
-            <element signature="n#style#0;n#el-input#0;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#label#0;n#el-dialog#0;n#div#0;n#div#0;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#el-table#0;n#el-dialog#1;n#div#0;n#div#0;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#el-table#0;n#div#0;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#0;n#div#1;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#el-table#0;n#div#1;n#div#1;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#label#0;n#el-dialog#0;n#div#1;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#label#1;n#el-dialog#0;n#div#1;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#label#0;n#div#0;n#el-dialog#0;n#div#0;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#label#0;n#div#1;n#el-dialog#0;n#div#0;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#label#0;n#div#2;n#el-dialog#0;n#div#0;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#1;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#el-table#0;n#div#2;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lkade-front/src/components/reg.vue">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="75">
@@ -526,8 +502,33 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/lkade-front/src/components/login.vue">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="307">
-          <caret line="90" column="22" lean-forward="true" selection-start-line="90" selection-start-column="22" selection-end-line="90" selection-end-column="22" />
+        <state relative-caret-position="172">
+          <caret line="81" column="4" lean-forward="true" selection-start-line="81" selection-start-column="4" selection-end-line="81" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lkade-front/src/components/Triples.vue">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" column="48" lean-forward="true" selection-start-line="7" selection-start-column="48" selection-end-line="7" selection-end-column="48" />
+          <folding>
+            <element signature="n#style#0;n#el-input#0;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#label#0;n#el-dialog#0;n#div#0;n#div#0;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#el-table#0;n#el-dialog#1;n#div#0;n#div#0;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#el-table#0;n#div#0;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#div#1;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#el-table#0;n#div#1;n#div#1;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#label#0;n#el-dialog#0;n#div#1;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#label#1;n#el-dialog#0;n#div#1;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#label#0;n#div#0;n#el-dialog#0;n#div#0;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#label#0;n#div#1;n#el-dialog#0;n#div#0;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#label#0;n#div#2;n#el-dialog#0;n#div#0;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#label#0;n#div#3;n#el-dialog#0;n#div#0;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#el-select#0;n#div#0;n#div#3;n#el-dialog#0;n#div#0;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#el-option#0;n#el-select#0;n#div#3;n#el-dialog#0;n#div#0;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#1;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#el-table#0;n#div#2;n#div#2;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

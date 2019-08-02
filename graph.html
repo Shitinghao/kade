@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <style>
+        svg{
+            box-shadow: 0 0 20px gray;
+        }
+        input{
+            border: none;
+            background: none;
+            outline: none;
+            /*display: none;*/
+        }
+        button{
+            background: none;
+            /*padding: 0;*/
+            border: none;
+            outline: none;
+            cursor: pointer;
+            /*border: 2px solid rgb(136,228,179);
+            border-radius: 5px;*/
+            /*display: none;*/
+        }
+        #edit{
+            position: absolute;
+            display: block;
+            top: 167.791px;
+            left: 198.037px;
+            border: 2px solid rgb(88,159,175);
+            background: white;
+            border-radius: 5px;
+            /*color: white;*/
+        }
+        #edit{
+            display: none;
+        }
+        /*svg{
+            position: relative;
+            top: 0;
+            left: 0;
+            z-index: 9;
+        }*/
+        svg circle{
+            position: relative;
+            z-index: 99;
+        }
+        /*svg line{
+            position: relative;
+            z-index: 9;
+        }*/
+        .forceLine{
+            z-index: 1;
+        }
+        .contInfoBox{
+            width: 20%;
+            height: 100%;
+            position: absolute;
+            right: 0;
+            box-shadow: 0 0 5px lightgrey;
+            display: none;
+            z-index: 99;
+        }
+        .contInfo{
+            /*margin: 20px;*/
+            /*border: 1px solid;*/
+            height: 100%;
+            padding: 20px;
+            padding-top:50px;
+
+        }
+    </style>
+
+</head>
+<body>
+
+<div id="edit">
+    <input type="text" value="">
+    <button>确定</button>
+</div>
+<div id="tool" style="position: absolute;top:10px;">
+    <button id="addNode"
+            data-toggle="modal"
+            data-target="#myModal"
+            style="border: 2px solid cadetblue;border-radius: 5px;">
+        增加节点
+    </button>
+    <button id="removeNode" style="border: 2px solid cadetblue;border-radius: 5px;">删除节点</button>
+    <button id="editNode" style="border: 2px solid cadetblue;border-radius: 5px;">编辑节点</button>
+
+</div>
+<div id="contInfoBox" class="contInfoBox">
+    <div style="position: absolute;top:10px;right:20px;">
+        <button type="button" id="close2" class="close"
+                aria-hidden="true">
+            &times;
+        </button>
+    </div>
+    <div class="contInfo">
+
+
+    </div>
+</div>
+
+<!--状态按钮-->
+<div style="position: absolute;top:10px;right:20px;">
+    <button type="button" id="close" class="close"
+            style="display: none;"
+            aria-hidden="true">
+        &times;
+    </button>
+</div>
+
+<!--modal-->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close"
+                        data-dismiss="modal"
+                        aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title"
+                    id="myModalLabel">添加</h4>
+            </div>
+            <div class="modal-body">
+                <form role="form">
+                    <div class="form-group">
+                        <div  style="margin: 10px;">
+                            <label for="name">节点名称</label>
+                            <input type="text" id="name"
+                                   class="form-control"
+                                   placeholder="请输入节点名称">
+                        </div>
+                        <div  style="margin: 10px;">
+                            <label for="name">关系描述</label>
+                            <input type="text" id="relation" class="form-control" placeholder="与目标节点之间的关系">
+                        </div>
+                        <div  style="margin: 10px;">
+                            <label for="name">目标节点</label>
+                            <input type="text" id="target" class="form-control"
+                                   placeholder="请输入界面中已有的节点名称">
+                        </div>
+                        <div  style="margin: 10px;">
+                            <label for="name">节点描述</label>
+                            <textarea type="text" id="nodeInfo" class="form-control" placeholder="文描述节点..."></textarea>
+                        </div>
+
+                    </div>
+                </form>
+                <div class="modal-footer">
+                    <button type="button"
+                            id="sub"
+                            class="btn btn-primary"
+                            data-dismiss="modal"
+                            style="background: rgb(136,228,179);">
+                        提交
+                    </button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+
+</body>
+<script src="jquery.min.js"></script>
+<!--<script src="https://cdn.bootcss.com/jquery/3.3.0/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/d3/4.12.0/d3.min.js"></script>-->
+<script src="http://d3js.org/d3.v3.min.js"></script>
+
+</script>
+<script>
+var width =window.innerWidth;
+var height =window.innerHeight;
+var nodes = [
+    {id:0,name:"哥尔·D·罗杰",info:"海贼王，罗杰海贼团船长，能倾听万物的声音。火拳艾斯的父亲，目前只提到掌握着霸王色“霸气”，拥有“古代兵器”之一“冥王”的能力。与白胡子、金狮子等等大海贼数次交手，唯一得到“one piece”的人，开创了“大海贼时代”，实力理当最强！"},
+    {id:1,name:"蒙奇·D·卡普",info:"海军英雄卡普，唯一能把罗杰数次逼入绝境之人。掌握三色霸气，三大将中的青稚曾是他的跟班，至于军衔是卡普本人不贪图名利，中将的军衔已经能够使他任意的出入任何场所，所以他力荐比自己更适合做元帅的老友战国。在大事件中尽管自己非常不情愿参战，可面对“不死鸟马尔克”时，仅一招就将其击倒！"},
+    {id:2,name:"爱德华·纽杰特",info:"四皇之一，白胡子海贼团船长，世界最强的男人，最接近海贼王的男人，罗杰的竞争对手，震震果实的能力拥有者，   并掌握了三色霸气。在大事件中身体不适的他，又意外的被“大涡蜘蛛·斯库亚德”刺重身躯，可是在这种状况之下面对三大将赤犬之时，一招就将其击倒，险些毙命，可见实力超乎寻常。"},
+    {id:3,name:"费舍尔·泰格",info:"太阳海贼团船长泰格，鱼人岛的大英雄。白胡子与冥王雷利的老友，和白胡子共同保护着鱼人岛，被七武海甚平及鱼人阿隆等人尊为大哥，捣毁了天龙人的圣地玛丽乔亚，解救了包括女帝波雅·汉库克和少女克尔拉在内的所有“奴隶”！"},
+    {id:4,name:"金狮子·史基",info:"飞天海贼，金狮子海贼舰队提督，二刀流剑士，飘飘果实能力拥有者。持有的两把名剑“樱十”和“枯木”。过去曾与罗杰和白胡子齐名，传说中使人闻风丧胆的大海贼。多次与罗杰交手。最后与卡普、战国激烈对决后战败，被囚禁在推进城，也是唯一一位从推进城成功逃脱出来的海贼。"},
+    {id:5,name:"西尔巴兹·雷利",info:"罗杰海贼团副船长，冥王雷利。可使用三色“霸气”，拥有“霸王色霸气的男人”。面对三大将黄猿之时，虽年纪与体力不如对方，可任在未发动霸气的情况下，持剑挡住了黄猿。大事件后收路飞为徒，传授路飞“霸气”正确使用方法。"},
+    {id:6,name:"蒙奇·D·多拉格",info:"革命军首领、世界上最恶的犯罪者，海军英雄卡普的儿子，路飞的父亲。拥有三色“霸气”之人，果实能力说法有两种：1.自然系.暴风果实能力拥有者。2.幻兽种.青龙果实能力拥有者。另外很有可能掌握者“古代兵器”之一“天王”能力拥有者。“天王”拥有毁灭世界的力量，掌握一切天气变化。曾从斯摩格手中放走路飞，理由是“有什么理由阻止一个男人奔向大海”！"},
+];
+var edges = [
+    {source:nodes[0],target:nodes[1],detail:"父节点为0"},
+//      {source:nodes[0],target:nodes[6],detail:"父节点为0"},
+//      {source:nodes[0],target:nodes[3],detail:"父节点为0"},
+    {source:nodes[1],target:nodes[4],detail:"父节点为1"},
+    {source:nodes[1],target:nodes[6],detail:"父节点为1"},
+    {source:nodes[1],target:nodes[3],detail:"父节点为1"},
+    {source:nodes[1],target:nodes[2],detail:"父节点为1"},
+    {source:nodes[1],target:nodes[5],detail:"父节点为1"},
+//      {source:nodes[5],target:nodes[0],detail:"父节点为5"},
+//      {source:nodes[2],target:nodes[3],detail:"父节点为2"},
+];
+
+var i = 0,
+    duration = 750,//过渡时间
+    root;
+
+console.log(nodes);
+console.log(edges);
+
+//  var color = d3.scale.category20();
+var svg = d3.select('body')
+    .append('svg')
+    .attr('width',width)
+    .attr('height',height);
+
+draw();
+var marker=svg.append("marker")   //添加一个marker标签来绘制箭头
+    .attr("id", "resolved")       //箭头id，用于其他标记进行引用时的url
+    .attr("markerUnits","userSpaceOnUse") //定义标记的坐标系统
+    .attr("viewBox", "0 -5 10 10")        //坐标系的区域
+    .attr("refX",26)                      //箭头坐标
+    .attr("refY", 0)
+    .attr("markerWidth", 12)              //标识的大小
+    .attr("markerHeight", 12)
+    .attr("orient", "auto")       //绘制方向，可设定为：auto（自动确认方向）和 角度值
+    .attr("stroke-width",3)       //箭头宽度
+    .append("path")
+    .attr("d", "M0,-5L10,0L0,5")  //绘制箭头
+    .attr('fill','rgb(88,159,175)');      //箭头颜色
+
+
+function draw(){
+
+    var force = d3.layout.force()
+        .nodes(nodes)            //设定节点数组
+        .links(edges)            //设定连线数组
+        .size([width,height])    //设定作用范围
+        .linkDistance(90)        //设定连线的距离
+        .charge(-1600)           //设定节点的电荷数
+
+    force.start();       //开启布局计算
+
+    //绘制连线
+    var updateLine = svg.selectAll(".forceLine")
+        .data(edges)
+    var enterLine = updateLine.enter();
+    var exitLine = updateLine.exit();
+
+    updateLine.attr({
+        'd': function(d) {return 'M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y},
+        "class":"forceLine",
+        "id":function(d,i){return 'edgepath'+ i;}
+    })
+        .attr("stroke",'rgb(136,228,179)')
+        .attr("stroke-width","1px")
+        .attr("marker-end", "url(#resolved)" );
+
+    enterLine.append("path")
+        .attr({
+            'd': function(d) {return 'M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y},
+            "class":"forceLine",
+            "id":function(d,i){return 'edgepath'+ i;}
+        })
+        .attr("stroke",'rgb(136,228,179)')
+        .attr("stroke-width","1px")
+        .attr("marker-end", "url(#resolved)" );
+    exitLine.remove();
+
+    //绘制连线上的文字
+    var updateLineText = svg.selectAll(".forcrLineText")
+        .data(edges)
+    var enterLineText = updateLineText.enter();
+    var exitLineText = updateLineText.exit();
+
+    updateLineText.attr({
+        'class':'forcrLineText',//定义该text标签class为forcrLineText
+        'id':function(d,i){return 'edgepath'+i;}, //设置id
+        'dx':60,           //在连线上的坐标
+        'dy':0
+    })
+
+    enterLineText.append("text")
+        .attr({
+            'class':'forcrLineText',//定义该text标签class为edgelabel
+            'id':function(d,i){return 'edgepath'+i;}, //设置id
+            'dx':60,           //在连线上的坐标
+            'dy':0
+        })
+        .append('textPath')    //设置文字路径
+        .attr('xlink:href',function(d,i) {return '#edgepath'+i})
+        .style("pointer-events", "none")
+        .attr("dy", ".35em") //将文字下移
+        .style("font-size", "10px")
+        .on("click",function(node){
+            updateLine.style("stroke-width",function(line){
+                if(line.source.name==node.name || line.target.name==node.name){
+                    return 3;//当连接时边+粗
+                }else{
+                    return 2;
+                }
+            });
+            //所有的圆圈边框
+            updateCircle.style('stroke-width',2);
+            //被选中的圆圈边框
+            d3.select(this).style('stroke-width',4);
+        })
+        .text(function(d){return d.detail;}); //绘制文字
+
+    exitLineText.remove();
+
+
+    //绘制节点
+    var updateCircle = svg.selectAll(".forceCircle")
+        .data(nodes)
+    var enterCircle = updateCircle.enter();
+    var exitCircle = updateCircle.exit();
+
+    updateCircle.attr("class","forceCircle")
+        .attr("r",20)
+        .style("fill",'rgb(136,228,179)')
+        .style("stroke",'rgb(88,159,175)')
+        .style("stroke-width",2)
+        .call(force.drag); //允许拖动
+
+    enterCircle.append("circle")
+        .attr("class","forceCircle")
+        .attr("r",20)
+        .style("fill",'rgb(136,228,179)')
+        .style("stroke",'rgb(88,159,175)')
+        .style("stroke-width",2)
+        .on('dblclick',function(d,node){
+            d.fixed = false;
+            var circle = d3.select(this);
+            if(removeNode == true){
+                removeNodeData(d,circle);
+            }
+
+        })
+        .on("click",function(node){
+            clickDown = true;
+            updateLine.style("stroke-width",function(line){
+                if(line.source.name==node.name || line.target.name==node.name){
+                    return 3;//当连接时边+粗
+                }else{
+                    return 1;
+                }
+            });
+            d3.select("#contInfoBox")
+                .style({
+                    "display":"block",
+                });
+            d3.select(".contInfo").html(
+                '<div><h4>'+node.name+'</h4>' + '<div style="text-indent:2em">'+ node.info +'</div></div>');
+            //所有的圆圈边框
+            updateCircle.style('stroke-width',2);
+            //被选中的圆圈边框
+            d3.select(this).style('stroke-width',4);
+            //选中状态之后按键删除
+            var circle = d3.select(this);
+            keydown(node,circle);
+
+        })
+        .on("mouseover",function(d){
+            //节点的tooltip
+            console.log(clickDown)
+            if(removeNode == false || clickDown == false ){
+                tooltip.html('<div style="border:1px solid cadetblue;border-radius: 5px;background: white;width: 300px;padding:0 0 4px 4px" ><h4>'+d.name+'</h4>' + '<div style="text-indent:2em">'+ d.info +'</div></div>')
+                    .style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY + 20) + "px")
+                    .style("opacity",1.0);
+            }else{
+                return false;
+            }
+
+
+        })
+        .on("mousemove",function(d){
+            tooltip.style("left", (d3.event.pageX) + "px")
+                .style("top", (d3.event.pageY + 20) + "px");
+
+        })
+        .on("mouseout",function(d){
+            tooltip.style("opacity",0.0);
+
+        })
+        .call(force.drag); //允许拖动
+    exitCircle.remove();
+
+
+
+    //绘制文字
+    var updateText = svg.selectAll(".forceText")
+        .data(nodes)
+    var enterText = updateText.enter();
+    var exitText = updateText.exit();
+
+    updateText.attr("class","forceText")
+        .attr("x",function(d){return d.x;})
+        .attr("y",function(d){return d.y;})
+        .attr("dy",".3em")
+        .attr("text-anchor", "middle")
+        .text(function(d){return d.name})
+
+    enterText.append("text")
+        .attr("class","forceText")
+        .attr("x",function(d){return d.x;})
+        .attr("y",function(d){return d.y;})
+        .attr("dy",".3em")
+        .attr("text-anchor", "middle")
+        .text(function(d){return d.name})
+        .on("click",function(d,i){
+            if(editNode == true){
+                $("#edit").css({
+                    "display":"block",
+                    "top":$(this).attr('y') + "px",
+                    "left":$(this).attr('x')+ "px",
+                });
+                $("#edit input").val(d.name);
+                //点击事件
+                $("#edit button").unbind('click');
+                $("#edit button").unbind('click').click(function(){
+                    //1、判断是否输入值
+                    if($('#edit input').val().length == 0){
+                        alert('请输入节点名称');
+                        return false;
+                    }else{
+                        //2.存在输入值
+                        //3.确认输入的值是不是存在
+                        //判断该节点名是不是已经存在
+                        var isNode = false;
+                        nodes.filter(function(d,i){
+                            if($('#edit input').val() == d.name){
+                                alert("该节点名已经存在");
+                                isNode = true;
+                            }else{
+                                index = null;
+                            }
+                        });
+                        //4.如果输入的值存在，则返回false
+                        if(isNode == true){
+                            return false;
+                        }else{
+                            //如果不存在，进行编辑替换
+                            d.name = $('#edit input').val();
+                            svg.selectAll(".forceText")
+                                .text(function(d){return d.name})
+                            $("#edit").css('display',"none");
+                        }
+
+                    }
+
+                });
+                //键盘事件
+                $("#edit input").unbind('keydown');
+                $("#edit input").unbind('keydown').keydown(function (event) {
+                    //内部判断start
+                    if (event.keyCode == 13) {
+                        if($('#edit input').val().length == 0){
+                            alert('请输入节点名称');
+                            return false;
+                        }else{
+                            //2.存在输入值
+                            //3.确认输入的值是不是存在
+                            //判断该节点名是不是已经存在
+                            var isNode = false;
+                            nodes.filter(function(d,i){
+                                if($('#edit input').val() == d.name){
+                                    alert("该节点名已经存在");
+                                    isNode = true;
+                                }else{
+                                    index = null;
+                                }
+                            });
+                            //4.如果输入的值存在，则返回false
+                            if(isNode == true){
+                                return false;
+                            }else{
+                                //如果不存在，进行编辑替换
+                                d.name = $('#edit input').val();
+                                svg.selectAll(".forceText")
+                                    .text(function(d){return d.name})
+                                $("#edit").css('display',"none");
+                            }
+
+                        }
+                    }
+                    //内部判断end
+                })
+            }
+        });
+
+    exitText.remove();
+
+//          svg.selectAll("g").exit().remove();
+    //tooltip
+    var tooltip = d3.select("body")
+        .append("div")//添加div并设置成透明
+        .attr("class","tooltip")
+        .style("opacity",0.0);
+
+    force.on("tick",function(){
+        // 跟新连线端点坐标
+//          updateLine.attr("x1",function(d){return d.source.x});
+//          updateLine.attr("y1",function(d){return d.source.y});
+//          updateLine.attr("x2",function(d){return d.target.x});
+//          updateLine.attr("y2",function(d){return d.target.y});
+
+//          edges_line.attr("x1",function(d){return d.source.x});
+
+        updateLine.attr('d', function(d) { //连接线
+            var path='M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y;
+            return path;
+        });
+
+        updateLineText.attr('transform',function(d,i){//连线上的文字
+            if (d.target.x<d.source.x){//判断起点和终点的位置，来让文字一直显示在线的上方且一直是正对用户
+                bbox = this.getBBox();//获取矩形空间,并且调整翻转中心。（因为svg与css中的翻转不同，具体区别可看http://www.zhangxinxu.com/wordpress/2015/10/understand-svg-transform/）
+                rx = bbox.x+bbox.width/2;
+                ry = bbox.y+bbox.height/2;
+                return 'rotate(180 '+rx+' '+ry+')';
+            }
+            else {
+                return 'rotate(0)';
+            }
+        })
+            .attr('dx',function(d,i){
+
+                return Math.sqrt(Math.pow(d.target.x-d.source.x,2)+Math.pow(d.target.y-d.source.y,2))/2-20;
+                //设置文字一直显示在线的中间
+
+            });
+
+        // 跟新节点坐标
+        updateCircle.attr("cx",function(d){return d.x});
+        updateCircle.attr("cy",function(d){return d.y});
+//          enterCircle.attr("cx",function(d){return d.x});
+//          enterCircle.attr("cy",function(d){return d.y});
+
+        // 更新节点的文字的坐标
+        updateText.attr("x",function(d){return d.x;});
+        updateText.attr("y",function(d){return d.y;});
+    });
+
+
+    //拖拽
+    var drag = force.drag()
+        .on("dragstart",function(d){d.fixed = true;})
+        .on("dragend",function(d,i){
+            d3.select(this).style({
+                "fill":'rgb(136,228,179)',
+                "stroke":'rgb(88,159,175)'
+            });
+//              d.fixed = false;
+        })
+        .on("drag",function(d){
+            d3.select(this).style("fill","rgb(136,228,179)");
+        });
+
+}
+
+//  function add(){
+//      nodes.push({name:Math.floor(Math.random()*100)});
+//      draw();
+//  }
+//声明全局变量
+var addNode =  false;
+var removeNode = false;
+var editNode = false;
+var clickDown = false;
+
+//增加节点
+
+d3.select("#sub")
+    .on("click",function(){
+        addNode = true;
+        removeNode = false;
+        editNode = false;
+        $("#close").css("display","block")
+        $("#editNode").css({
+            "background":"white"
+        })
+        $("#removeNode").css({
+            "background":"white"
+        })
+        $("#addNode").css({
+            "background":"yellow"
+        })
+        if(addNode==true){
+            var nodeName = $('#name').val();
+            var relation = $('#relation').val();
+            var nodeTarget = $('#target').val();
+            var nodeInfo = $('#nodeInfo').val();
+            var index = null;
+            var isNode = false;
+            //1.首先判断该数据名是否存在
+            nodes.filter(function(d,i){
+                if(nodeName == d.name){
+                    alert("该节点名已经存在");
+                    isNode = true;
+                }else{
+                    index = null;
+                }
+            });
+            //2.关系描述（可有可无：可以点击path进行添加关系）
+            if(relation.length !== 0){
+
+
+            }
+            if(nodeName.length !== 0 ){
+                if(isNode == true){
+                    return false;
+                }else{
+                    $.each(nodes, function(i,val) {
+                        if(nodeTarget == val.name){
+                            console.log(i);
+                            index = i;
+                            nodes.push({name:nodeName,info:nodeInfo});
+                            edges.push({
+                                source:nodes[nodes.length-1], //新增节点id
+                                target:nodes[index],//目标节点的id
+                                detail:relation,
+                            });
+                            draw();
+                        }
+                    });
+                }
+
+            }else{
+                alert("请输入节点名");
+            }
+
+        }
+
+    })
+remove();
+function remove(){
+    d3.select("#removeNode")
+        .on("click",function(e){
+            $("#close").css("display","block")
+            $("#editNode").css({
+                "background":"white"
+            })
+            $("#removeNode").css({
+                "background":"yellow"
+            })
+            $("#addNode").css({
+                "background":"white"
+            })
+            removeNode = true;
+            addNode =  false;
+            editNode = false;
+            alert("双击节点进行删除");
+        })
+}
+
+function removeNodeData(nodeName,circle){  //circle相当于是当前节点的click选中状态d3.select(this);
+    var clickNodeName = nodeName.name; //点击节点的名字
+    var clickNodeId = nodeName.id;     //点击节点的id
+    var removeEdge = [];               //要删除的边
+    var removeClickNode = [];          //要删除的节点
+    //通过删除数据，从而刷新页面的写法
+    $.each(nodes,function(i,val){
+        if(clickNodeName == val.name){
+            removeClickNode.push(val); //直接写在此处会出现删除调用的报错，删除过后会获取不到相关的name。
+        }
+    })
+    for (var i = 0; i < removeClickNode.length; i++) {
+        for (var j = 0; j < nodes.length; j++) {
+            if(removeClickNode[i].name == nodes[j].name ){
+                let indexs1 = nodes.indexOf(nodes[j]);
+                nodes.splice(indexs1,1);
+            }
+        }
+    }
+    $.each(edges, function(i,val) {
+        if(clickNodeId == val.source.id || clickNodeId == val.target.id){
+            removeEdge.push(val);
+        }
+    });
+    for (var i = 0; i < removeEdge.length; i++) {
+        for (var j = 0; j < edges.length; j++) {
+            if(removeEdge[i] === edges[j]){
+                edges.splice(j,1);
+            }
+        }
+    }
+    draw();
+
+    //这里是元素的删除只是简单地控制元素，
+//          circle.remove();
+//          d3.selectAll(".forceText").each(function(d,i){
+//              var temp = d.name;
+//              if(temp==clickNodeName){
+//                  d3.select(this).remove();
+//              }
+//          });
+//          d3.selectAll(".forceLine").each(function(e){
+//              if(e.source===nodeName||e.target===nodeName){
+//                  d3.select(this).remove();
+//              }
+//          })
+
+}
+
+
+edit();
+function edit(){
+    d3.select("#editNode")
+        .on("click",function(e){
+            $("#close").css("display","block")
+            $("#editNode").css({
+                "background":"yellow"
+            })
+            $("#removeNode").css({
+                "background":"white"
+            })
+            $("#addNode").css({
+                "background":"white"
+            })
+            removeNode = false;
+            addNode =  false;
+            editNode = true;
+            alert("单击节点文字进行编辑");
+
+        })
+}
+close();
+function close(){
+    d3.select("#close")
+        .on("click",function(e){
+            addNode =  false;
+            removeNode = false;
+            editNode = false;
+            $("#editNode").css({
+                "background":"white"
+            })
+            $("#removeNode").css({
+                "background":"white"
+            })
+            $("#addNode").css({
+                "background":"white"
+            })
+            $("#close").css("display","none")
+        })
+}
+
+function close2(){
+    d3.select("#close2")
+        .on("click",function(e){
+            $('.contInfoBox').css({
+                "display":"none",
+            })
+        })
+}
+close2();
+//拖拽事件 将拖拽封装，在想用的时候进行调用
+function drag(){
+    //拖拽代码
+}
+
+//   //键盘事件
+function keydown(node,circle){
+    console.log(node);
+    console.log(circle);
+    var id = node.id;
+    d3.select("body").on("keydown",function(event){
+        d3.event.preventDefault();
+//           if (d3.event.keyCode == 46) {
+//             removeNodeData(node,circle);
+//          }
+//          console.log(d3.event.keyCode);
+        switch(d3.event.keyCode){
+            case 46:
+                removeNodeData(node,circle);
+                break;
+            case 13:
+                nodes.push({id:nodes.length,name:'新节点',info:'默认信息'});
+                num = nodes.length - 1;
+                console.log(id)
+                edges.push({
+                    source:nodes[num],
+                    target:nodes[id],
+                    detail:"暂无信息",
+                });
+                draw();
+                break;
+
+        }
+    })
+}
+
+
+
+
+
+
+
+</script>
+
+</html>

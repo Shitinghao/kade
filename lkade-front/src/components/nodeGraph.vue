@@ -36,10 +36,18 @@
     <div id="edit" class="edit">
       <input type="text" name="" id="words" class="words" autofocus="autofocus" value=""/>
     </div>
-    <nav class="navbar navbar-inverse" style="background: rgb(113,118,244);border:none;">
-      <div class="container-fluid">
+    <nav class="navbar navbar-inverse" style="background: rgb(113,118,244);border:none;border-radius: 0px;">
+      <div class="container-fluid" style="margin-left: 85px;">
         <div class="navbar-header">
-          <a class="navbar-brand nodeGraph" href="#" style="color: white;">检索</a>
+          <span style="line-height:50px;margin-top: 20px;">
+             <router-link class="nav-item" to="/list">列表</router-link>
+             <router-link class="nav-item" to="/nodeGraph">nodeGraph</router-link>
+            <!--<span  class=" nodeGraph" href="#" style="color: white;">检索</span>-->
+            <!--<router-link class="nav-item nodeGraph" href="#" style="color: white;">检索</router-link>-->
+          </span>
+          <span>
+            <a class="navbar-brand nodeGraph" href="#" style="color: white;">检索</a>
+          </span>
         </div>
         <div style="margin-top:14px;">
           <button class="detailEdit btn btn-link btn-self">详情</button>

@@ -42,7 +42,7 @@ export default new Router({
       path: '/nodeGraph',
       name: 'nodeGraph',
       meta: {
-        keepAlive: true
+        keepAlive: false
       },
       component: nodeGraph
     },

@@ -18,6 +18,9 @@ export default {
     return {
       msg: 'Welcome to Kade'
     }
+  },
+  created(){
+    console.log($);
   }
 }
 </script>

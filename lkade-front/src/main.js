@@ -9,6 +9,9 @@ import Element from 'element-ui'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import VueRouter from 'vue-router'
+import $ from 'jquery'
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap/dist/js/bootstrap.js'
 
 Vue.use(VueRouter)
 Vue.use(Element)

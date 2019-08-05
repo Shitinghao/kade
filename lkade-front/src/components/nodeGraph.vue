@@ -7,25 +7,23 @@
     <!--<el-button @click="search_entity(null)">搜索</el-button>-->
     <!--&lt;!&ndash;内容展示区&ndash;&gt;-->
     <!--<el-container>-->
-      <!--<el-main>-->
-        <!--<el-row :gutter="20" style="border: 1px solid red;">-->
-          <!--&lt;!&ndash;图形控件区&ndash;&gt;-->
-          <!--<div style="border: 1px solid black;">-->
-            <!--&lt;!&ndash;<el-button type="text" @click="table = true">实体详情</el-button>&ndash;&gt;-->
-          <!--</div>-->
-
-          <!--&lt;!&ndash;graph&ndash;&gt;-->
-          <!--<div class="left_graph" ref="left_graph">-->
-          <!--</div>-->
-        <!--</el-row>-->
-      <!--</el-main>-->
+    <!--<el-main>-->
+    <!--<el-row :gutter="20" style="border: 1px solid red;">-->
+    <!--&lt;!&ndash;图形控件区&ndash;&gt;-->
+    <!--<div style="border: 1px solid black;">-->
+    <!--&lt;!&ndash;<el-button type="text" @click="table = true">实体详情</el-button>&ndash;&gt;-->
+    <!--</div>-->
+    <!--&lt;!&ndash;graph&ndash;&gt;-->
+    <!--<div class="left_graph" ref="left_graph">-->
+    <!--</div>-->
+    <!--</el-row>-->
+    <!--</el-main>-->
     <!--</el-container>-->
 
-    <el-drawer
-      title="我嵌套了表格!"
-      :visible.sync="table"
-      direction="rtl"
-      size="50%">
+    <el-drawer title="我嵌套了表格!"
+               :visible.sync="table"
+               direction="rtl"
+               size="50%">
       <el-table :data="gridData">
         <el-table-column property="date" label="日期" width="150"></el-table-column>
         <el-table-column property="name" label="姓名" width="200"></el-table-column>
@@ -34,7 +32,7 @@
     </el-drawer>
     <!--<el-card class="box-card">-->
     <div id="edit" class="edit">
-      <input type="text" name="" id="words" class="words" autofocus="autofocus" value=""/>
+      <input type="text" name="" id="words" class="words" autofocus="autofocus" value="" />
     </div>
     <nav class="navbar navbar-inverse" style="background: rgb(113,118,244);border:none;">
       <div class="container-fluid">
@@ -46,7 +44,7 @@
           <button class="detailEditModal btn btn-link btn-self" data-toggle="modal" data-target="#myModal">详情MODAL</button>
           <form action="" role="form" id="Search" style="display: none;">
             <div class="form-group">
-              <input type="text"  class="form-control input-sm" placeholder="请输入节点信息">
+              <input type="text" class="form-control input-sm" placeholder="请输入节点信息">
             </div>
           </form>
 
@@ -64,27 +62,26 @@
       <h5 class="text-right info_close" style="margin-bottom: 20px;"><a href="javascript:void(0)">close</a></h5>
       <h4 class="text-center">节点详情</h4>
       <div class="container" style="width: 100%;margin-top:20px;">
-        <form role="form" >
+        <form role="form">
           <div class="form-group">
-            <div  style="margin: 10px;">
+            <div style="margin: 10px;">
               <label for="name">节点名称</label>
               <input type="text" id="name"
                      class="form-control"
-                     disabled = "disabled"
+                     disabled="disabled"
                      placeholder="请输入节点名称">
             </div>
-            <div  style="margin: 10px;">
+            <div style="margin: 10px;">
               <label for="name">节点信息</label>
               <div id="tableBox" style="width: 100%;overflow: scroll;">
                 <table class="table">
                   <thead>
-                  <tr>
-                    <th>P</th>
-                    <th>O</th>
-                  </tr>
+                    <tr>
+                      <th>P</th>
+                      <th>O</th>
+                    </tr>
                   </thead>
-                  <tbody id="c_info">
-                  </tbody>
+                  <tbody id="c_info"></tbody>
                 </table>
               </div>
             </div>
@@ -94,8 +91,7 @@
         <div class="footer text-right">
           <button type="button"
                   id="editMore"
-                  class="btn btn-info"
-          >
+                  class="btn btn-info">
             更改
           </button>
           <button type="button"
@@ -111,6 +107,15 @@
 
     </div>
 
+    <el-dialog title="新增实体" :visible.sync="entDialogVisible" width="50%" :before-close="handleClose">
+      <label for="" style="float: left;">name:</label>
+      <el-input type="text" v-model="ent_inserts.ename" placeholder="请输入新增实体的名称"></el-input>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="entDialogVisible=false">取 消</el-button>
+        <el-button type="primary" @click="submitNewEntity">确 定</el-button>
+      </span>
+    </el-dialog>
+
     <!--modal-->
     <!-- 模态框（Modal） -->
     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -120,14 +125,14 @@
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
               &times;
             </button>
-            <h4 class="modal-title" id="myModalLabel">
-            </h4>
+            <h4 class="modal-title" id="myModalLabel"></h4>
           </div>
           <div class="modal-body">
             <div><span>P:</span><span contenteditable="true">O</span></div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+            <button type="button" class="btn btn-default" data-dismiss="modal">
+              关闭
             </button>
             <button type="button" class="btn" style="background: rgb(113,118,244);color: white;">
               提交更改
@@ -148,6 +153,7 @@
     name: "nodeGraph",
     data() {
       return {
+        api_host: "http://127.0.0.1:26551",
         table: false,
         dialog: false,
         loading: false,
@@ -170,8 +176,9 @@
         }],
         formLabelWidth: '80px',
         url1:'',
-        url2:''
-        
+        url2:'',
+        entDialogVisible: false,
+        ent_inserts: { ename: '' },
       };
 
     },
@@ -186,9 +193,61 @@
             }, 2000);
           })
           .catch(_ => {});
-      }
+      },
+      checkAndSubmit(_this, url, pparams, succ_func, fail_func) {
+        pparams["precheck"] = 1
+        _this.axios
+          .get(url, {
+            params: pparams
+          })
+          .then(function (response) {
+            if (response.data.status !== "ok") {
+              fail_func(response, _this)
+            } else {
+              delete pparams["precheck"];
+              _this.axios
+                .get(url, {
+                  params: pparams
+                })
+                .then(response => succ_func(response, _this))
+                .catch(function (error) {
+                  console.log(error);
+                });
+            }
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      },
+      submitNewEntity() {
+        let _this = this;
+        this.checkAndSubmit(this, this.api_host+'/api/new_entity', {
+              name: this.ent_inserts.ename
+          },
+          function (response, _this) {
+            let ename = _this.ent_inserts.ename;
+            _this.ent_inserts.ename = "";
+            _this.entDialogVisible = false;
+            _this.svg.classed('active', true);
+
+            // insert new node at point
+            let point = _this.ent_inserts.point;
+            let timest = _this.ent_inserts.timest;
+            let node = {id: ++_this.lastNodeId, idx:ename ,name:ename , reflexive: false, info:[{idx:"xx",o:"xx",p:"xx",s:"xx",timeStamp:timest}]};
+            node.x = point[0];
+            node.y = point[1];
+            _this.nodes.push(node);
+
+            _this.restart();
+          },
+          function (response, _this) {
+            _this.$message.error(response.data.msg);
+          }
+        )
+      },
     },
     mounted() {
+      var _this = this;
       var width = $('.left_graph').width(),
       height = window.innerHeight-79 ,
       colors = d3.scale.category10();
@@ -201,7 +260,6 @@
 
       var nodes = [];
       var links = [];
-      var lastNodeId = null;
       var searchWords = '复旦大学';
       var inputEdit = true;
       var state_r = false;
@@ -215,6 +273,11 @@
       var selected = '';//全局的node
       var edit_relation = false;
       var click_edit = false;
+      var api_host = _this.api_host;
+
+      _this.nodes = nodes;
+      _this.svg = svg;
+      _this.lastNodeId = null;
 
 // mouse event vars
       var selected_node = null,
@@ -231,8 +294,7 @@
 
       start();
       function start(){
-        // http://47.101.181.52:22222/api/cndbpedia/graph/query_entity?idx=%E5%A4%8D%E6%97%A6%E5%A4%A7%E5%AD%A6
-        $.get("http://47.101.181.52:22222/api/cndbpedia/graph/query_entity?idx="+ searchWords, function (response) {
+        $.get(api_host+"/api/graph/query_entity?idx="+ searchWords, function (response) {
           response = JSON.parse(response);
           console.log(response);
           if(response.status == "success"){
@@ -240,7 +302,7 @@
           }else{
             alert("查询失败，请重新输入查询词");
           }
-          lastNodeId = response.nodes.length-1;
+          _this.lastNodeId = response.nodes.length-1;
           $.each(response.nodes, function(i,val) {
             nodes.push({id:i,idx:val.idx,name:val.idx,reflexive:false,info:val.attr});
           });
@@ -261,7 +323,10 @@
             .size([width, height])
             .linkDistance(150)
             .charge(-500)
-            .on('tick', tick)
+            .on('tick', tick);
+
+          _this.force = force;
+
 // define arrow markers for graph links
           svg.append('svg:defs').append('svg:marker')
             .attr('id', 'end-arrow')
@@ -572,7 +637,7 @@
                   link[direction] = true;
                   links.push(link);
                   var data = {s:target.idx,p:'relation',o_id:source.idx,o_name:source.idx};
-                  $.post('http://47.101.181.52:22222/api/cndbpedia/graph/add_relation',data,function(result){
+                  $.post(api_host+'/api/graph/add_relation', data, function(result){
                     result = JSON.parse(result);
                     link.triple.idx = result.idx;
                   });
@@ -613,42 +678,23 @@
             circle.exit().remove();
 // set the graph in motion
             force.start();
-          }
-// svg.selectAll("g").call(drag());
+          } // function restart end
+
+          _this.restart = restart;
 
           function mousedown() {
             // prevent I-bar on drag
             //d3.event.preventDefault();
-
-            // because :active only works in WebKit?
-            svg.classed('active', true);
-            if(d3.event.ctrlKey || mousedown_node || mousedown_link || mousedown_link_text) return;
-
-            // insert new node at point
-            var point = d3.mouse(this),
-              a ='node'+ Math.random()*100,
-              times = new Date().getTime(),
-              node = {id: ++lastNodeId,idx:a ,name: a , reflexive: false,info:[{idx:"xx",o:"xx",p:"xx",s:"xx",timeStamp:times}]};
-            node.x = point[0];
-            node.y = point[1];
-            nodes.push(node);
-            $.post("http://47.101.181.52:22222/api/cndbpedia/graph/add_entity?idx="+ a , function (result) {
-              result = JSON.parse(result);
-              if(result.status == 'success'){
-                node.idx = result.idx;
-                return result;
-              }else{
-                alert('新增节点失败');
-              }
-            });
-            selected_node = nodes[node.id];
-            aboutInfo(selected_node);
-            restart();
+            if (d3.event.ctrlKey || mousedown_node || mousedown_link || mousedown_link_text) return;
+            var point = d3.mouse(this), timest = new Date().getTime();
+            _this.ent_inserts.point = point;
+            _this.ent_inserts.timest = timest;
+            _this.entDialogVisible = true;
+            return;
           }
 
           function mousemove() {
             if(!mousedown_node) return;
-
 
             // update drag line
             drag_line.attr('d', 'M' + mousedown_node.x + ',' + mousedown_node.y + 'L' + d3.mouse(this)[0] + ',' + d3.mouse(this)[1]);
@@ -705,20 +751,21 @@
                   nodes.splice(nodes.indexOf(selected_node), 1);
                   spliceLinksForNode(selected_node);
                   console.log(selected_node);
-                  // http://47.101.181.52:22222/api/cndbpedia/graph/query_entity?idx=
-                  $.post("http://47.101.181.52:22222/api/cndbpedia/graph/delete_entity?idx=",{idx:selected_node.idx},function(result){
+                  let ridx = selected_node.idx;
+                  $.post(api_host+"/api/graph/delete_entity", {idx:ridx}, function(result){
                     console.log(result);
+                    _this.$message("删除实体 " + ridx + " 成功");
                   })
                 } else if(selected_link) {
                   links.splice(links.indexOf(selected_link), 1);
-                  $.post("http://47.101.181.52:22222/api/cndbpedia/graph/delete_relation?idx=",{idx:selected_link.triple.idx},function(result){
+                  $.post(api_host+"/api/graph/delete_relation", {idx:selected_link.triple.idx},function(result){
                     console.log(result);
                   })
                 }
                 selected_link = null;
                 selected_node = null;
                 //删除节点后，将原本的id换成新的id因为原本的node的自带的索引会自动减少，而元素的id属性不会自动减少，所以需要重新刷新id，否则会报错
-                --lastNodeId;
+                --_this.lastNodeId;
                 restart();
                 $.each(nodes,function(i,val){
                   val.id = i;
@@ -732,7 +779,7 @@
 
                   var a ='node'+ Math.random()*100;
                   var times = new Date().getTime();
-                  var node = {id: ++lastNodeId,idx:a ,name: a , reflexive: false,info:[{idx:"xx",o:"xx",p:"xx",s:"xx",timeStamp:times}]};
+                  var node = {id: ++_this.lastNodeId,idx:a ,name: a , reflexive: false,info:[{idx:"xx",o:"xx",p:"xx",s:"xx",timeStamp:times}]};
                   nodes.push(node);
                   console.log(nodes);
                   // link = {source:target, target:source ,left: false, right: false,relation:'relation？',triple:{idx:'',o:target.idx,p:'relation?',s:source.idx}}
@@ -740,7 +787,7 @@
                   var link = {source:nodes[selected_node.id],target:nodes[node.id], left: false, right: true,relation:'relation？',triple:{idx:'',o:node.idx,p:'relation?',s:selected_node.idx}};
                   links.push(link);
                   console.log(link)
-                  $.post("http://47.101.181.52:22222/api/cndbpedia/graph/add_entity?idx="+a,function (result) {
+                  $.post(api_host+"/api/graph/add_entity?idx=" + a, function (result) {
                     result = JSON.parse(result);
                     console.log(result);
                     if(result.status == 'success'){
@@ -751,7 +798,7 @@
                         p:'关系？',
                         oid:nodes[node.id].idx,
                       }
-                      $.post('http://47.101.181.52:22222/api/cndbpedia/graph/add_relation',data,function(result){
+                      $.post(api_host+'/api/graph/add_relation',data,function(result){
                         result = JSON.parse(result);
                         if(result.status == 'success'){
                           link.idx = result.idx;
@@ -766,7 +813,7 @@
                         "left":selected_node.x+ "px",
                       });
                       $('#edit input').focus();
-                      ++lastNodeId;
+                      ++_this.lastNodeId;
                       return result.idx;
 
                     }else{
@@ -788,7 +835,7 @@
                   aboutInfo(selected);
                   console.log(nodes);
                   console.log(links);
-                  console.log(lastNodeId);
+                  console.log(_this.lastNodeId);
                   restart();
                 }
 
@@ -1075,7 +1122,7 @@
         console.log(searchWords);
         nodes = [];
         links = [];
-        lastNodeId = null;
+        _this.lastNodeId = null;
         d3.selectAll("svg>*").remove();
         start();
         $('.left_graph').removeClass('col-md-9');

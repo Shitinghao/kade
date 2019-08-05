@@ -268,7 +268,7 @@ export default {
         .then(function (response) {
           _this.search_entity(_this.nowsearchStr);
           _this.entDelDialogVisible = false;
-          _this.ent_dels.sid = "";
+          _this.ent_dels.eid = "";
         })
         .catch(function (error) {
           console.log(error);
@@ -337,7 +337,7 @@ export default {
         },
         function (response, _this) {
           _this.search_entity(_this.nowsearchStr);
-          _this.m2e_inserts.mention = "";
+          _this.ent_inserts.ename = "";
           _this.entDialogVisible = false;
         },
         function (response, _this) {

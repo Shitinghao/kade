@@ -34,7 +34,7 @@ def enable_cors(): response.headers['Access-Control-Allow-Origin'] = '*'
 #filehandler.suffix = "%Y%m%d.log"
 #logging.basicConfig(handlers=[filehandler], 
 #					format='%(asctime)s\t%(message)s',
-#                    datefmt='%Y-%m-%d %H:%M:%S',
+#					datefmt='%Y-%m-%d %H:%M:%S',
 #					level=logging.INFO)
 
 msg_badapikey = '{"status":"fail", "reason": "bad apikey"}'
@@ -43,11 +43,11 @@ msg_callus = '{"status":"fail", "reason": "您目前的APIkey无权限访问高�
 
 
 def T(xx):
-    if xx is None: return xx
-    xx['_id'] = str(xx['_id'])
-    for k, v in xx.items():
-        if isinstance(v, datetime): xx[k] = v.timestamp()
-    return xx
+	if xx is None: return xx
+	xx['_id'] = str(xx['_id'])
+	for k, v in xx.items():
+		if isinstance(v, datetime): xx[k] = v.timestamp()
+	return xx
 
 
 def DoPreCheck(params=[]): return 'ok', ''
@@ -215,9 +215,9 @@ def remove_ment2ent():
 	return json.dumps(ret, ensure_ascii = False)
 
 def RemoveEntity(ent):
-    db.ment2ent.delete_many({'e': ent})
-    db.triples.delete_many({'s': ent})
-    return db.entities.delete_one({'_id': ent})
+	db.ment2ent.delete_many({'e': ent})
+	db.triples.delete_many({'s': ent})
+	return db.entities.delete_one({'_id': ent})
 
 def EntityRelatedInfos(ent):
 	tris = []
@@ -231,7 +231,7 @@ def EntityRelatedInfos(ent):
 def info_remove_entity():
 	eid = request.params.id
 	ret = {'status':'ok','ret': EntityRelatedInfos(eid)}
-	return json.dumps(ret, ensure_ascii = False)
+	return json.dumps(ret, ensure_ascii=False)
 
 @app.route('/api/remove_entity', method = ['GET', 'POST'])
 def remove_entity():
@@ -240,7 +240,161 @@ def remove_entity():
 	del_result = RemoveEntity(eid)
 	status = 'ok' if del_result.acknowledged else 'error'
 	ret = {'status':status, 'ret': 'ok'}
-	return json.dumps(ret, ensure_ascii = False)
+	return json.dumps(ret, ensure_ascii=False)
+
+
+
+def entity2dict(entity):
+	#'timestamp': entity['timestamp'].timestamp(), 
+	return {'idx': entity['_id'], 'attr': []}
+
+def o_is_entity(o):
+	return re.match(r'<a href="(.*?)">(.*?)</a>', o) is not None
+
+def parse_href(o):
+	r = re.match(r'<a href="(.*?)">(.*?)</a>', o)
+	o_id, o_name = r.group(1), r.group(2)
+	return o_id, o_name
+
+def triple2dict(triple):
+	ret = {'idx': str(triple['_id']), 's': triple['s'], 'p': triple['p'], 'o': triple['o']}
+	return ret
+
+
+@app.route('/api/graph/query_entity', method=['GET', 'POST'])
+def query_entity():
+	ret = {
+		'status': 'fail',
+		'nodes': [],
+		'links': [],
+		'error': 'connection failed'
+	}
+	_id = request.params.idx
+	entity = db.entities.find_one({'_id': _id})
+	if entity is None:
+		ret['status'] = 'fail'
+		ret['error'] = 'entity not found: {}'.format(_id)
+	else:
+		ret['status'] = 'success'
+		ret['error'] = ''
+
+		d = {}
+		d[entity['_id']] = len(d)
+		ret['nodes'].append(entity2dict(entity))
+		for triple in db.triples.find({'s': entity['_id']}):
+			if o_is_entity(triple['o']):
+				o_id, _ = parse_href(triple['o'])
+				o = db.entities.find_one({'_id': o_id})
+				if o is None:
+					ret['status'] = 'fail'
+					ret['error'] = 'entity not found: {}'.format(o_id)
+				else:
+					if o['_id'] not in d:
+						d[o['_id']] = len(d)
+						ret['nodes'].append(entity2dict(o))
+					ret['links'].append({
+						'source': d[entity['_id']],
+						'target': d[o['_id']],
+						'triple': triple2dict(triple)
+					})
+
+	for index in range(len(ret['nodes'])):
+		node = ret['nodes'][index]
+		for triple in db.triples.find({'s': node['idx']}):
+			if not o_is_entity(triple['o']):
+				ret['nodes'][index]['attr'].append(triple2dict(triple))
+
+	return json.dumps(ret, ensure_ascii=False)
+
+# not used
+@app.route('/api/graph/add_entity', method=['GET', 'POST'])
+def add_entity():
+	ret = {
+		'status': 'fail',
+		'idx': '',
+		'error': 'connection failed'
+	}
+
+	_id = request.params.idx
+	if db.entities.find_one({'_id': _id}) is not None:
+		ret['status'] = 'fail'
+		ret['error'] = 'entity exists: {}'.format(_id)
+	else:
+		r = db.entities.insert_one({'_id': _id, 'timestamp': datetime.now()})
+		if not r.acknowledged:
+			ret['status'] = 'fail'
+			ret['error'] = 'insert failed'
+		else:
+			ret['status'] = 'success'
+			ret['idx'] = r.inserted_id
+			ret['error'] = ''
+
+	return json.dumps(ret, ensure_ascii=False)
+
+
+@app.route('/api/graph/delete_entity', method=['GET', 'POST'])
+def delete_entity():
+	ret = {'status': 'error', 'msg':'实体不存在'}
+	_id = request.params.idx
+	if _id == '': return json.dumps(ret, ensure_ascii=False)
+	del_result = RemoveEntity(_id)
+	status = 'ok' if del_result.acknowledged else 'error'
+	ret = {'status':status, 'msg': 'ok'}
+	return json.dumps(ret, ensure_ascii=False)
+
+
+def make_href(o_id, o_name):
+	return '<a href="{}">{}</a>'.format(o_id, o_name)
+
+@app.route('/api/graph/add_relation', method=['GET', 'POST'])
+def add_relation():
+	ret = {
+		'status': 'fail',
+		'idx': '',
+		'error': 'connection failed'
+	}
+
+	s = request.params.s
+	p = request.params.p
+	o_id = request.params.o_id
+	o_name = request.params.o_name
+	o = make_href(o_id, o_name)
+	if db.entities.find_one({'_id': s}) is None:
+		ret['status'] = 'fail'
+		ret['error'] = 'entity not found: {}'.format(s)
+	elif db.entities.find_one({'_id': o_id}) is None:
+		ret['status'] = 'fail'
+		ret['error'] = 'entity not found: {}'.format(o_id)
+	elif db.triples.find_one({'s': s, 'p': p, 'o': o}) is not None:
+		ret['status'] = 'fail'
+		ret['error'] = 'triple exists: {}-{}-{}'.format(s, p, o)
+	else:
+		r = db.triples.insert_one({'s': s, 'p': p, 'o': o, 'timestamp': datetime.now()})
+		if not r.acknowledged:
+			ret['status'] = 'fail'
+			ret['error'] = 'insert failed'
+		else:
+			ret['status'] = 'success'
+			ret['idx'] = str(r.inserted_id)
+			ret['error'] = ''
+	return json.dumps(ret, ensure_ascii=False)
+
+@app.route('/api/graph/delete_relation', method=['GET', 'POST'])
+def delete_relation():
+	ret = {
+		'status': 'fail',
+		'error': 'connection failed'
+	}
+	_id = request.params.idx
+	r = db.triples.delete_one({'_id': ObjectId(_id)})
+	if not r.acknowledged:
+		ret['status'] = 'fail'
+		ret['error'] = 'delete failed'
+	else:
+		ret['status'] = 'success'
+		ret['error'] = ''
+	return json.dumps(ret, ensure_ascii=False)
+
 
 @app.route('/', method='GET')
 def index():

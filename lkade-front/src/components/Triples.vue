@@ -154,10 +154,12 @@
 </template>
 
 <script>
+import global from './nav.vue'
 export default {
   name: 'Triples',
   data () {
     return {
+      api_host: global.api_host,
       searchStr: '',
       entityData: [],
       tripleData: [],
@@ -179,7 +181,7 @@ export default {
       if (queryStr !== null) this.searchStr = queryStr;
       let _this = this;
       this.axios
-        .get('http://127.0.0.1:26551/api/triples', {
+        .get(this.api_host+'/api/triples', {
           params: {
             entity: this.searchStr
           }
@@ -205,6 +207,7 @@ export default {
               eid: x.eid,
               ename: x.ename
             });
+            global.main_entity = x.eid;
             _this.inserts = { sid: x.eid, p: '', oid: '', old_tid: '' }
           });
         })

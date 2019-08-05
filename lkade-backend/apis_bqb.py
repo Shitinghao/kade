@@ -5,7 +5,7 @@ from bson import ObjectId
 from datetime import datetime
 from bottle import request, response
 
-from .utils import connect_db, entity2dict, triple2dict, mention2dict, o_is_entity, parse_href, make_href
+from utils import connect_db, entity2dict, triple2dict, mention2dict, o_is_entity, parse_href, make_href
 
 app = bottle.app()
 version = '1'

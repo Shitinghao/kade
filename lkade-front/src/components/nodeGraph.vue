@@ -38,8 +38,8 @@
       <div class="container-fluid" style="margin-left: 85px;">
         <div class="navbar-header">
           <span style="line-height:50px;margin-top: 20px;">
-             <router-link class="nav-item" to="/list">列表</router-link>
-             <router-link class="nav-item" to="/nodeGraph">nodeGraph</router-link>
+            <router-link class="nav-item" to="/list">列表</router-link>
+            <router-link class="nav-item" to="/nodeGraph">nodeGraph</router-link>
             <!--<span  class=" nodeGraph" href="#" style="color: white;">检索</span>-->
             <!--<router-link class="nav-item nodeGraph" href="#" style="color: white;">检索</router-link>-->
           </span>
@@ -124,6 +124,17 @@
       </span>
     </el-dialog>
 
+    <el-dialog title="显示实体" :visible.sync="showEntDialogVisible" width="50%" :before-close="handleClose">
+      <label for="" style="float: left;">name:</label>
+      <el-autocomplete v-model="ent_select.eid"
+                       :fetch-suggestions="objectSuggestion"
+                       placeholder="请输入需要显示实体的名称"></el-autocomplete>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="showEntDialogVisible=false">取 消</el-button>
+        <el-button type="primary" @click="showEntity">确 定</el-button>
+      </span>
+    </el-dialog>
+
     <!--modal-->
     <!-- 模态框（Modal） -->
     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -156,12 +167,13 @@
 
 <script>
   import * as d3 from 'd3'
+  import global from './nav.vue'
   // import
   export default {
     name: "nodeGraph",
     data() {
       return {
-        api_host: "http://127.0.0.1:26551",
+        api_host: global.api_host,
         table: false,
         dialog: false,
         loading: false,
@@ -184,14 +196,17 @@
         }],
         formLabelWidth: '80px',
         url1:'',
-        url2:'',
+        url2: '',
+        showEntDialogVisible: false,
         entDialogVisible: false,
+        ent_select: { ename:"", eid: "", options:[]},
         ent_inserts: { ename: '' },
       };
 
     },
     methods: {
       handleClose(done) {
+        return done();
         this.$confirm('确定要提交表单吗？')
           .then(_ => {
             this.loading = true;
@@ -241,7 +256,7 @@
             // insert new node at point
             let point = _this.ent_inserts.point;
             let timest = _this.ent_inserts.timest;
-            let node = {id: ++_this.lastNodeId, idx:ename ,name:ename , reflexive: false, info:[{idx:"xx",o:"xx",p:"xx",s:"xx",timeStamp:timest}]};
+            let node = {id: ++_this.lastNodeId, idx:ename ,name:ename, reflexive: false, info:[{idx:"xx",o:"xx",p:"xx",s:"xx",timeStamp:timest}]};
             node.x = point[0];
             node.y = point[1];
             _this.nodes.push(node);
@@ -253,6 +268,36 @@
           }
         )
       },
+
+      objectSuggestion(query, cb) {
+        let _this = this;
+        this.axios
+          .get(_this.api_host+'/api/ment2ent', {
+            params: {
+              q: query,
+              no_other_m: 1
+            }
+          })
+          .then(function (response) {
+            let ents = response.data.ret;
+            let ent_select = JSON.parse(JSON.stringify(_this.ent_select)); //deepcopy
+            ent_select.options = [];
+            ents.forEach(function (x) {
+              ent_select.options.push({
+                link: x.ename,
+                value: x.eid
+              });
+            });
+            _this.ent_select = ent_select.options;
+            cb(ent_select.options);
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      },
+      showEntity() {
+        console.log(this.ent_select.eid);
+      }
     },
     mounted() {
       var _this = this;
@@ -268,7 +313,7 @@
 
       var nodes = [];
       var links = [];
-      var searchWords = '复旦大学';
+      var searchWords = global.main_entity;
       var inputEdit = true;
       var state_r = false;
       var state_l = false;
@@ -312,7 +357,7 @@
           }
           _this.lastNodeId = response.nodes.length-1;
           $.each(response.nodes, function(i,val) {
-            nodes.push({id:i,idx:val.idx,name:val.idx,reflexive:false,info:val.attr});
+            nodes.push({id:i, idx:val.idx, name:val.idx, reflexive:false, info:val.attr});
           });
           $.each(response.links,function(i,val){
             var id = val.source;
@@ -445,6 +490,8 @@
                 mousedown_link = d;
                 if(mousedown_link === selected_link) selected_link = null;
                 else selected_link = mousedown_link;
+                console.log("select link");
+                console.log(selected_link);
                 selected_node = null;
                 restart();
               });
@@ -452,11 +499,11 @@
 // remove old links
             path.exit().remove();
 
-//2.path text
-// path text(link) group
+      //2.path text
+      // path text(link) group
             path_text = path_text.data(links);
 
-// update exite path text
+        // update exite path text
             path_text.attr({
               'class':'edgelabel',
               'id':function(d,i){return 'edgepath'+i;},
@@ -464,7 +511,7 @@
               'dy':0
             });
 
-// add new path text
+        // add new path text
             path_text.enter().append("text")
               .attr({
                 'class':'edgelabel',
@@ -501,10 +548,13 @@
                 // console.log(mousedown_link_text);
                 if(mousedown_link_text === selected_link_text) selected_link_text = null;
                 else selected_link_text = mousedown_link_text;
+
+                console.log("select link 2");
+                console.log(selected_link_text);
+
                 selected_node = null;
                 $("#words").focus();
                 restart();
-
               })
               .on('mouseup',function (d) {
                 $("#edit input").focus();
@@ -702,7 +752,7 @@
             var point = d3.mouse(this), timest = new Date().getTime();
             _this.ent_inserts.point = point;
             _this.ent_inserts.timest = timest;
-            _this.entDialogVisible = true;
+            _this.showEntDialogVisible = true;
             return;
           }
 
@@ -965,9 +1015,6 @@
             }
           }
 
-
-
-
 // app starts here
           svg.on('mousedown', mousedown)
             .on('mousemove', mousemove)
@@ -1058,7 +1105,7 @@
         });
         //排序
         newresultdata.sort(sortNumber);
-        $.each(newresultdata,function (i,val) {
+        $.each(newresultdata, function (i,val) {
           newResult.push(val.data);
         })
         //console.log(newResult);
@@ -1180,6 +1227,7 @@
             // }
           });
           //判断是否是便捷节点的状态
+
           if(edit_relation==true){
             //选择所有的连线文字，重新绘制文字，并恢复修改后为黑色字体
             svg.selectAll('.ptext')
@@ -1188,7 +1236,7 @@
             //发送数据请求
             console.log(selected.idx);
             console.log(selected.relation);
-            $.post('http://47.101.181.52:23333/api/update_rel_triple',{'idx':selected.idx,'new_p':selected.relation,},function(result){
+            $.post(api_host+'/api/graph/update_triple_p',{'idx':selected_link_text.triple.idx,'new_p':selected.relation},function(result){
               console.log(result);
             });
             //修改完成之后再次将修改节点的状态设置为false

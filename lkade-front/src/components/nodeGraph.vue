@@ -135,6 +135,25 @@
       </span>
     </el-dialog>
 
+    <el-dialog title="新增关系" :visible.sync="dialogVisible" width="50%" :before-close="handleClose">
+      <div class="input_style">
+        <label for="" style="float: left;">Subject: </label>
+        <el-input type="text" v-model="inserts.sid" placeholder="" :disabled="true"></el-input>
+      </div>
+      <div class="input_style">
+        <label for="" style="float: left;"> Predicate:</label>
+        <el-input type="text" v-model="inserts.p" placeholder=""></el-input>
+      </div>
+      <div class="input_style">
+        <label for="" style="float: left;"> Object:</label>
+        <el-input type="text" v-model="inserts.oid" placeholder="" :disabled="true"></el-input>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible=false">取 消</el-button>
+        <el-button type="primary" @click="submitNewTriple">确 定</el-button>
+      </span>
+    </el-dialog>
+
     <!--modal-->
     <!-- 模态框（Modal） -->
     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -199,8 +218,11 @@
         url2: '',
         showEntDialogVisible: false,
         entDialogVisible: false,
+        dialogVisible: false,
         ent_select: { ename:"", eid: "", options:[]},
         ent_inserts: { ename: '' },
+        inserts: { sid: '', p: '', oid: '', oname: '', old_tid: '' },
+        searchWords: global.main_entity,
       };
 
     },
@@ -280,24 +302,79 @@
           })
           .then(function (response) {
             let ents = response.data.ret;
-            let ent_select = JSON.parse(JSON.stringify(_this.ent_select)); //deepcopy
-            ent_select.options = [];
+            let options = [];
             ents.forEach(function (x) {
-              ent_select.options.push({
+              options.push({
                 link: x.ename,
                 value: x.eid
               });
             });
-            _this.ent_select = ent_select.options;
-            cb(ent_select.options);
+            cb(options);
           })
           .catch(function (error) {
             console.log(error);
           });
       },
       showEntity() {
-        console.log(this.ent_select.eid);
-      }
+        let _this = this;
+        let point = _this.ent_select.point;
+        let timest = _this.ent_select.timest;
+        let ename = _this.ent_select.eid;
+        if (_this.nodes.length == 0) {
+          _this.searchWords = ename;
+          _this.start();
+          _this.showEntDialogVisible = false;
+          return;
+        }
+        this.axios
+          .get(_this.api_host+"/api/graph/query_entity", {
+            params: {
+              idx: ename,
+              no_expand: 1
+            }
+          })
+          .then(function (response) {
+            $.each(response.data.nodes, function(i,val) {
+              let node = { id: ++_this.lastNodeId, idx: val.idx, name: val.idx, reflexive: false, info: val.attr };
+              node.x = point[0];
+              node.y = point[1];
+              _this.nodes.push(node);
+            });
+            _this.showEntDialogVisible = false;
+            _this.restart();
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      },
+      submitNewTriple() {
+        let _this = this;
+        this.checkAndSubmit(this, this.api_host+'/api/new_triple', {
+            sid: this.inserts.sid,
+            p: this.inserts.p,
+            oid: this.inserts.oid,
+            oname: this.inserts.oid,
+            old_tid: this.inserts.old_tid
+          },
+          function (response, _this) {
+            //if (_this.inserts.old_tid !== "") {
+            //  _this.remove_triple(_this.inserts.old_tid);
+            //  _this.inserts.old_tid = "";
+            //}
+            console.log(response);
+            _this.inserts.link.triple.idx = response.data.eid;
+            _this.inserts.link.relation = _this.inserts.p;
+            _this.inserts.link.triple.p = _this.inserts.p;
+            _this.links.push(_this.inserts.link);
+            _this.inserts = { sid: '', p: '', oid: '', old_tid: '' };
+            _this.dialogVisible = false;
+            _this.restart();
+          },
+          function (response, _this) {
+            _this.$message.error(response.data.msg);
+          }
+        );
+    },
     },
     mounted() {
       var _this = this;
@@ -313,7 +390,6 @@
 
       var nodes = [];
       var links = [];
-      var searchWords = global.main_entity;
       var inputEdit = true;
       var state_r = false;
       var state_l = false;
@@ -329,10 +405,51 @@
       var api_host = _this.api_host;
 
       _this.nodes = nodes;
+      _this.links = links;
       _this.svg = svg;
       _this.lastNodeId = null;
 
-// mouse event vars
+      
+      // line displayed when dragging new nodes
+      var drag_line = svg.append('svg:path')
+        .attr('class', 'link dragline hidden')
+        .attr('d', 'M0,0L0,0');
+
+      
+      // handles to link and node element groups
+      var path = svg.append('svg:g').selectAll('path'),
+        path_text = svg.append("g").selectAll(".edgelabel"),
+        circle = svg.append('svg:g').selectAll('g');
+
+      
+          // define arrow markers for graph links
+        svg.append('svg:defs').append('svg:marker')
+          .attr('id', 'end-arrow')
+          .attr('viewBox', '0 -5 10 10')
+          .attr('refX', 6)
+          .attr('markerWidth', 5)
+          .attr('markerHeight', 5)
+          .attr('orient', 'auto')
+          .append('svg:path')
+          .attr('d', 'M0,-5L10,0L0,5')
+          // .attr('fill', 'rgb(113,118,244)');
+          .attr('fill','lavender');
+
+        svg.append('svg:defs').append('svg:marker')
+          .attr('id', 'start-arrow')
+          .attr('viewBox', '0 -5 10 10')
+          .attr('refX', 4)
+          .attr('markerWidth', 5)
+          .attr('markerHeight', 5)
+          .attr('orient', 'auto')
+          .append('svg:path')
+          .attr('d', 'M10,-5L0,0L10,5')
+          .attr('fill','lavender');
+        // .attr('fill', 'rgb(113,118,244)');
+
+
+
+      // mouse event vars
       var selected_node = null,
         selected_link = null,
         selected_link_text = null,
@@ -343,33 +460,322 @@
       var tooltip = d3.select("body")
         .append("div")//添加div并设置成透明
         .attr("class","tooltip")
-        .style("opacity",0.0);
+        .style("opacity", 0.0);
+
+      
+      function restart() {
+        let force = _this.force;
+        if (!force) return;
+        // 1.path
+        // path (link) group
+        path = path.data(links);
+
+        // update existing links
+        path.classed('selected', function(d) {
+          return d === selected_link;
+        })
+          .style('marker-start', function(d) {
+            return d.left ? 'url(#start-arrow)' : '';
+          })
+          .style('marker-end', function(d) {
+            return d.right ? 'url(#end-arrow)' : '';
+          });
+        // add new links
+        path.enter().append('svg:path')
+          .attr('class', 'link')
+          .attr('id',function(d,i){return 'edgepath'+ i;})
+          .classed('selected', function(d) {
+            return d === selected_link;
+          })
+          .style('marker-start', function(d) {
+            return d.left ? 'url(#start-arrow)' : '';
+          })
+          .style('marker-end', function(d) {
+            return d.right ? 'url(#end-arrow)' : '';
+          })
+          .style({
+            'stroke':'lavender',
+            'stroke-width': '2px',
+            // ' cursor': 'default'
+          })
+          .on('mousedown', function(d) {
+            if(d3.event.ctrlKey) return;
+            // select link
+            mousedown_link = d;
+            if(mousedown_link === selected_link) selected_link = null;
+            else selected_link = mousedown_link;
+            console.log("select link");
+            console.log(selected_link);
+            selected_node = null;
+            restart();
+          });
+
+        // remove old links
+        path.exit().remove();
+
+        //2.path text
+        // path text(link) group
+        path_text = path_text.data(links);
+
+        // update exite path text
+        path_text.attr({
+          'class':'edgelabel',
+          'id':function(d,i){return 'edgepath'+i;},
+          'dx':50,
+          'dy':0
+        });
+
+        // add new path text
+        path_text.enter().append("text")
+          .attr({
+            'class':'edgelabel',
+            'id':function(d,i){return 'edgepath'+ i;},
+            'dx':50,
+            'dy':0
+          })
+          .append('textPath')
+          .attr('xlink:href',function(d,i) {return '#edgepath'+i})
+          .style("pointer-events", "auto")
+          .attr('class','ptext')
+          .text(function(d){return d.relation;})
+          .on('mousedown',function(d){
+            if(d3.event.ctrlKey) return;
+            //设置样式与数据
+            mousedown_link_text = d;
+            selected = mousedown_link_text;
+            $("#edit").css('display','block');
+            // $("#words").attr('autofocus','autofocus');
+            // console.log($("#words"));
+            $('.detailEdit').css('display','none');
+            $("#words").val(d.relation);
+
+            edit_relation = true;
+            svg.selectAll('.ptext')
+              .style('fill','black')
+            d3.select(this).style('fill','blue');
+            $("#edit").css({
+              'display':'inline-block',
+              "top":mousedown_link_text.target.y + "px",
+              "left":mousedown_link_text.target.x + "px",
+            });
+
+            // console.log(mousedown_link_text);
+            if(mousedown_link_text === selected_link_text) selected_link_text = null;
+            else selected_link_text = mousedown_link_text;
+
+            console.log("select link 2");
+            console.log(selected_link_text);
+
+            selected_node = null;
+            $("#words").focus();
+            restart();
+          })
+          .on('mouseup',function (d) {
+            $("#edit input").focus();
+          });
+        // remove old pathText
+        path_text.exit().remove();
+
+        //3.circle
+        // circle (node) group
+        // NB: the function arg is crucial here! nodes are known by id, not by index!
+        circle = circle.data(nodes, function(d) { return d.id; });
+
+        // update existing nodes (reflexive & selected visual states)
+        circle.selectAll('circle')
+          .style('fill', function(d) {
+            return (d === selected_node) ? d3.rgb(150,215,250).brighter().toString() : d3.rgb(150,215,250);
+          })
+          .classed('reflexive', function(d) { return d.reflexive; });
+
+        // add new nodes
+        var g = circle.enter().append('svg:g');
+
+        g.append('svg:circle')
+          .attr('class', 'node')
+          .attr('r', 12)
+          //      .attr('r', 8)
+          .style('fill', function(d) {
+            return (d === selected_node) ? d3.rgb(150,215,250).brighter().toString() : d3.rgb(150,215,250);
+          })
+          .classed('reflexive', function(d) { return d.reflexive; })
+          .on('mouseover', function(d) {
+            var html = '';
+            var desc = '';
+            if(d.info.length == 0){
+              html = '暂无信息';
+            }else if(d.info == '暂无信息'){
+              html = '暂无信息';
+            }else{
+              $.each(d.info,function(i,val){
+                if(val.p == 'DESC'){
+                  if(val.o.length>100){
+                    val.o = val.o.substr(0,50)+'...'
+                  }
+                }
+                html += '<div><span style="color:blue;">'+val.p+':</span><span>'+val.o+'</span></div>';
+              })
+            }
+
+            tooltip.html('<div style="border:1px solid rgb(113,118,244);border-radius: 5px;background: white;width: 400px;padding:0 0 4px 4px" ><h4>'+d.name+'</h4>' + '<div style="text-indent:2em">'+ html +'</div></div>')
+              .style("left", (d3.event.pageX) + "px")
+              .style("top", (d3.event.pageY + 10) + "px")
+              .style("display", 'block')
+              .style("opacity",1.0);
+
+            if(!mousedown_node || d === mousedown_node) return;
+            // enlarge target node
+            d3.select(this).attr('transform', 'scale(1.1)');
+          })
+          .on('mouseout', function(d) {
+            tooltip.style("opacity",0.0);
+            tooltip.style('display','none');
+            if(!mousedown_node || d === mousedown_node) return;
+            // unenlarge target node
+            d3.select(this).attr('transform', '');
+          })
+          .on('mousedown', function(d) {
+            if(d3.event.ctrlKey) return;
+            // select node
+            mousedown_node = d;
+
+            // d.fixed = false;
+            if(mousedown_node === selected_node) selected_node = null;
+            else selected_node = mousedown_node;
+            selected_link = null;
+            //显示info信息
+            aboutInfo(selected_node);
+            //选中节点后，调用SELECT（）计算4个象限
+            //findnode
+            if(selected_node == null ){
+              //newResult = findNode(selected_node);
+              //i = 0;
+            }else{
+              //关于space的节点遍历
+              newResult = findNode(selected_node);
+              // SELECT(selected_node);
+              i = 0;
+            }
+
+            // reposition drag line
+            drag_line
+              .style('marker-end', 'url(#end-arrow)')
+              .style({
+                'stroke':'lavender',
+                'stroke-width': '2px',
+                // ' cursor': 'default'
+              })
+              .classed('hidden', false)
+              .attr('d', 'M' + mousedown_node.x + ',' + mousedown_node.y + 'L' + mousedown_node.x + ',' + mousedown_node.y);
+            restart();
+          })
+          .on('mouseup', function(d) {  // 拖动新增关系
+            if(!mousedown_node) return;
+            //因为在mousedown事件比up事件靠前，所以，将focus事件写在mousedown里面不生效（不会执行），mousedown > focus > mouseup > click
+            $("#edit input").focus();
+            // needed by FF
+            drag_line
+              .classed('hidden', true)
+              .style('marker-end', '');
+
+            // check for drag-to-self
+            mouseup_node = d;
+            if(mouseup_node === mousedown_node) { resetMouseVars(); return; }
+
+            // unenlarge target node
+            d3.select(this).attr('transform', '');
+
+            // add link to graph (update if exists)
+            // NB: links are strictly source < target; arrows separately specified by booleans
+            var source, target, direction;
+            if(mousedown_node.id < mouseup_node.id) {
+              source = mousedown_node;
+              target = mouseup_node;
+              direction = 'right';
+            } else {
+              source = mouseup_node;
+              target = mousedown_node;
+              direction = 'left';
+            }
+
+            var link;
+            link = links.filter(function(l) {
+              return (l.source === source && l.target === target);
+            })[0];
+            console.log(link);
+
+            console.log(source);
+            console.log(target);
+            _this.inserts.sid = source.idx;
+            _this.inserts.p = "";
+            _this.inserts.oid = target.idx;
+            _this.dialogVisible = true;
+
+            link = {
+              source: source, target: target, left: false, right: false,
+              relation: '', triple: { idx: '', o: source.idx, p: '', s: target.idx }
+            }
+            link[direction] = true;
+            _this.inserts.link = link;
+          });
+
+        // show node IDs
+        g.append('svg:text')
+          .attr('x', 0)
+          // .attr('y', 4)//-16
+          .attr('y',function(d){
+            if(d.name == nodes[0].name){
+              return 5
+            }else{
+              return -16
+            }
+          })
+          .attr('class', 'id')
+          .style({
+            'fill': function (d) {
+              if(d.name == nodes[0].name){
+                return 'black'
+              }else{
+                return 'rgb(125,129,128)'
+              }
+            }
+          })
+          .text(function(d) {return  d.name;});
+
+        // remove old nodes
+        circle.exit().remove();
+        // set the graph in motion
+        force.start();
+      } // function restart end
+
+      _this.restart = restart;
 
       start();
-      function start(){
-        $.get(api_host+"/api/graph/query_entity?idx="+ searchWords, function (response) {
+      function start() {
+        $.get(api_host+"/api/graph/query_entity?idx="+ _this.searchWords, function (response) {
           response = JSON.parse(response);
           console.log(response);
           if(response.status == "success"){
             console.log("检索成功");
-          }else{
-            alert("查询失败，请重新输入查询词");
+          } else {
+            if (_this.searchWords !== "")
+              _this.$message.error("查询失败，请重新输入查询词");
           }
-          _this.lastNodeId = response.nodes.length-1;
+          _this.lastNodeId = response.nodes.length - 1;
           $.each(response.nodes, function(i,val) {
             nodes.push({id:i, idx:val.idx, name:val.idx, reflexive:false, info:val.attr});
           });
           $.each(response.links,function(i,val){
             var id = val.source;
             var tid = val.target;
-            links.push({source:nodes[id],target:nodes[tid],left:false,right:true,relation:val.triple.p,triple:val.triple});
+            links.push({source:nodes[id], target:nodes[tid], left:false, right:true, relation:val.triple.p, triple:val.triple});
           })
           console.log('nodes:');
           console.log(nodes);
           console.log('links:');
           console.log(links);
 
-// init D3 force layout
+          // init D3 force layout
           var force = d3.layout.force()
             .nodes(nodes)
             .links(links)
@@ -379,54 +785,9 @@
             .on('tick', tick);
 
           _this.force = force;
-
-// define arrow markers for graph links
-          svg.append('svg:defs').append('svg:marker')
-            .attr('id', 'end-arrow')
-            .attr('viewBox', '0 -5 10 10')
-            .attr('refX', 6)
-            .attr('markerWidth', 5)
-            .attr('markerHeight', 5)
-            .attr('orient', 'auto')
-            .append('svg:path')
-            .attr('d', 'M0,-5L10,0L0,5')
-            // .attr('fill', 'rgb(113,118,244)');
-            .attr('fill','lavender');
-
-          svg.append('svg:defs').append('svg:marker')
-            .attr('id', 'start-arrow')
-            .attr('viewBox', '0 -5 10 10')
-            .attr('refX', 4)
-            .attr('markerWidth', 5)
-            .attr('markerHeight', 5)
-            .attr('orient', 'auto')
-            .append('svg:path')
-            .attr('d', 'M10,-5L0,0L10,5')
-            .attr('fill','lavender');
-          // .attr('fill', 'rgb(113,118,244)');
-
-// line displayed when dragging new nodes
-          var drag_line = svg.append('svg:path')
-            .attr('class', 'link dragline hidden')
-            .attr('d', 'M0,0L0,0');
-
-// handles to link and node element groups
-          var path = svg.append('svg:g').selectAll('path'),
-            path_text = svg.append("g").selectAll(".edgelabel"),
-            circle = svg.append('svg:g').selectAll('g');
-
-
-
-          function resetMouseVars() {
-            mousedown_node = null;
-            mouseup_node = null;
-            mousedown_link = null;
-            mousedown_link_text = null;
-          }
-
-// update force layout (called automatically each iteration)
+          // update force layout (called automatically each iteration)
           function tick() {
-// draw directed edges with proper padding from node centers
+            // draw directed edges with proper padding from node centers
             path.attr('d', function(d) {
               var deltaX = d.target.x - d.source.x,
                 deltaY = d.target.y - d.source.y,
@@ -441,592 +802,200 @@
                 targetY = d.target.y - (targetPadding * normY);
               return 'M' + sourceX + ',' + sourceY + 'L' + targetX + ',' + targetY;
             });
-
             circle.attr('transform', function(d) {
               return 'translate(' + d.x + ',' + d.y + ')';
             });
           }
 
-// update graph (called when needed)
-          function restart() {
-
-// 1.path
-// path (link) group
-            path = path.data(links);
-
-// update existing links
-            path.classed('selected', function(d) {
-              return d === selected_link;
-            })
-              .style('marker-start', function(d) {
-                return d.left ? 'url(#start-arrow)' : '';
-              })
-              .style('marker-end', function(d) {
-                return d.right ? 'url(#end-arrow)' : '';
-              });
-
-
-// add new links
-            path.enter().append('svg:path')
-              .attr('class', 'link')
-              .attr('id',function(d,i){return 'edgepath'+ i;})
-              .classed('selected', function(d) {
-                return d === selected_link;
-              })
-              .style('marker-start', function(d) {
-                return d.left ? 'url(#start-arrow)' : '';
-              })
-              .style('marker-end', function(d) {
-                return d.right ? 'url(#end-arrow)' : '';
-              })
-              .style({
-                'stroke':'lavender',
-                'stroke-width': '2px',
-                // ' cursor': 'default'
-              })
-              .on('mousedown', function(d) {
-                if(d3.event.ctrlKey) return;
-                // select link
-                mousedown_link = d;
-                if(mousedown_link === selected_link) selected_link = null;
-                else selected_link = mousedown_link;
-                console.log("select link");
-                console.log(selected_link);
-                selected_node = null;
-                restart();
-              });
-
-// remove old links
-            path.exit().remove();
-
-      //2.path text
-      // path text(link) group
-            path_text = path_text.data(links);
-
-        // update exite path text
-            path_text.attr({
-              'class':'edgelabel',
-              'id':function(d,i){return 'edgepath'+i;},
-              'dx':50,
-              'dy':0
-            });
-
-        // add new path text
-            path_text.enter().append("text")
-              .attr({
-                'class':'edgelabel',
-                'id':function(d,i){return 'edgepath'+ i;},
-                'dx':50,
-                'dy':0
-              })
-              .append('textPath')
-              .attr('xlink:href',function(d,i) {return '#edgepath'+i})
-              .style("pointer-events", "auto")
-              .attr('class','ptext')
-              .text(function(d){return d.relation;})
-              .on('mousedown',function(d){
-                if(d3.event.ctrlKey) return;
-                //设置样式与数据
-                mousedown_link_text = d;
-                selected = mousedown_link_text;
-                $("#edit").css('display','block');
-                // $("#words").attr('autofocus','autofocus');
-                // console.log($("#words"));
-                $('.detailEdit').css('display','none');
-                $("#words").val(d.relation);
-
-                edit_relation = true;
-                svg.selectAll('.ptext')
-                  .style('fill','black')
-                d3.select(this).style('fill','blue');
-                $("#edit").css({
-                  'display':'inline-block',
-                  "top":mousedown_link_text.target.y + "px",
-                  "left":mousedown_link_text.target.x + "px",
-                });
-
-                // console.log(mousedown_link_text);
-                if(mousedown_link_text === selected_link_text) selected_link_text = null;
-                else selected_link_text = mousedown_link_text;
-
-                console.log("select link 2");
-                console.log(selected_link_text);
-
-                selected_node = null;
-                $("#words").focus();
-                restart();
-              })
-              .on('mouseup',function (d) {
-                $("#edit input").focus();
-              });
-// remove old pathText
-            path_text.exit().remove();
-
-//3.circle
-// circle (node) group
-// NB: the function arg is crucial here! nodes are known by id, not by index!
-            circle = circle.data(nodes, function(d) { return d.id; });
-
-// update existing nodes (reflexive & selected visual states)
-            circle.selectAll('circle')
-              .style('fill', function(d) {
-                return (d === selected_node) ? d3.rgb(150,215,250).brighter().toString() : d3.rgb(150,215,250);
-              })
-              .classed('reflexive', function(d) { return d.reflexive; });
-
-// add new nodes
-            var g = circle.enter().append('svg:g');
-
-            g.append('svg:circle')
-              .attr('class', 'node')
-              .attr('r', 12)
-              //      .attr('r', 8)
-              .style('fill', function(d) {
-                return (d === selected_node) ? d3.rgb(150,215,250).brighter().toString() : d3.rgb(150,215,250);
-              })
-              .classed('reflexive', function(d) { return d.reflexive; })
-              .on('mouseover', function(d) {
-                var html = '';
-                var desc = '';
-                if(d.info.length == 0){
-                  html = '暂无信息';
-                }else if(d.info == '暂无信息'){
-                  html = '暂无信息';
-                }else{
-                  $.each(d.info,function(i,val){
-                    if(val.p == 'DESC'){
-                      if(val.o.length>100){
-                        val.o = val.o.substr(0,50)+'...'
-                      }
-                    }
-                    html += '<div><span style="color:blue;">'+val.p+':</span><span>'+val.o+'</span></div>';
-                  })
-                }
-
-                tooltip.html('<div style="border:1px solid rgb(113,118,244);border-radius: 5px;background: white;width: 400px;padding:0 0 4px 4px" ><h4>'+d.name+'</h4>' + '<div style="text-indent:2em">'+ html +'</div></div>')
-                  .style("left", (d3.event.pageX) + "px")
-                  .style("top", (d3.event.pageY + 10) + "px")
-                  .style("display", 'block')
-                  .style("opacity",1.0);
-
-                if(!mousedown_node || d === mousedown_node) return;
-                // enlarge target node
-                d3.select(this).attr('transform', 'scale(1.1)');
-              })
-              .on('mouseout', function(d) {
-                tooltip.style("opacity",0.0);
-                tooltip.style('display','none');
-                if(!mousedown_node || d === mousedown_node) return;
-                // unenlarge target node
-                d3.select(this).attr('transform', '');
-              })
-              .on('mousedown', function(d) {
-                if(d3.event.ctrlKey) return;
-                // select node
-                mousedown_node = d;
-
-                // d.fixed = false;
-
-                if(mousedown_node === selected_node) selected_node = null;
-                else selected_node = mousedown_node;
-                selected_link = null;
-                //显示info信息
-                aboutInfo(selected_node);
-                //选中节点后，调用SELECT（）计算4个象限
-                //findnode
-                if(selected_node == null ){
-                  //newResult = findNode(selected_node);
-                  //i = 0;
-                }else{
-                  //关于space的节点遍历
-                  newResult = findNode(selected_node);
-                  // SELECT(selected_node);
-                  i = 0;
-
-                }
-
-                // reposition drag line
-
-                drag_line
-                  .style('marker-end', 'url(#end-arrow)')
-                  .style({
-                    'stroke':'lavender',
-                    'stroke-width': '2px',
-                    // ' cursor': 'default'
-                  })
-                  .classed('hidden', false)
-                  .attr('d', 'M' + mousedown_node.x + ',' + mousedown_node.y + 'L' + mousedown_node.x + ',' + mousedown_node.y);
-                restart();
-              })
-              .on('mouseup', function(d) {
-                if(!mousedown_node) return;
-                //因为在mousedown事件比up事件靠前，所以，将focus事件写在mousedown里面不生效（不会执行），mousedown > focus > mouseup > click
-                $("#edit input").focus();
-                // needed by FF
-                drag_line
-                  .classed('hidden', true)
-                  .style('marker-end', '');
-
-                // check for drag-to-self
-                mouseup_node = d;
-                if(mouseup_node === mousedown_node) { resetMouseVars(); return; }
-
-                // unenlarge target node
-                d3.select(this).attr('transform', '');
-
-                // add link to graph (update if exists)
-                // NB: links are strictly source < target; arrows separately specified by booleans
-                var source, target, direction;
-                if(mousedown_node.id < mouseup_node.id) {
-                  source = mousedown_node;
-                  target = mouseup_node;
-                  direction = 'right';
-                } else {
-                  source = mouseup_node;
-                  target = mousedown_node;
-                  direction = 'left';
-                }
-
-                var link;
-                link = links.filter(function(l) {
-                  return (l.source === source && l.target === target);
-                })[0];
-                console.log(link);
-
-                if(link) {
-                  link[direction] = true;
-                } else {
-                  link = {source:source, target:target,left: false, right: false,relation:'relation？',triple:{idx:'',o:source.idx,p:'relation?',s:target.idx}}
-                  link[direction] = true;
-                  links.push(link);
-                  var data = {s:target.idx,p:'relation',o_id:source.idx,o_name:source.idx};
-                  $.post(api_host+'/api/graph/add_relation', data, function(result){
-                    result = JSON.parse(result);
-                    link.triple.idx = result.idx;
-                  });
-                  console.log(links);
-                }
-
-                // select new link
-                selected_link = link;
-                selected_node = null;
-                restart();
-              });
-
-            // show node IDs
-            g.append('svg:text')
-            //
-              .attr('x', 0)
-              //        .attr('y', 4)//-16
-              .attr('y',function(d){
-                if(d.name == nodes[0].name){
-                  return 5
-                }else{
-                  return -16
-                }
-              })
-              .attr('class', 'id')
-              .style({
-                'fill': function (d) {
-                  if(d.name == nodes[0].name){
-                    return 'black'
-                  }else{
-                    return 'rgb(125,129,128)'
-                  }
-                }
-              })
-              .text(function(d) {return  d.name;});
-
-// remove old nodes
-            circle.exit().remove();
-// set the graph in motion
-            force.start();
-          } // function restart end
-
-          _this.restart = restart;
-
-          function mousedown() {
-            // prevent I-bar on drag
-            //d3.event.preventDefault();
-            if (d3.event.ctrlKey || mousedown_node || mousedown_link || mousedown_link_text) return;
-            var point = d3.mouse(this), timest = new Date().getTime();
-            _this.ent_inserts.point = point;
-            _this.ent_inserts.timest = timest;
-            _this.showEntDialogVisible = true;
-            return;
-          }
-
-          function mousemove() {
-            if(!mousedown_node) return;
-
-            // update drag line
-            drag_line.attr('d', 'M' + mousedown_node.x + ',' + mousedown_node.y + 'L' + d3.mouse(this)[0] + ',' + d3.mouse(this)[1]);
-
-            restart();
-          }
-
-          function mouseup() {
-            $("#edit input").focus();//新增节点聚焦
-            if(mousedown_node) {
-              // hide drag line
-              drag_line
-                .classed('hidden', true)
-                .style('marker-end', '');
-            }
-
-            // because :active only works in WebKit?
-            svg.classed('active', false);
-
-            // clear mouse event vars
-            resetMouseVars();
-          }
-
-          function spliceLinksForNode(node) {
-            var toSplice = links.filter(function(l) {
-              return (l.source === node || l.target === node);
-            });
-            toSplice.map(function(l) {
-              links.splice(links.indexOf(l), 1);
-            });
-          }
-
-// only respond once per keydown
-          var lastKeyDown = -1;
-          var i= 0;
-          var newResult = null;
-          function keydown() {
-//d3.event.preventDefault();//阻止了所有的默认的键盘事件
-
-            if(lastKeyDown !== -1) return;
-            lastKeyDown = d3.event.keyCode;
-
-            // ctrl
-            if(d3.event.keyCode === 17) {
-              circle.call(force.drag);
-              svg.classed('ctrl', true);
-            }
-
-            if(!selected_node && !selected_link) return;
-            switch(d3.event.keyCode) {
-          //  case 8: // backspace
-              case 46: // delete
-                if(selected_node) {
-                  nodes.splice(nodes.indexOf(selected_node), 1);
-                  spliceLinksForNode(selected_node);
-                  console.log(selected_node);
-                  let ridx = selected_node.idx;
-                  $.post(api_host+"/api/graph/delete_entity", {idx:ridx}, function(result){
-                    console.log(result);
-                    _this.$message("删除实体 " + ridx + " 成功");
-                  })
-                } else if(selected_link) {
-                  links.splice(links.indexOf(selected_link), 1);
-                  $.post(api_host+"/api/graph/delete_relation", {idx:selected_link.triple.idx},function(result){
-                    console.log(result);
-                  })
-                }
-                selected_link = null;
-                selected_node = null;
-                //删除节点后，将原本的id换成新的id因为原本的node的自带的索引会自动减少，而元素的id属性不会自动减少，所以需要重新刷新id，否则会报错
-                --_this.lastNodeId;
-                restart();
-                $.each(nodes,function(i,val){
-                  val.id = i;
-                });
-                $("#edit").css('display','none');
-                break;
-
-              case 13: //A /enter
-                d3.event.preventDefault();
-                if (selected_node && inputEdit){
-
-                  var a ='node'+ Math.random()*100;
-                  var times = new Date().getTime();
-                  var node = {id: ++_this.lastNodeId,idx:a ,name: a , reflexive: false,info:[{idx:"xx",o:"xx",p:"xx",s:"xx",timeStamp:times}]};
-                  nodes.push(node);
-                  console.log(nodes);
-                  // link = {source:target, target:source ,left: false, right: false,relation:'relation？',triple:{idx:'',o:target.idx,p:'relation?',s:source.idx}}
-
-                  var link = {source:nodes[selected_node.id],target:nodes[node.id], left: false, right: true,relation:'relation？',triple:{idx:'',o:node.idx,p:'relation?',s:selected_node.idx}};
-                  links.push(link);
-                  console.log(link)
-                  $.post(api_host+"/api/graph/add_entity?idx=" + a, function (result) {
-                    result = JSON.parse(result);
-                    console.log(result);
-                    if(result.status == 'success'){
-                      console.log(result);
-                      nodes[node.id].idx = result.idx;
-                      data = {
-                        sid:link.source.idx,
-                        p:'关系？',
-                        oid:nodes[node.id].idx,
-                      }
-                      $.post(api_host+'/api/graph/add_relation',data,function(result){
-                        result = JSON.parse(result);
-                        if(result.status == 'success'){
-                          link.idx = result.idx;
-                          console.log(result);
-                          return link.idx;
-                        }
-                      });
-                      // console.log(selected_node)
-                      $("#edit").css({
-                        'display':'inline-block',
-                        "top":selected_node.y + "px",
-                        "left":selected_node.x+ "px",
-                      });
-                      $('#edit input').focus();
-                      ++_this.lastNodeId;
-                      return result.idx;
-
-                    }else{
-                      alert('新增节点失败');
-                    }
-                  });
-
-                  //改变焦点
-                  selected_node = nodes[nodes.length-1];
-                  //改变焦点的input的val
-
-                  $("#words").val(selected_node.name);
-
-                  selected = selected_node;
-                  $('.detailEdit').css('display','block');
-
-
-
-                  aboutInfo(selected);
-                  console.log(nodes);
-                  console.log(links);
-                  console.log(_this.lastNodeId);
-                  restart();
-                }
-
-                break;
-
-              case 66: // B
-                if(selected_link) {
-                  // set link direction to both left and right
-                  //设置连线的方向也就是箭头的方向左和右
-                  selected_link.left = true;
-                  selected_link.right = true;
-                }
-                restart();
-                break;
-              case 76: // L
-                if(selected_link) {
-                  // set link direction to left only
-                  //设置连线的方向也就是箭头的方向左
-                  selected_link.left = true;
-                  selected_link.right = false;
-                }
-                restart();
-                break;
-              case 82: // R
-                if(selected_node) {
-                  // toggle node reflexivity 取消默认的reflexivity
-                  selected_node.reflexive = !selected_node.reflexive;
-                } else if(selected_link) {
-                  // set link direction to right only
-                  //设置连线的方向也就是箭头的方向右
-                  selected_link.left = false;
-                  selected_link.right = true;
-                }
-                restart();
-                break;
-
-              case 37://left
-                if(selected_node){
-                  if (SELECT(selected_node).left == undefined){
-                    return false;
-                  }else{
-                    selected_node = SELECT(selected_node).left.data.data;
-                    aboutInfo(selected_node);
-                  }
-                }
-                restart();
-                break;
-              case 38://up target
-                if(selected_node){
-                  if (SELECT(selected_node).up == undefined){
-                    return false;
-                  }else{
-                    selected_node = SELECT(selected_node).up.data.data;
-                    aboutInfo(selected_node)
-                  }
-                }
-                restart();
-                break;
-              case 39://right
-                if(selected_node){
-                  if (SELECT(selected_node).right== undefined){
-                    return false;
-                  }else{
-                    selected_node = SELECT(selected_node).right.data.data;
-                    aboutInfo(selected_node);
-                  }
-                }
-                restart();
-                break;
-              case 40://down source
-                if(selected_node){
-                  if (SELECT(selected_node).down== undefined){
-                    return false;
-                  }else{
-                    selected_node = SELECT(selected_node).down.data.data;
-                    aboutInfo(selected_node);
-                  }
-                }
-                restart();
-                break;
-              case 32://space
-                if(selected_node){
-                  tabNode(selected_node);
-                  if(i<newResult.length){
-                    selected_node = newResult[i];
-                    aboutInfo(selected_node);
-                  }else if(i == newResult.length){
-                    i = -1;
-                  }
-                  i++;
-                }
-                restart();
-                break;
-              case 27://esc
-                console.log(123);
-                if(selected_node){
-                  $("#edit").css({'display':'none',});
-                }
-                restart();
-                break;
-
-            }
-          }
-
-          function keyup() {
-            lastKeyDown = -1;
-
-            // ctrl
-            if(d3.event.keyCode === 17) {
-              circle
-                .on('mousedown.drag', null)
-                .on('touchstart.drag', null);
-              svg.classed('ctrl', false);
-            }
-          }
-
-// app starts here
-          svg.on('mousedown', mousedown)
-            .on('mousemove', mousemove)
-            .on('mouseup', mouseup);
-          d3.select(window)
-            .on('keydown', keydown)
-            .on('keyup', keyup);
           restart();
-          //    get end
         });
-//    function satrt  end
+        // function satrt  end
       }
+
+      _this.start = start;
+
+      function spliceLinksForNode(node) {
+        var toSplice = links.filter(function(l) {
+          return (l.source === node || l.target === node);
+        });
+        toSplice.map(function(l) {
+          links.splice(links.indexOf(l), 1);
+        });
+      }
+
+      function resetMouseVars() {
+        mousedown_node = null;
+        mouseup_node = null;
+        mousedown_link = null;
+        mousedown_link_text = null;
+      }
+
+      function mousedown() {
+        // prevent I-bar on drag
+        //d3.event.preventDefault();
+        if (d3.event.ctrlKey || mousedown_node || mousedown_link || mousedown_link_text) return;
+        var point = d3.mouse(this), timest = new Date().getTime();
+        _this.ent_select.point = point;
+        _this.ent_select.timest = timest;
+        _this.ent_select.eid = "";
+        _this.showEntDialogVisible = true;
+      }
+
+      function mousemove() {
+        if(!mousedown_node) return;
+        // update drag line
+        drag_line.attr('d', 'M' + mousedown_node.x + ',' + mousedown_node.y + 'L' + d3.mouse(this)[0] + ',' + d3.mouse(this)[1]);
+
+        restart();
+      }
+
+      function mouseup() {
+        $("#edit input").focus();//新增节点聚焦
+        if(mousedown_node) {
+          // hide drag line
+          drag_line
+            .classed('hidden', true)
+            .style('marker-end', '');
+        }
+        // because :active only works in WebKit?
+        svg.classed('active', false);
+        // clear mouse event vars
+        resetMouseVars();
+      }
+
+      // only respond once per keydown
+      var lastKeyDown = -1;
+      var i= 0;
+      var newResult = null;
+
+      function keyup() {
+        lastKeyDown = -1;
+        // ctrl
+        if(d3.event.keyCode === 17) {
+          circle
+            .on('mousedown.drag', null)
+            .on('touchstart.drag', null);
+          svg.classed('ctrl', false);
+        }
+      }
+
+      function keydown() {
+        //d3.event.preventDefault();//阻止了所有的默认的键盘事件
+        let force = _this.force;
+        if (!force) return;
+
+        if(lastKeyDown !== -1) return;
+        lastKeyDown = d3.event.keyCode;
+
+        // ctrl
+        if(d3.event.keyCode === 17) {
+          circle.call(force.drag);
+          svg.classed('ctrl', true);
+        }
+
+        if(!selected_node && !selected_link) return;
+        switch(d3.event.keyCode) {
+      //  case 8: // backspace
+          case 46: // delete
+            if(selected_node) {
+              nodes.splice(nodes.indexOf(selected_node), 1);
+              spliceLinksForNode(selected_node);
+              console.log(selected_node);
+              let ridx = selected_node.idx;
+              $.post(api_host+"/api/graph/delete_entity", {idx:ridx}, function(result){
+                console.log(result);
+                _this.$message("删除实体 " + ridx + " 成功");
+              })
+            } else if(selected_link) {
+              links.splice(links.indexOf(selected_link), 1);
+              $.post(api_host+"/api/graph/delete_relation", {idx:selected_link.triple.idx},function(result){
+                console.log(result);
+              })
+            }
+            selected_link = null;
+            selected_node = null;
+            //删除节点后，将原本的id换成新的id因为原本的node的自带的索引会自动减少，而元素的id属性不会自动减少，所以需要重新刷新id，否则会报错
+            --_this.lastNodeId;
+            restart();
+            $.each(nodes,function(i,val){
+              val.id = i;
+            });
+            $("#edit").css('display','none');
+            break;
+
+          case 37://left
+            if(selected_node){
+              if (SELECT(selected_node).left == undefined){
+                return false;
+              }else{
+                selected_node = SELECT(selected_node).left.data.data;
+                aboutInfo(selected_node);
+              }
+            }
+            restart();
+            break;
+          case 38://up target
+            if(selected_node){
+              if (SELECT(selected_node).up == undefined){
+                return false;
+              }else{
+                selected_node = SELECT(selected_node).up.data.data;
+                aboutInfo(selected_node)
+              }
+            }
+            restart();
+            break;
+          case 39://right
+            if(selected_node){
+              if (SELECT(selected_node).right== undefined){
+                return false;
+              }else{
+                selected_node = SELECT(selected_node).right.data.data;
+                aboutInfo(selected_node);
+              }
+            }
+            restart();
+            break;
+          case 40://down source
+            if(selected_node){
+              if (SELECT(selected_node).down== undefined){
+                return false;
+              }else{
+                selected_node = SELECT(selected_node).down.data.data;
+                aboutInfo(selected_node);
+              }
+            }
+            restart();
+            break;
+          case 32://space
+            if(selected_node){
+              tabNode(selected_node);
+              if(i<newResult.length){
+                selected_node = newResult[i];
+                aboutInfo(selected_node);
+              }else if(i == newResult.length){
+                i = -1;
+              }
+              i++;
+            }
+            restart();
+            break;
+          case 27://esc
+            console.log(123);
+            if(selected_node){
+              $("#edit").css({'display':'none',});
+            }
+            restart();
+            break;
+        }
+      }
+
+      svg.on('mousedown', mousedown)
+        .on('mousemove', mousemove)
+        .on('mouseup', mouseup);
+      d3.select(window)
+        .on('keydown', keydown)
+        .on('keyup', keyup);
 
 
       svg.style('width','100%');
@@ -1178,8 +1147,8 @@
       });
       $('#Search').on('submit',function(){
         selected_node = null;
-        searchWords = $('#Search .form-control').val();
-        console.log(searchWords);
+        _this.searchWords = $('#Search .form-control').val();
+        console.log(_this.searchWords);
         nodes = [];
         links = [];
         _this.lastNodeId = null;
@@ -1216,16 +1185,11 @@
           svg.selectAll('.id')
             .text(function(selected){return selected.name});
           //发送请求跟新数据库数据;
-          $.post('http://47.101.181.52:22222/api/cndbpedia/graph/update_entity',{'idx':selected.idx,'new_id':selected.name},function(result){
-
-            result = JSON.parse(result);
-            console.log(result);
-            // if(result.status == "success"){
-            //     alert('修改节点成功');
-            // }else {
-            //     alert('修改节点失败');
-            // }
-          });
+          //$.post('http://47.101.181.52:22222/api/cndbpedia/graph/update_entity',{'idx':selected.idx,'new_id':selected.name},function(result){
+          //
+          //  result = JSON.parse(result);
+          //  console.log(result);
+          //});
           //判断是否是便捷节点的状态
 
           if(edit_relation==true){
@@ -1234,8 +1198,7 @@
               .style('fill','black')
               .text(function(selected){return selected.relation});
             //发送数据请求
-            console.log(selected.idx);
-            console.log(selected.relation);
+            console.log(selected_link_text);
             $.post(api_host+'/api/graph/update_triple_p',{'idx':selected_link_text.triple.idx,'new_p':selected.relation},function(result){
               console.log(result);
             });

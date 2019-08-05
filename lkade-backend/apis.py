@@ -173,7 +173,8 @@ def new_triple():
 		ostr = oname
 		if oid != '': ostr = '<a href="%s">%s</a>' % (oid, oname)
 		ditem = {'s': sid, 'p': p, 'o': ostr}
-		db.triples.insert_one(ditem)
+		rr = db.triples.insert_one(ditem)
+		ret['eid'] = str(rr.inserted_id)
 	return json.dumps(ret, ensure_ascii=False)
 
 
@@ -270,6 +271,7 @@ def query_entity():
 		'error': 'connection failed'
 	}
 	_id = request.params.idx
+	no_expand = request.params.no_expand
 	entity = db.entities.find_one({'_id': _id})
 	if entity is None:
 		ret['status'] = 'fail'
@@ -281,22 +283,23 @@ def query_entity():
 		d = {}
 		d[entity['_id']] = len(d)
 		ret['nodes'].append(entity2dict(entity))
-		for triple in db.triples.find({'s': entity['_id']}):
-			if o_is_entity(triple['o']):
-				o_id, _ = parse_href(triple['o'])
-				o = db.entities.find_one({'_id': o_id})
-				if o is None:
-					ret['status'] = 'fail'
-					ret['error'] = 'entity not found: {}'.format(o_id)
-				else:
-					if o['_id'] not in d:
-						d[o['_id']] = len(d)
-						ret['nodes'].append(entity2dict(o))
-					ret['links'].append({
-						'source': d[entity['_id']],
-						'target': d[o['_id']],
-						'triple': triple2dict(triple)
-					})
+		if not no_expand:
+			for triple in db.triples.find({'s': entity['_id']}):
+				if o_is_entity(triple['o']):
+					o_id, _ = parse_href(triple['o'])
+					o = db.entities.find_one({'_id': o_id})
+					if o is None:
+						ret['status'] = 'fail'
+						ret['error'] = 'entity not found: {}'.format(o_id)
+					else:
+						if o['_id'] not in d:
+							d[o['_id']] = len(d)
+							ret['nodes'].append(entity2dict(o))
+						ret['links'].append({
+							'source': d[entity['_id']],
+							'target': d[o['_id']],
+							'triple': triple2dict(triple)
+						})
 
 	for index in range(len(ret['nodes'])):
 		node = ret['nodes'][index]
@@ -350,7 +353,7 @@ def make_href(o_id, o_name):
 def update_relation():
     ret = {
         'status': 'fail',
-        'error': 'connection failed'
+        'msg': 'connection failed'
     }
     _id = request.params.idx
     new_p = request.params.new_p
@@ -368,7 +371,7 @@ def update_relation():
             r = db.triples.update_one({'_id': ObjectId(_id)}, {'$set': {'p': new_p, 'timestamp': datetime.now()}})
             if not r.acknowledged:
                 ret['status'] = 'fail'
-                ret['error'] = 'update failed'
+                ret['msg'] = 'update failed'
             else:
                 ret['status'] = 'success'
                 ret['msg'] = '修改关系成功'

@@ -599,6 +599,11 @@
 
                 drag_line
                   .style('marker-end', 'url(#end-arrow)')
+                  .style({
+                    'stroke':'lavender',
+                    'stroke-width': '2px',
+                    // ' cursor': 'default'
+                  })
                   .classed('hidden', false)
                   .attr('d', 'M' + mousedown_node.x + ',' + mousedown_node.y + 'L' + mousedown_node.x + ',' + mousedown_node.y);
                 restart();
@@ -641,7 +646,7 @@
                 if(link) {
                   link[direction] = true;
                 } else {
-                  link = {source:target, target:source ,left: false, right: false,relation:'relation？',triple:{idx:'',o:target.idx,p:'relation?',s:source.idx}}
+                  link = {source:source, target:target,left: false, right: false,relation:'relation？',triple:{idx:'',o:source.idx,p:'relation?',s:target.idx}}
                   link[direction] = true;
                   links.push(link);
                   var data = {s:target.idx,p:'relation',o_id:source.idx,o_name:source.idx};

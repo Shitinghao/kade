@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>this is login</h1>
+    <h1>登录</h1>
     <!--<div class="login">-->
     <el-container>
       <el-main>

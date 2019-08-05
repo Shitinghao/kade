@@ -193,7 +193,7 @@ export default {
           console.log(error);
         });
       this.axios
-        .get('http://127.0.0.1:26551/api/ment2ent', {
+        .get(this.api_host+'/api/ment2ent', {
           params: {
             q: this.searchStr
           }
@@ -249,13 +249,13 @@ export default {
     },
 
     remove_triple(tid) {
-      this.simple_remove(this, 'http://127.0.0.1:26551/api/remove_triple', {
+      this.simple_remove(this, this.api_host+'/api/remove_triple', {
             id: tid
           });
     },
 
     remove_ment2ent(tid) {
-      this.simple_remove(this, 'http://127.0.0.1:26551/api/remove_ment2ent', {
+      this.simple_remove(this, this.api_host+'/api/remove_ment2ent', {
             id: tid
           });
     },
@@ -263,7 +263,7 @@ export default {
     remove_entity(tid) {
       let _this = this;
       this.axios
-        .get('http://127.0.0.1:26551/api/remove_entity', {
+        .get(this.api_host+'/api/remove_entity', {
           params: {
             id: tid
           }
@@ -283,7 +283,7 @@ export default {
       let _this = this;
       this.ent_dels.eid = eid;
       this.axios
-        .get('http://127.0.0.1:26551/api/info_remove_entity', {
+        .get(this.api_host+'/api/info_remove_entity', {
           params: {
             id: eid
           }
@@ -311,7 +311,7 @@ export default {
 
     submitNewTriple() {
       let _this = this;
-      this.checkAndSubmit(this, 'http://127.0.0.1:26551/api/new_triple', {
+      this.checkAndSubmit(this, this.api_host+'/api/new_triple', {
           sid: this.inserts.sid,
           p: this.inserts.p,
           oid: this.inserts.oid,
@@ -335,7 +335,7 @@ export default {
 
     submitNewEntity() {
       let _this = this;
-      this.checkAndSubmit(this, 'http://127.0.0.1:26551/api/new_entity', {
+      this.checkAndSubmit(this, this.api_host+'/api/new_entity', {
             name: this.ent_inserts.ename
         },
         function (response, _this) {
@@ -377,7 +377,7 @@ export default {
 
 
     submitNewM2E() {
-      this.checkAndSubmit(this, 'http://127.0.0.1:26551/api/new_ment2ent', {
+      this.checkAndSubmit(this, this.api_host+'/api/new_ment2ent', {
             mention: this.m2e_inserts.mention,
             eid: this.m2e_inserts.eid
         },
@@ -399,7 +399,7 @@ export default {
     objectSuggestion(update_oid) {
       let _this = this;
       this.axios
-        .get('http://127.0.0.1:26551/api/ment2ent', {
+        .get(this.api_host+'/api/ment2ent', {
           params: {
             q: this.inserts.oname,
             no_other_m: 1
@@ -426,6 +426,11 @@ export default {
         .catch(function (error) {
           console.log(error);
         });
+    }
+  },
+  mounted() {
+    if (this.searchStr === "") {
+      this.search_entity(global.main_entity);
     }
   }
 }

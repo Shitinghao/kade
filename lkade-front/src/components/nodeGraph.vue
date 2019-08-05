@@ -115,14 +115,6 @@
 
     </div>
 
-    <el-dialog title="新增实体" :visible.sync="entDialogVisible" width="50%" :before-close="handleClose">
-      <label for="" style="float: left;">name:</label>
-      <el-input type="text" v-model="ent_inserts.ename" placeholder="请输入新增实体的名称"></el-input>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="entDialogVisible=false">取 消</el-button>
-        <el-button type="primary" @click="submitNewEntity">确 定</el-button>
-      </span>
-    </el-dialog>
 
     <el-dialog title="显示实体" :visible.sync="showEntDialogVisible" width="50%" :before-close="handleClose">
       <label for="" style="float: left;">name:</label>
@@ -217,7 +209,6 @@
         url1:'',
         url2: '',
         showEntDialogVisible: false,
-        entDialogVisible: false,
         dialogVisible: false,
         ent_select: { ename:"", eid: "", options:[]},
         ent_inserts: { ename: '' },
@@ -264,7 +255,7 @@
             console.log(error);
           });
       },
-      submitNewEntity() {
+      submitNewEntity(callback) {
         let _this = this;
         this.checkAndSubmit(this, this.api_host+'/api/new_entity', {
               name: this.ent_inserts.ename
@@ -272,18 +263,8 @@
           function (response, _this) {
             let ename = _this.ent_inserts.ename;
             _this.ent_inserts.ename = "";
-            _this.entDialogVisible = false;
             _this.svg.classed('active', true);
-
-            // insert new node at point
-            let point = _this.ent_inserts.point;
-            let timest = _this.ent_inserts.timest;
-            let node = {id: ++_this.lastNodeId, idx:ename ,name:ename, reflexive: false, info:[{idx:"xx",o:"xx",p:"xx",s:"xx",timeStamp:timest}]};
-            node.x = point[0];
-            node.y = point[1];
-            _this.nodes.push(node);
-
-            _this.restart();
+            callback();
           },
           function (response, _this) {
             _this.$message.error(response.data.msg);
@@ -334,6 +315,25 @@
             }
           })
           .then(function (response) {
+            if (response.data.nodes.length === 0) {
+              _this.ent_inserts.ename = ename;
+              _this.$confirm('是否新建名为 ' + ename + ' 的实体？', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'info'
+              }).then(() => {
+                _this.submitNewEntity(function () {
+                  let node = { id: ++_this.lastNodeId, idx: ename, name: ename, reflexive: false, info: [] };
+                  node.x = point[0];
+                  node.y = point[1];
+                  _this.nodes.push(node);
+                  _this.showEntDialogVisible = false;
+                  _this.restart();
+                });
+              }).catch(() => {   
+              });
+              return;
+            }
             $.each(response.data.nodes, function(i,val) {
               let node = { id: ++_this.lastNodeId, idx: val.idx, name: val.idx, reflexive: false, info: val.attr };
               node.x = point[0];
@@ -374,13 +374,24 @@
             _this.$message.error(response.data.msg);
           }
         );
-    },
+      },
+      show_help() {
+        const h = this.$createElement;
+
+        this.$notify({
+          title: '使用提示',
+          message: h('i', { style: 'color: teal' },
+            '双击空白部分以选择要显示的节点，点击元素以进行更改，在实体间连线以新增关系, 按CTRL键拖动节点。')
+        });
+      },
     },
     mounted() {
       var _this = this;
       var width = $('.left_graph').width(),
       height = window.innerHeight-79 ,
       colors = d3.scale.category10();
+
+      _this.show_help();
 
       var svg = d3.select('.left_graph')
         .append('svg')
@@ -560,8 +571,11 @@
             });
 
             // console.log(mousedown_link_text);
-            if(mousedown_link_text === selected_link_text) selected_link_text = null;
-            else selected_link_text = mousedown_link_text;
+            if (mousedown_link_text === selected_link_text) selected_link_text = null;
+            else {
+              selected_link_text = mousedown_link_text;
+              selected_link = mousedown_link_text;
+            }
 
             console.log("select link 2");
             console.log(selected_link_text);
@@ -640,8 +654,12 @@
             mousedown_node = d;
 
             // d.fixed = false;
-            if(mousedown_node === selected_node) selected_node = null;
-            else selected_node = mousedown_node;
+            if (mousedown_node === selected_node) selected_node = null;
+            else {
+              selected_node = mousedown_node;
+              global.main_entity = selected_node.idx;
+            }
+
             selected_link = null;
             //显示info信息
             aboutInfo(selected_node);
@@ -706,14 +724,14 @@
 
             console.log(source);
             console.log(target);
-            _this.inserts.sid = source.idx;
+            _this.inserts.sid = mousedown_node.idx;
             _this.inserts.p = "";
-            _this.inserts.oid = target.idx;
+            _this.inserts.oid = mouseup_node.idx;
             _this.dialogVisible = true;
 
             link = {
               source: source, target: target, left: false, right: false,
-              relation: '', triple: { idx: '', o: source.idx, p: '', s: target.idx }
+              relation: '', triple: { idx: '', o: _this.inserts.oid, p: '', s: _this.inserts.sid }
             }
             link[direction] = true;
             _this.inserts.link = link;
@@ -758,8 +776,21 @@
           if(response.status == "success"){
             console.log("检索成功");
           } else {
-            if (_this.searchWords !== "")
-              _this.$message.error("查询失败，请重新输入查询词");
+            if (_this.searchWords !== "") {
+              let ename = _this.searchWords;
+              _this.ent_inserts.ename = ename;
+              _this.$confirm('是否新建名为 ' + ename + ' 的实体？', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'info'
+              }).then(() => {
+                _this.submitNewEntity(function () {
+                  _this.start()
+                });
+              }).catch(() => {   
+              });
+            }
+            return;
           }
           _this.lastNodeId = response.nodes.length - 1;
           $.each(response.nodes, function(i,val) {
@@ -990,7 +1021,7 @@
         }
       }
 
-      svg.on('mousedown', mousedown)
+      svg.on('dblclick', mousedown)
         .on('mousemove', mousemove)
         .on('mouseup', mouseup);
       d3.select(window)

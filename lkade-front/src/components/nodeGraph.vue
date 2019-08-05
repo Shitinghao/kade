@@ -38,8 +38,8 @@
       <div class="container-fluid" style="margin-left: 85px;">
         <div class="navbar-header">
           <span style="line-height:50px;margin-top: 20px;">
-             <router-link class="nav-item" to="/list">列表</router-link>
-             <router-link class="nav-item" to="/nodeGraph">nodeGraph</router-link>
+            <router-link class="nav-item" to="/list">列表</router-link>
+            <router-link class="nav-item" to="/nodeGraph">nodeGraph</router-link>
             <!--<span  class=" nodeGraph" href="#" style="color: white;">检索</span>-->
             <!--<router-link class="nav-item nodeGraph" href="#" style="color: white;">检索</router-link>-->
           </span>
@@ -124,6 +124,17 @@
       </span>
     </el-dialog>
 
+    <el-dialog title="显示实体" :visible.sync="showEntDialogVisible" width="50%" :before-close="handleClose">
+      <label for="" style="float: left;">name:</label>
+      <el-autocomplete v-model="ent_select.eid"
+                       :fetch-suggestions="objectSuggestion"
+                       placeholder="请输入需要显示实体的名称"></el-autocomplete>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="showEntDialogVisible=false">取 消</el-button>
+        <el-button type="primary" @click="showEntity">确 定</el-button>
+      </span>
+    </el-dialog>
+
     <!--modal-->
     <!-- 模态框（Modal） -->
     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -185,14 +196,17 @@
         }],
         formLabelWidth: '80px',
         url1:'',
-        url2:'',
+        url2: '',
+        showEntDialogVisible: false,
         entDialogVisible: false,
+        ent_select: { ename:"", eid: "", options:[]},
         ent_inserts: { ename: '' },
       };
 
     },
     methods: {
       handleClose(done) {
+        return done();
         this.$confirm('确定要提交表单吗？')
           .then(_ => {
             this.loading = true;
@@ -242,7 +256,7 @@
             // insert new node at point
             let point = _this.ent_inserts.point;
             let timest = _this.ent_inserts.timest;
-            let node = {id: ++_this.lastNodeId, idx:ename ,name:ename , reflexive: false, info:[{idx:"xx",o:"xx",p:"xx",s:"xx",timeStamp:timest}]};
+            let node = {id: ++_this.lastNodeId, idx:ename ,name:ename, reflexive: false, info:[{idx:"xx",o:"xx",p:"xx",s:"xx",timeStamp:timest}]};
             node.x = point[0];
             node.y = point[1];
             _this.nodes.push(node);
@@ -254,6 +268,36 @@
           }
         )
       },
+
+      objectSuggestion(query, cb) {
+        let _this = this;
+        this.axios
+          .get(_this.api_host+'/api/ment2ent', {
+            params: {
+              q: query,
+              no_other_m: 1
+            }
+          })
+          .then(function (response) {
+            let ents = response.data.ret;
+            let ent_select = JSON.parse(JSON.stringify(_this.ent_select)); //deepcopy
+            ent_select.options = [];
+            ents.forEach(function (x) {
+              ent_select.options.push({
+                link: x.ename,
+                value: x.eid
+              });
+            });
+            _this.ent_select = ent_select.options;
+            cb(ent_select.options);
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      },
+      showEntity() {
+        console.log(this.ent_select.eid);
+      }
     },
     mounted() {
       var _this = this;
@@ -313,7 +357,7 @@
           }
           _this.lastNodeId = response.nodes.length-1;
           $.each(response.nodes, function(i,val) {
-            nodes.push({id:i,idx:val.idx,name:val.idx,reflexive:false,info:val.attr});
+            nodes.push({id:i, idx:val.idx, name:val.idx, reflexive:false, info:val.attr});
           });
           $.each(response.links,function(i,val){
             var id = val.source;
@@ -455,11 +499,11 @@
 // remove old links
             path.exit().remove();
 
-//2.path text
-// path text(link) group
+      //2.path text
+      // path text(link) group
             path_text = path_text.data(links);
 
-// update exite path text
+        // update exite path text
             path_text.attr({
               'class':'edgelabel',
               'id':function(d,i){return 'edgepath'+i;},
@@ -467,7 +511,7 @@
               'dy':0
             });
 
-// add new path text
+        // add new path text
             path_text.enter().append("text")
               .attr({
                 'class':'edgelabel',
@@ -605,6 +649,11 @@
 
                 drag_line
                   .style('marker-end', 'url(#end-arrow)')
+                  .style({
+                    'stroke':'lavender',
+                    'stroke-width': '2px',
+                    // ' cursor': 'default'
+                  })
                   .classed('hidden', false)
                   .attr('d', 'M' + mousedown_node.x + ',' + mousedown_node.y + 'L' + mousedown_node.x + ',' + mousedown_node.y);
                 restart();
@@ -647,7 +696,7 @@
                 if(link) {
                   link[direction] = true;
                 } else {
-                  link = {source:target, target:source ,left: false, right: false,relation:'relation？',triple:{idx:'',o:target.idx,p:'relation?',s:source.idx}}
+                  link = {source:source, target:target,left: false, right: false,relation:'relation？',triple:{idx:'',o:source.idx,p:'relation?',s:target.idx}}
                   link[direction] = true;
                   links.push(link);
                   var data = {s:target.idx,p:'relation',o_id:source.idx,o_name:source.idx};
@@ -703,7 +752,7 @@
             var point = d3.mouse(this), timest = new Date().getTime();
             _this.ent_inserts.point = point;
             _this.ent_inserts.timest = timest;
-            _this.entDialogVisible = true;
+            _this.showEntDialogVisible = true;
             return;
           }
 
@@ -759,7 +808,7 @@
 
             if(!selected_node && !selected_link) return;
             switch(d3.event.keyCode) {
-//  case 8: // backspace
+          //  case 8: // backspace
               case 46: // delete
                 if(selected_node) {
                   nodes.splice(nodes.indexOf(selected_node), 1);
@@ -966,9 +1015,6 @@
             }
           }
 
-
-
-
 // app starts here
           svg.on('mousedown', mousedown)
             .on('mousemove', mousemove)
@@ -1059,7 +1105,7 @@
         });
         //排序
         newresultdata.sort(sortNumber);
-        $.each(newresultdata,function (i,val) {
+        $.each(newresultdata, function (i,val) {
           newResult.push(val.data);
         })
         //console.log(newResult);

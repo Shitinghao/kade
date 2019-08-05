@@ -63,9 +63,10 @@ def GetEntityName(ent):
 	return ent[config['entity_name_field']]
 
 def TestSpecialChars(sr): 
-	for ch in '<>"' + "'":
-		if ch in sr: return True
-	return False
+	if re.search(r'[<>\'"\s]', sr):
+		return True
+	else:
+		return False
 
 def SplitHref(zz):
 	zz = zz.replace('</a>', '')
@@ -111,7 +112,7 @@ def ment2ent():
 		if not no_other_m:
 			rets.extend(db.ment2ent.find({'e': ent}))
 
-	xx = db.ment2ent.find({'m': mention}).limit(1000)
+	xx = db.ment2ent.find({'e': {'$ne': mention}, 'm': mention}).limit(1000)
 	rets.extend(list(xx))
 	ret = [{'id':str(x.get('_id', '')), 'mention': x['m'], \
 		 'eid': x['e'], 'ename': GetEntityName(GetEntitybyID(x['e'])),
@@ -122,7 +123,7 @@ def ment2ent():
 
 def precheck_new_entity(name):
 	if name == '': return '名称不能为空'
-	if '<' in name or '>' in name or "'" in name or '"' in name: return '名称不能包含特殊符号'
+	if TestSpecialChars(name): return '名称不能包含特殊符号或空白符'
 	ditem = {config['entity_name_field']: name}
 	exists = db.entities.find_one(ditem)
 	if exists: return '实体已经存在'
@@ -143,7 +144,7 @@ def newentity():
 def precheck_new_triple(sid, p, oid, oname, old_tid):
 	if GetEntitybyID(sid) is None: return '实体不存在'
 	if p == '': return '属性不能为空'
-	if TestSpecialChars(p): return '属性不能包含特殊符号'
+	if TestSpecialChars(p): return '属性不能包含特殊符号或空白符'
 	query = {'s': sid, 'p': p}
 	exists = list(db.triples.find(query))
 	if old_tid != '':
@@ -152,7 +153,7 @@ def precheck_new_triple(sid, p, oid, oname, old_tid):
 		ooid, ooname = SplitDBO(xx)
 		if ooid == oid or ooname == oname: return '存在重复关系'
 	if oname != '':
-		if TestSpecialChars(oname): return '值不能包含特殊符号'
+		if TestSpecialChars(oname): return '值不能包含特殊符号或空白符'
 	if oid != '':
 		oo = GetEntitybyID(oid)
 		if oo is None: return 'Object实体不存在'
@@ -179,6 +180,7 @@ def new_triple():
 
 def precheck_new_ment2ent(eid, mention):
 	if mention == '': return '别名不能为空'
+	if TestSpecialChars(mention): return '别名不能包含特殊符号或空白符'
 	if db.entities.find_one({'_id': eid}) is None: return '实体不存在'
 	ditem = {'m': mention, 'e': eid}
 	if db.ment2ent.find_one(ditem) is not None: return '库中已存在此关系'

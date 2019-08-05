@@ -17,9 +17,13 @@
 
 <script>
 // 创建子组建，相对于路径对应的页面
-export default {
-  name: 'Nav'
-}
+  const api_host = "http://127.0.0.1:26551";
+  var main_entity = "";
+  export default {
+    name: 'Nav',
+    api_host,
+    main_entity
+  }
 </script>
 
 <style scoped>

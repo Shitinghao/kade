@@ -156,12 +156,13 @@
 
 <script>
   import * as d3 from 'd3'
+  import global from './nav.vue'
   // import
   export default {
     name: "nodeGraph",
     data() {
       return {
-        api_host: "http://127.0.0.1:26551",
+        api_host: global.api_host,
         table: false,
         dialog: false,
         loading: false,
@@ -268,7 +269,7 @@
 
       var nodes = [];
       var links = [];
-      var searchWords = '复旦大学';
+      var searchWords = global.main_entity;
       var inputEdit = true;
       var state_r = false;
       var state_l = false;
@@ -445,6 +446,8 @@
                 mousedown_link = d;
                 if(mousedown_link === selected_link) selected_link = null;
                 else selected_link = mousedown_link;
+                console.log("select link");
+                console.log(selected_link);
                 selected_node = null;
                 restart();
               });
@@ -501,10 +504,13 @@
                 // console.log(mousedown_link_text);
                 if(mousedown_link_text === selected_link_text) selected_link_text = null;
                 else selected_link_text = mousedown_link_text;
+
+                console.log("select link 2");
+                console.log(selected_link_text);
+
                 selected_node = null;
                 $("#words").focus();
                 restart();
-
               })
               .on('mouseup',function (d) {
                 $("#edit input").focus();
@@ -1175,6 +1181,7 @@
             // }
           });
           //判断是否是便捷节点的状态
+
           if(edit_relation==true){
             //选择所有的连线文字，重新绘制文字，并恢复修改后为黑色字体
             svg.selectAll('.ptext')
@@ -1183,7 +1190,7 @@
             //发送数据请求
             console.log(selected.idx);
             console.log(selected.relation);
-            $.post('http://47.101.181.52:23333/api/update_rel_triple',{'idx':selected.idx,'new_p':selected.relation,},function(result){
+            $.post(api_host+'/api/graph/update_triple_p',{'idx':selected_link_text.triple.idx,'new_p':selected.relation},function(result){
               console.log(result);
             });
             //修改完成之后再次将修改节点的状态设置为false

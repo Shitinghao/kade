@@ -346,6 +346,35 @@ def delete_entity():
 def make_href(o_id, o_name):
 	return '<a href="{}">{}</a>'.format(o_id, o_name)
 
+@app.route('/api/graph/update_triple_p', method=['GET', 'POST'])
+def update_relation():
+    ret = {
+        'status': 'fail',
+        'error': 'connection failed'
+    }
+    _id = request.params.idx
+    new_p = request.params.new_p
+    triple = db.triples.find_one({'_id': ObjectId(_id)})
+    if triple is None:
+        ret['status'] = 'fail'
+        ret['msg'] = '关系不存在：{}'.format(_id)
+    else:
+        s = triple['s']
+        o = triple['o']
+        if db.triples.find_one({'s': s, 'p': new_p, 'o': o}) is not None:
+            ret['status'] = 'fail'
+            ret['error'] = '关系重复: {}-{}-{}'.format(s, new_p, o)
+        else:
+            r = db.triples.update_one({'_id': ObjectId(_id)}, {'$set': {'p': new_p, 'timestamp': datetime.now()}})
+            if not r.acknowledged:
+                ret['status'] = 'fail'
+                ret['error'] = 'update failed'
+            else:
+                ret['status'] = 'success'
+                ret['msg'] = '修改关系成功'
+    return json.dumps(ret, ensure_ascii=False)
+
+
 @app.route('/api/graph/add_relation', method=['GET', 'POST'])
 def add_relation():
 	ret = {

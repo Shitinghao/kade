@@ -9,18 +9,17 @@ from datetime import datetime
 import logging
 import logging.handlers
 from bson.objectid import ObjectId
+import ljqpy
 
 
 DB = 'local'
 if DB == 'local':
-	# client = MongoClient('10.141.208.26', 27017)
-	# client.admin.authenticate('bqb', '6QEUI8dhnq', mechanism='SCRAM-SHA-1')
-	client = MongoClient()
+	client = MongoClient('10.141.208.26', 27017)
+	client.admin.authenticate('gdmdbuser', '6QEUI8dhnq', mechanism='SCRAM-SHA-1')
 
 config = {
 	'entity_name_field': 'name',
 }
-
 
 db = client.bqb
 
@@ -47,15 +46,30 @@ def TestSpecialChars(sr):
 	else:
 		return False
 
+def SplitId(name):
+	ename = ''
+	eid = ljqpy.RM("<id:([0-9a-f]+)>", name)
+	if eid == "": return name, ""
+	ename = re.sub("<id:([0-9a-f]+)>$", '', name)
+	return ename, eid
+
 @app.route('/api/triples', method=['GET', 'POST'])
 def triples():
 	ret = {'status': 'error', 'ret': []}
 	name = request.params.entity
-	entity = db.entity.find_one({'name': name})
+
+	name, eid = SplitId(name)
+
+	if eid != '': entity = GetEntitybyID(eid)
+	else: entity = db.entity.find_one({'name': name})
 	if entity is None:
-		ret['status'] = 'entity not found: {}'.format(name)
+		ret['status'] = 'error'
+		ret['msg'] = "实体未找到"
 	else:
 		ret['status'] = 'ok'
+		sid = str(entity['_id'])
+		sname = GetEntityName(entity)
+
 		# 以查询节点为s的关系
 		for triple in db.triple_rel.find({'sid': str(entity['_id'])}):
 			o = GetEntitybyID(triple['oid'])
@@ -64,7 +78,8 @@ def triples():
 				continue
 			ret['ret'].append({
 				'id': str(triple['_id']),
-				's': GetEntityName(entity),
+				's': sid,
+				'sname': sname,
 				'p': triple['p'],
 				'oid': str(o['_id']),
 				'oname': GetEntityName(o)
@@ -86,7 +101,8 @@ def triples():
 		for triple in db.triple_attr.find({'sid': str(entity['_id'])}):
 			ret['ret'].append({
 				'id': str(triple['_id']),
-				's': GetEntityName(entity),
+				's': sid,
+				'sname': sname,
 				'p': triple['p'],
 				'oid': '',
 				'oname': triple['o']
@@ -99,26 +115,32 @@ def ment2ent():
 	query = request.params.q
 	no_other_m = request.params.no_other_m
 
-	temp = []
-	entity = db.entity.find_one({'name': query})
+	query, eid = SplitId(query)
+
+	rets = []
+
+	if eid != '': entity = GetEntitybyID(eid)
+	else: entity = db.entity.find_one({'name': query})
+
 	if entity is not None:
-		temp.append({
+		rets.append({
 			'm': query,
 			'eid': str(entity['_id']),
 			'isent': True
 		})
 		if not no_other_m:
-			temp.extend(list(db.ment2ent.find({'eid': str(entity['_id'])})))
+			rets.extend(list(db.ment2ent.find({'eid': str(entity['_id'])})))
 
-	temp.extend(list(db.ment2ent.find({'m': query})))
+	rets.extend(list(db.ment2ent.find({'m': query})))
 
 	ret['ret'] = [{
-		'id': str(t.get('_id', '')),
-		'mention': t['m'],
-		'eid': t['eid'],
-		'ename': GetEntityName(GetEntitybyID(t['eid'])),
-		'isent': t.get('isent', False)
-	} for t in temp]
+		'id': str(x.get('_id', '')),
+		'mention': x['m'],
+		'eid': x['eid'],
+		'ename': GetEntityName(GetEntitybyID(x['eid'])),
+		'isent': x.get('isent', False)
+	} for x in rets]
+	ret['status'] = 'ok'
 	return json.dumps(ret, ensure_ascii = False)
 
 
@@ -138,7 +160,8 @@ def newentity():
 	if precheck: return json.dumps(ret, ensure_ascii=False)
 	if not msg:
 		ditem = {config['entity_name_field']: name}
-		db.entity.insert_one(ditem)
+		rr = db.entity.insert_one(ditem)
+		ret['eid'] = str(rr.inserted_id)
 	return json.dumps(ret, ensure_ascii = False)
 
 
@@ -148,17 +171,17 @@ def precheck_new_triple(sid, p, oid, oname):
 	if p == '': return '属性不能为空'
 	if TestSpecialChars(p): return '属性不能包含特殊符号或空白符'
 	if oname == '': return '值不能为空'
-	if TestSpecialChars(oname): return '值不能包含特殊符号或空白符'
 	# oid非空表示关系，否则表示属性
 	if oid != '':
+		oname, oid = SplitId(oid)
 		if db.triple_rel.find_one({'sid': sid, 'p': p, 'oid': oid}) is not None:
 			return '存在重复关系'
 		o = GetEntitybyID(oid)
-		if o is None:
-			return 'Object实体不存在'
-		if oname != GetEntityName(o):
-			return '实体名称不匹配'
-	elif db.triple_attr.find_one({'sid': sid, 'p': p, 'o': oname}) is not None:
+		if o is None: return 'Object实体不存在'
+		if oname != GetEntityName(o): return '实体名称不匹配'
+	else:
+		if TestSpecialChars(oname): return '值不能包含特殊符号或空白符'
+		if db.triple_attr.find_one({'sid': sid, 'p': p, 'o': oname}) is not None:
 			return '存在重复属性'
 
 @app.route('/api/new_triple', method = ['GET', 'POST'])
@@ -174,6 +197,7 @@ def new_triple():
 	if not msg:
 		# oid非空表示关系，否则表示属性
 		if oid != '':
+			oname, oid = SplitId(oid)
 			db.triple_rel.insert_one({'sid': sid, 'p': p, 'oid': oid})
 		else:
 			db.triple_attr.insert_one({'sid': sid, 'p': p, 'o': oname})
@@ -203,10 +227,10 @@ def new_ment2ent():
 @app.route('/api/remove_triple', method = ['GET', 'POST'])
 def remove_triple():
 	tid = request.params.id
-	r1 = db.triple_rel.delete_one({'_id': ObjectId(tid)})
-	r2 = db.triple_attr.delete_one({'_id': ObjectId(tid)})
-	status = 'ok' if (r1.acknowledged and r2.acknowledged) else 'error'
-
+	oid = request.params.oid
+	if oid != '': rr = db.triple_rel.delete_one({'_id': ObjectId(tid)})
+	else: rr = db.triple_attr.delete_one({'_id': ObjectId(tid)})
+	status = 'ok' if rr.acknowledged else 'error'
 	ret = {'status':status, 'ret': 'ok'}
 	return json.dumps(ret, ensure_ascii=False)
 

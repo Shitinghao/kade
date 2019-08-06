@@ -92,7 +92,9 @@ def triples():
 	xx = db.triples.find({'s': entity}).limit(1000)
 	for x in xx:
 		oid, oname = SplitDBO(x)
-		item = {'id':str(x['_id']), 's':x['s'], 'p':x['p'], 'oid':oid, 'oname':oname}
+		item = {'id':str(x['_id']), 
+		  's':x['s'], 'sname':x['s'], 'p':x['p'],
+		  'oid':oid, 'oname':oname}
 		ret.append(item)
 	ret = {'status':'ok','ret': ret}
 	return json.dumps(ret, ensure_ascii = False)

@@ -20,45 +20,68 @@
     <!--</el-main>-->
     <!--</el-container>-->
 
-    <el-drawer title="我嵌套了表格!"
+
+    <el-drawer title="实体详情"
                :visible.sync="table"
                direction="rtl"
-               size="50%">
+               size="50%"  style="overflow:scroll">
       <el-table :data="gridData">
-        <el-table-column property="date" label="日期" width="150"></el-table-column>
-        <el-table-column property="name" label="姓名" width="200"></el-table-column>
-        <el-table-column property="address" label="地址"></el-table-column>
+        <el-table-column property="o" label="O" width="150"></el-table-column>
+        <el-table-column property="p" label="P" width="200"></el-table-column>
+        <el-table-column property="s" label="S"></el-table-column>
       </el-table>
     </el-drawer>
     <!--<el-card class="box-card">-->
     <div id="edit" class="edit">
       <input type="text" name="" id="words" class="words" autofocus="autofocus" value="" />
     </div>
-    <nav class="navbar navbar-inverse" style="background: rgb(113,118,244);border:none;border-radius: 0px;">
-      <div class="container-fluid" style="margin-left: 85px;">
-        <div class="navbar-header">
-          <span style="line-height:50px;margin-top: 20px;">
-            <router-link class="nav-item" to="/list">列表</router-link>
-            <router-link class="nav-item" to="/nodeGraph">nodeGraph</router-link>
-            <!--<span  class=" nodeGraph" href="#" style="color: white;">检索</span>-->
-            <!--<router-link class="nav-item nodeGraph" href="#" style="color: white;">检索</router-link>-->
-          </span>
-          <span>
-            <a class="navbar-brand nodeGraph" href="#" style="color: white;">检索</a>
-          </span>
-        </div>
-        <div style="margin-top:14px;">
-          <button class="detailEdit btn btn-link btn-self">详情</button>
-          <button class="detailEditModal btn btn-link btn-self" data-toggle="modal" data-target="#myModal">详情MODAL</button>
-          <form action="" role="form" id="Search" style="display: none;">
-            <div class="form-group">
-              <input type="text" class="form-control input-sm" placeholder="请输入节点信息">
-            </div>
-          </form>
-
-        </div>
+    <div style="box-shadow: 0 0 5px lightgrey;position: absolute;left:10px;top:100px; padding: 10px;z-index: 99;border-radius: 5px;">
+      <div class="dropdown">
+        <button type="button" class="btn dropdown-toggle" id="dropdownMenu1" data-toggle="dropdown">组件
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+          <li role="presentation" class="dropdown-header">检索实体</li>
+          <li role="presentation">
+            <form action="" role="form" id="Search" style="margin: 10px">
+              <div class="form-group">
+                <input type="text" class="form-control input-sm" placeholder="请输入节点信息">
+              </div>
+            </form>
+            <!--<input type="text" style="margin: 10px;">-->
+          </li>
+          <li role="presentation" class="divider"></li>
+          <li role="presentation">
+            <a role="menuitem" tabindex="-1" href="#"  @click="table = true">实体详情</a>
+          </li>
+        </ul>
       </div>
-    </nav>
+    </div>
+    <!--<nav class="navbar navbar-inverse" style="background: rgb(113,118,244);border:none;border-radius: 0px;">-->
+      <!--<div class="container-fluid" style="margin-left: 85px;">-->
+        <!--<div class="navbar-header">-->
+          <!--<span style="line-height:50px;margin-top: 20px;">-->
+            <!--<router-link class="nav-item" to="/list">列表</router-link>-->
+            <!--<router-link class="nav-item" to="/nodeGraph">nodeGraph</router-link>-->
+            <!--&lt;!&ndash;<span  class=" nodeGraph" href="#" style="color: white;">检索</span>&ndash;&gt;-->
+            <!--&lt;!&ndash;<router-link class="nav-item nodeGraph" href="#" style="color: white;">检索</router-link>&ndash;&gt;-->
+          <!--</span>-->
+          <!--<span>-->
+            <!--&lt;!&ndash;<a class="navbar-brand nodeGraph" href="#" style="color: white;">检索</a>&ndash;&gt;-->
+          <!--</span>-->
+        <!--</div>-->
+        <!--<div style="margin-top:14px;">-->
+          <!--<button class="detailEdit btn btn-link btn-self">详情</button>-->
+          <!--<button class="detailEditModal btn btn-link btn-self" data-toggle="modal" data-target="#myModal">详情MODAL</button>-->
+          <!--<form action="" role="form" id="Search" style="display: none;">-->
+            <!--<div class="form-group">-->
+              <!--<input type="text" class="form-control input-sm" placeholder="请输入节点信息">-->
+            <!--</div>-->
+          <!--</form>-->
+
+        <!--</div>-->
+      <!--</div>-->
+    <!--</nav>-->
     <!--<div class="container">-->
     <div class="left_graph col-xs-12">
       <!--nodegraph-->
@@ -116,11 +139,28 @@
     </div>
 
 
+    <el-dialog title="删除提示" :visible.sync="dialogWarningVisible">
+      <p style="color: #F56C6C">确定要删除该节点？</p>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogWarningVisible=false">取 消</el-button>
+        <el-button type="primary" class="deleteEntity" isdelete="true" @click="dialogWarningVisible=false">确 定</el-button>
+      </span>
+    </el-dialog>
+    <el-dialog title="删除提示" :visible.sync="dialogWarningVisible2">
+      <p style="color: #F56C6C">确定要删除连线？</p>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogWarningVisible2=false">取 消</el-button>
+        <el-button type="primary" class="deleteLine" isdelete="true" @click="dialogWarningVisible2=false">确 定</el-button>
+      </span>
+    </el-dialog>
+
     <el-dialog title="显示实体" :visible.sync="showEntDialogVisible" width="50%" :before-close="handleClose">
-      <label for="" style="float: left;">name:</label>
-      <el-autocomplete v-model="ent_select.eid"
-                       :fetch-suggestions="objectSuggestion"
-                       placeholder="请输入需要显示实体的名称"></el-autocomplete>
+      <div style="input_style">
+        <label for="" style="float: left;">name:</label>
+        <el-input v-model="ent_select.eid"
+                         :fetch-suggestions="objectSuggestion"
+                         placeholder="请输入需要显示实体的名称"></el-input>
+      </div>
       <span slot="footer" class="dialog-footer">
         <el-button @click="showEntDialogVisible=false">取 消</el-button>
         <el-button type="primary" @click="showEntity">确 定</el-button>
@@ -188,27 +228,12 @@
         table: false,
         dialog: false,
         loading: false,
-        gridData: [{
-          date: '2016-05-02',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-04',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-01',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-03',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }],
-        formLabelWidth: '80px',
+        gridData: global.entityInfo,
         url1:'',
         url2: '',
         showEntDialogVisible: false,
+        dialogWarningVisible:false,
+        dialogWarningVisible2:false,
         dialogVisible: false,
         ent_select: { ename:"", eid: "", options:[]},
         ent_inserts: { ename: '' },
@@ -296,11 +321,30 @@
             console.log(error);
           });
       },
+      // deleteEntity(){
+      //   let _this = this;
+      //   console.log(_this.nodes);
+      //   this.axios
+      //     .post(_this.api_host+"/api/graph/delete_entity",{
+      //       params:{
+      //         idx:ename,
+      //         no_expand: 1
+      //       }
+      //     })
+      //     .then(function (response) {
+      //       if (response.data.nodes.length == 0){
+      //
+      //       }
+      //     })
+      //
+      // }
+      // ,
       showEntity() {
         let _this = this;
         let point = _this.ent_select.point;
         let timest = _this.ent_select.timest;
         let ename = _this.ent_select.eid;
+
         if (_this.nodes.length == 0) {
           _this.searchWords = ename;
           _this.start();
@@ -414,6 +458,9 @@
       var edit_relation = false;
       var click_edit = false;
       var api_host = _this.api_host;
+      var entitydelete = false;
+      var select_Entity = null;
+      var select_line = null;
 
       _this.nodes = nodes;
       _this.links = links;
@@ -658,7 +705,10 @@
             else {
               selected_node = mousedown_node;
               global.main_entity = selected_node.idx;
+              global.entityInfo = selected_node.info;
+              console.log(global.entityInfo);
             }
+            console.log(selected_node);
 
             selected_link = null;
             //显示info信息
@@ -770,6 +820,7 @@
 
       start();
       function start() {
+        console.log(_this.searchWords);
         $.get(api_host+"/api/graph/query_entity?idx="+ _this.searchWords, function (response) {
           response = JSON.parse(response);
           console.log(response);
@@ -929,19 +980,24 @@
       //  case 8: // backspace
           case 46: // delete
             if(selected_node) {
-              nodes.splice(nodes.indexOf(selected_node), 1);
-              spliceLinksForNode(selected_node);
-              console.log(selected_node);
-              let ridx = selected_node.idx;
-              $.post(api_host+"/api/graph/delete_entity", {idx:ridx}, function(result){
-                console.log(result);
-                _this.$message("删除实体 " + ridx + " 成功");
-              })
+              _this.dialogWarningVisible = true;
+              select_Entity = selected_node;
+              console.log(select_Entity);
+                // nodes.splice(nodes.indexOf(selected_node), 1);
+                // spliceLinksForNode(selected_node);
+                // let ridx = selected_node.idx;
+                // $.post(api_host+"/api/graph/delete_entity", {idx:ridx}, function(result){
+                //   console.log(result);
+                //   _this.$message("删除实体 " + ridx + " 成功");
+                // })
+
             } else if(selected_link) {
-              links.splice(links.indexOf(selected_link), 1);
-              $.post(api_host+"/api/graph/delete_relation", {idx:selected_link.triple.idx},function(result){
-                console.log(result);
-              })
+              _this.dialogWarningVisible2 = true;
+              select_line = selected_link;
+              // links.splice(links.indexOf(selected_link), 1);
+              // $.post(api_host+"/api/graph/delete_relation", {idx:selected_link.triple.idx},function(result){
+              //   console.log(result);
+              // })
             }
             selected_link = null;
             selected_node = null;
@@ -1077,6 +1133,35 @@
         }
       }
 // calcAngleDegrees()
+
+//删除节点
+      $('.deleteEntity').on('click',function(){
+        delEntity(select_Entity);
+        restart();
+      })
+      function delEntity(selected_node){
+        nodes.splice(nodes.indexOf(selected_node), 1);
+        spliceLinksForNode(selected_node);
+        let ridx = selected_node.idx;
+        $.post(api_host+"/api/graph/delete_entity", {idx:ridx}, function(result){
+          console.log(result);
+          _this.$message("删除实体 " + ridx + " 成功");
+        })
+        $('.tooltip').css('display','none');
+      }
+      $('.deleteLine').on('click',function(){
+        console.log(select_line);
+           delLine(select_line);
+          restart();
+      })
+
+      function delLine(selected_link){
+        links.splice(links.indexOf(selected_link), 1);
+        $.post(api_host+"/api/graph/delete_relation", {idx:selected_link.triple.idx},function(result){
+          console.log(result);
+        })
+
+      }
 //查找节点
       function findNode(selected_node){
         //查找source与target的节点
@@ -1173,18 +1258,20 @@
         click_edit = true;
       })
 //     点击nodeGraph出现检索框
-      $('.nodeGraph').on('click', function () {
-        $('#Search').fadeToggle();
-      });
+//       $('.nodeGraph').on('click', function () {
+//         $('#Search').fadeToggle();
+//       });
       $('#Search').on('submit',function(){
         selected_node = null;
         _this.searchWords = $('#Search .form-control').val();
+
         console.log(_this.searchWords);
         nodes = [];
         links = [];
         _this.lastNodeId = null;
-        d3.selectAll("svg>*").remove();
+        // d3.selectAll("svg>*").remove();
         start();
+        restart();
         $('.left_graph').removeClass('col-md-9');
         $('.right_info').removeClass('col-md-3');
 
@@ -1509,5 +1596,8 @@ svg g .link{
     font-size:15px;
     color: darkgray;
     /*font-weight: bold;*/
+  }
+  .el-drawer__body{
+    overflow: scroll;
   }
 </style>

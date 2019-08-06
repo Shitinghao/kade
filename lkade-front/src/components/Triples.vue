@@ -90,7 +90,7 @@
        <div class="content_style">
 
 
-        <div class="btn-group">
+        <div class="btn-group" style="float: right;">
           <el-button type="info" @click="dialogVisible=true" class="addBtn_style">新增关系</el-button>
           <el-dialog title="新增关系" :visible.sync="dialogVisible" width="50%" :before-close="handleClose">
             <div class="input_style">

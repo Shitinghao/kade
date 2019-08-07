@@ -1,6 +1,6 @@
 <template>
   <div>
-
+    <!--entity detail-->
     <el-drawer title="实体详情"
                :visible.sync="table"
                direction="rtl"
@@ -11,11 +11,11 @@
         <el-table-column property="s" label="S"></el-table-column>
       </el-table>
     </el-drawer>
-    <!--<el-card class="box-card">-->
+    <!-- node edit input -->
     <div id="edit" class="edit">
       <input type="text" name="" id="words" class="words" autofocus="autofocus" value="" />
     </div>
-
+    <!--node search component-->
     <div style="box-shadow: 0 0 5px lightgrey;position: absolute;left:10px;top:100px; padding: 10px;z-index: 99;border-radius: 5px; visibility:hidden;">
       <div class="dropdown">
         <button type="button" class="btn dropdown-toggle" id="dropdownMenu1" data-toggle="dropdown">
@@ -30,7 +30,6 @@
                 <input type="text" class="form-control input-sm" placeholder="请输入节点信息">
               </div>
             </form>
-            <!--<input type="text" style="margin: 10px;">-->
           </li>
           <li role="presentation" class="divider"></li>
           <li role="presentation">
@@ -39,85 +38,9 @@
         </ul>
       </div>
     </div>
-    <!--<nav class="navbar navbar-inverse" style="background: rgb(113,118,244);border:none;border-radius: 0px;">-->
-    <!--<div class="container-fluid" style="margin-left: 85px;">-->
-    <!--<div class="navbar-header">-->
-    <!--<span style="line-height:50px;margin-top: 20px;">-->
-    <!--<router-link class="nav-item" to="/list">列表</router-link>-->
-    <!--<router-link class="nav-item" to="/nodeGraph">nodeGraph</router-link>-->
-    <!--&lt;!&ndash;<span  class=" nodeGraph" href="#" style="color: white;">检索</span>&ndash;&gt;-->
-    <!--&lt;!&ndash;<router-link class="nav-item nodeGraph" href="#" style="color: white;">检索</router-link>&ndash;&gt;-->
-    <!--</span>-->
-    <!--<span>-->
-    <!--&lt;!&ndash;<a class="navbar-brand nodeGraph" href="#" style="color: white;">检索</a>&ndash;&gt;-->
-    <!--</span>-->
-    <!--</div>-->
-    <!--<div style="margin-top:14px;">-->
-    <!--<button class="detailEdit btn btn-link btn-self">详情</button>-->
-    <!--<button class="detailEditModal btn btn-link btn-self" data-toggle="modal" data-target="#myModal">详情MODAL</button>-->
-    <!--<form action="" role="form" id="Search" style="display: none;">-->
-    <!--<div class="form-group">-->
-    <!--<input type="text" class="form-control input-sm" placeholder="请输入节点信息">-->
-    <!--</div>-->
-    <!--</form>-->
-    <!--</div>-->
-    <!--</div>-->
-    <!--</nav>-->
-    <!--<div class="container">-->
-    <div class="left_graph col-xs-12">
-      <!--nodegraph-->
-    </div>
-    <div class="right_info col-xs-12 "
-         style="border-left:1px solid cornflowerblue;
-            display: none;
-            ">
-      <h5 class="text-right info_close" style="margin-bottom: 20px;"><a href="javascript:void(0)">close</a></h5>
-      <h4 class="text-center">节点详情</h4>
-      <div class="container" style="width: 100%;margin-top:20px;">
-        <form role="form">
-          <div class="form-group">
-            <div style="margin: 10px;">
-              <label for="name">节点名称</label>
-              <input type="text" id="name"
-                     class="form-control"
-                     disabled="disabled"
-                     placeholder="请输入节点名称">
-            </div>
-            <div style="margin: 10px;">
-              <label for="name">节点信息</label>
-              <div id="tableBox" style="width: 100%;overflow: scroll;">
-                <table class="table">
-                  <thead>
-                    <tr>
-                      <th>P</th>
-                      <th>O</th>
-                    </tr>
-                  </thead>
-                  <tbody id="c_info"></tbody>
-                </table>
-              </div>
-            </div>
-
-          </div>
-        </form>
-        <div class="footer text-right">
-          <button type="button"
-                  id="editMore"
-                  class="btn btn-info">
-            更改
-          </button>
-          <button type="button"
-                  id="subEdit"
-                  class="btn btn-primary"
-                  data-dismiss="modal"
-                  style="background: rgb(136,228,179);">
-            提交
-          </button>
-        </div>
-
-      </div>
-    </div>
-
+    <!-- show node svg -->
+    <div class="left_graph col-xs-12"></div>
+    <!--  delete node/link warning-->
     <el-dialog title="删除实体" :visible.sync="entDelDialogVisible" width="50%">
       <span>将要删除实体 {{ent_dels.eid}} , 以下关系也将被同步删除：</span>
       <el-table :data="delEntData" style="width: 100%" center="True">
@@ -130,7 +53,7 @@
         <el-button type="primary" @click="remove_entity(ent_dels.eid)">确 定</el-button>
       </span>
     </el-dialog>
-
+    <!--show entity-->
     <el-dialog title="显示实体" :visible.sync="showEntDialogVisible" width="40%" :before-close="handleClose">
       <el-row class="demo-autocomplete">
         <el-col :span="24">
@@ -145,7 +68,7 @@
         <el-button type="primary" @click="showEntity">确 定</el-button>
       </span>
     </el-dialog>
-
+    <!-- add link -->
     <el-dialog title="新增关系" :visible.sync="dialogVisible" width="50%" :before-close="handleClose">
       <div class="input_style">
         <label for="" style="float: left;">Subject: </label>
@@ -164,41 +87,12 @@
         <el-button type="primary" @click="submitNewTriple">确 定</el-button>
       </span>
     </el-dialog>
-
-    <!--modal-->
-    <!-- 模态框（Modal） -->
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-              &times;
-            </button>
-            <h4 class="modal-title" id="myModalLabel"></h4>
-          </div>
-          <div class="modal-body">
-            <div><span>P:</span><span contenteditable="true">O</span></div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">
-              关闭
-            </button>
-            <button type="button" class="btn" style="background: rgb(113,118,244);color: white;">
-              提交更改
-            </button>
-          </div>
-        </div><!-- /.modal-content -->
-      </div><!-- /.modal -->
-    </div>
-    <!--</el-card>-->
   </div>
-
 </template>
 
 <script>
   import * as d3 from 'd3'
   import global from './nav.vue'
-  // import
   export default {
     name: "nodeGraph",
     data() {
@@ -561,8 +455,6 @@
             mousedown_link = d;
             if(mousedown_link === selected_link) selected_link = null;
             else selected_link = mousedown_link;
-            console.log("select link");
-            console.log(selected_link);
             selected_node = null;
             restart();
           });
@@ -578,7 +470,7 @@
         path_text.attr({
           'class':'edgelabel',
           'id':function(d,i){return 'edgepath'+i;},
-          'dx':50,
+          'dx':30,
           'dy':0
         });
 
@@ -587,7 +479,7 @@
           .attr({
             'class':'edgelabel',
             'id':function(d,i){return 'edgepath'+ i;},
-            'dx':50,
+            'dx':30,
             'dy':0
           })
           .append('textPath')
@@ -601,8 +493,6 @@
             mousedown_link_text = d;
             selected = mousedown_link_text;
             $("#edit").css('display','block');
-            // $("#words").attr('autofocus','autofocus');
-            // console.log($("#words"));
             $('.detailEdit').css('display','none');
             $("#words").val(d.relation);
             $("#words").removeAttr("disabled");
@@ -610,28 +500,25 @@
             edit_relation = true;
             svg.selectAll('.ptext')
               .style('fill','black')
-            d3.select(this).style('fill','blue');
+            d3.select(this).style('fill','#1E90FF');
             $("#edit").css({
               'display':'inline-block',
               "top":mousedown_link_text.target.y + "px",
               "left":mousedown_link_text.target.x + "px",
             });
 
-            // console.log(mousedown_link_text);
             if (mousedown_link_text === selected_link_text) selected_link_text = null;
             else {
               selected_link_text = mousedown_link_text;
               selected_link = mousedown_link_text;
             }
-
-            console.log("select link 2");
-            console.log(selected_link_text);
-
             selected_node = null;
+            //输入框聚焦
             $("#words").focus();
             restart();
           })
           .on('mouseup',function (d) {
+            //输入框聚焦
             $("#edit input").focus();
           });
         // remove old pathText
@@ -655,7 +542,7 @@
         g.append('svg:circle')
           .attr('class', 'node')
           .attr('r', 12)
-          //      .attr('r', 8)
+          //      .attr('r', 10)
           .style('fill', function(d) {
             return (d === selected_node) ? d3.rgb(150,215,250).brighter().toString() : d3.rgb(150,215,250);
           })
@@ -699,17 +586,13 @@
             if(d3.event.ctrlKey) return;
             // select node
             mousedown_node = d;
-
             // d.fixed = false;
             if (mousedown_node === selected_node) selected_node = null;
             else {
               selected_node = mousedown_node;
               global.main_entity = selected_node.idx;
               global.entityInfo = selected_node.info;
-              console.log(global.entityInfo);
             }
-            console.log(selected_node);
-
             selected_link = null;
             //显示info信息
             aboutInfo(selected_node);
@@ -731,7 +614,7 @@
               .style({
                 'stroke':'lavender',
                 'stroke-width': '2px',
-                // ' cursor': 'default'
+                ' cursor': 'default'
               })
               .classed('hidden', false)
               .attr('d', 'M' + mousedown_node.x + ',' + mousedown_node.y + 'L' + mousedown_node.x + ',' + mousedown_node.y);
@@ -741,10 +624,17 @@
             if(!mousedown_node) return;
             //因为在mousedown事件比up事件靠前，所以，将focus事件写在mousedown里面不生效（不会执行），mousedown > focus > mouseup > click
             $("#edit input").focus();
+            console.log('taiqi');
             // needed by FF
             drag_line
               .classed('hidden', true)
-              .style('marker-end', '');
+              .style('marker-end', '')
+              .style({
+                'stroke':'none',
+                'stroke-width': '0px',
+                ' cursor': 'pointer'
+              })
+              ;
 
             // check for drag-to-self
             mouseup_node = d;
@@ -789,7 +679,14 @@
 
         // show node IDs
         g.append('svg:text')
-          .attr('x', 0)
+          .attr('x',function (d) {
+            if(d.name == nodes[0].name){
+              return -30
+            }else {
+              return -16;
+            }
+
+            })
           // .attr('y', 4)//-16
           .attr('y',function(d){
             if(d.name == nodes[0].name){
@@ -806,6 +703,12 @@
               }else{
                 return 'rgb(125,129,128)'
               }
+            },
+            'font-weight':function (d) {
+              if (d.name == nodes[0].name){
+                return '500'
+              }
+
             }
           })
           .text(function(d) {return  d.name;});
@@ -1412,7 +1315,7 @@
           //选中节点后，显示input框在节点周围
           $("#edit").css({
             'display':'inline-block',
-            "top":selected_node.y + 30 + "px",
+            "top":selected_node.y+10 + "px",
             "left":selected_node.x+ "px",
           });
           // $('#edit input').css('display','block');

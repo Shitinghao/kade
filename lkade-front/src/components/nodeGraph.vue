@@ -115,6 +115,10 @@
 
     },
     methods: {
+      make_readable_id(name, id) {
+        if (name === id) return id;
+        return name + "<id:" + id + ">";
+      },
       handleClose(done) {
         return done();
         this.$confirm('确定要提交表单吗？')
@@ -161,7 +165,7 @@
             let ename = _this.ent_inserts.ename;
             _this.ent_inserts.ename = "";
             _this.svg.classed('active', true);
-            callback();
+            callback(response);
           },
           function (response, _this) {
             _this.$message.error(response.data.msg);
@@ -184,7 +188,7 @@
             ents.forEach(function (x) {
               options.push({
                 link: x.ename,
-                value: x.eid
+                value: _this.make_readable_id(x.ename, x.eid)
               });
             });
             cb(options);
@@ -220,8 +224,8 @@
                 cancelButtonText: '取消',
                 type: 'info'
               }).then(() => {
-                _this.submitNewEntity(function () {
-                  let node = { id: ++_this.lastNodeId, idx: ename, name: ename, reflexive: false, info: [] };
+                _this.submitNewEntity(function (response) {
+                  let node = { id: ++_this.lastNodeId, idx: response.data.eid, name: ename, reflexive: false, info: [] };
                   node.x = point[0];
                   node.y = point[1];
                   _this.nodes.push(node);
@@ -234,6 +238,7 @@
             }
             $.each(response.data.nodes, function(i,val) {
               let node = { id: ++_this.lastNodeId, idx: val.idx, name: val.idx, reflexive: false, info: val.attr };
+              if (val.name != null)  node.name = val.name;
               node.x = point[0];
               node.y = point[1];
               _this.nodes.push(node);
@@ -512,6 +517,8 @@
               selected_link_text = mousedown_link_text;
               selected_link = mousedown_link_text;
             }
+            console.log(selected_link_text);
+
             selected_node = null;
             //输入框聚焦
             $("#words").focus();
@@ -590,7 +597,7 @@
             if (mousedown_node === selected_node) selected_node = null;
             else {
               selected_node = mousedown_node;
-              global.main_entity = selected_node.idx;
+              global.main_entity = _this.make_readable_id(selected_node.name, selected_node.idx);
               global.entityInfo = selected_node.info;
             }
             selected_link = null;
@@ -665,8 +672,12 @@
             console.log(source);
             console.log(target);
             _this.inserts.sid = mousedown_node.idx;
+            if (mousedown_node.name !== mousedown_node.idx)
+              _this.inserts.sid = _this.make_readable_id(mousedown_node.name, mousedown_node.idx)
             _this.inserts.p = "";
             _this.inserts.oid = mouseup_node.idx;
+            if (mouseup_node.name !== mouseup_node.idx)
+              _this.inserts.oid = _this.make_readable_id(mouseup_node.name, mouseup_node.idx)
             _this.dialogVisible = true;
 
             link = {
@@ -738,7 +749,8 @@
                 cancelButtonText: '取消',
                 type: 'info'
               }).then(() => {
-                _this.submitNewEntity(function () {
+                _this.submitNewEntity(function (response) {
+                  _this.searchWords = response.data.eid;
                   _this.start()
                 });
               }).catch(() => {   
@@ -747,8 +759,10 @@
             return;
           }
           _this.lastNodeId = response.nodes.length - 1;
-          $.each(response.nodes, function(i,val) {
-            nodes.push({id:i, idx:val.idx, name:val.idx, reflexive:false, info:val.attr});
+          $.each(response.nodes, function (i, val) {
+            let node = { id: i, idx: val.idx, name: val.idx, reflexive: false, info: val.attr };
+            if (val.name != null) node.name = val.name;
+            nodes.push(node);
           });
           $.each(response.links, function(i,val){
             var id = val.source;

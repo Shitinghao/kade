@@ -139,7 +139,8 @@ def newentity():
 	if precheck: return json.dumps(ret, ensure_ascii=False)
 	if not msg:
 		ditem = {config['entity_name_field']: name}
-		db.entities.insert_one(ditem)
+		rr = db.entities.insert_one(ditem)
+		ret['eid'] = str(rr.inserted_id)
 	return json.dumps(ret, ensure_ascii = False)
 
 
@@ -342,22 +343,12 @@ def add_entity():
 	return json.dumps(ret, ensure_ascii=False)
 
 
-@app.route('/api/graph/delete_entity', method=['GET', 'POST'])
-def delete_entity():
-	ret = {'status': 'error', 'msg':'实体不存在'}
-	_id = request.params.idx
-	if _id == '': return json.dumps(ret, ensure_ascii=False)
-	del_result = RemoveEntity(_id)
-	status = 'ok' if del_result.acknowledged else 'error'
-	ret = {'status':status, 'msg': 'ok'}
-	return json.dumps(ret, ensure_ascii=False)
-
 
 def make_href(o_id, o_name):
 	return '<a href="{}">{}</a>'.format(o_id, o_name)
 
 @app.route('/api/graph/update_triple_p', method=['GET', 'POST'])
-def update_relation():
+def update_triple_p():
     ret = {
         'status': 'fail',
         'msg': 'connection failed'
@@ -383,56 +374,6 @@ def update_relation():
                 ret['status'] = 'success'
                 ret['msg'] = '修改关系成功'
     return json.dumps(ret, ensure_ascii=False)
-
-
-@app.route('/api/graph/add_relation', method=['GET', 'POST'])
-def add_relation():
-	ret = {
-		'status': 'fail',
-		'idx': '',
-		'error': 'connection failed'
-	}
-
-	s = request.params.s
-	p = request.params.p
-	o_id = request.params.o_id
-	o_name = request.params.o_name
-	o = make_href(o_id, o_name)
-	if db.entities.find_one({'_id': s}) is None:
-		ret['status'] = 'fail'
-		ret['error'] = 'entity not found: {}'.format(s)
-	elif db.entities.find_one({'_id': o_id}) is None:
-		ret['status'] = 'fail'
-		ret['error'] = 'entity not found: {}'.format(o_id)
-	elif db.triples.find_one({'s': s, 'p': p, 'o': o}) is not None:
-		ret['status'] = 'fail'
-		ret['error'] = 'triple exists: {}-{}-{}'.format(s, p, o)
-	else:
-		r = db.triples.insert_one({'s': s, 'p': p, 'o': o, 'timestamp': datetime.now()})
-		if not r.acknowledged:
-			ret['status'] = 'fail'
-			ret['error'] = 'insert failed'
-		else:
-			ret['status'] = 'success'
-			ret['idx'] = str(r.inserted_id)
-			ret['error'] = ''
-	return json.dumps(ret, ensure_ascii=False)
-
-@app.route('/api/graph/delete_relation', method=['GET', 'POST'])
-def delete_relation():
-	ret = {
-		'status': 'fail',
-		'error': 'connection failed'
-	}
-	_id = request.params.idx
-	r = db.triples.delete_one({'_id': ObjectId(_id)})
-	if not r.acknowledged:
-		ret['status'] = 'fail'
-		ret['error'] = 'delete failed'
-	else:
-		ret['status'] = 'success'
-		ret['error'] = ''
-	return json.dumps(ret, ensure_ascii=False)
 
 
 @app.route('/', method='GET')

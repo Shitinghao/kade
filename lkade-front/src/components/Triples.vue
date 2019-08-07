@@ -180,6 +180,10 @@ export default {
     }
   },
   methods: {
+    make_readable_id(name, id) {
+        if (name === id) return id;
+        return name + "<id:" + id + ">";
+    },
     search_entity(ename, eid) {
       let queryStr = null;
       if (ename != null) {
@@ -218,7 +222,7 @@ export default {
               eid: x.eid,
               ename: x.ename
             });
-            global.main_entity = x.ename;
+            global.main_entity = _this.make_readable_id(x.ename, x.eid);
             _this.now_search_ent = x;
           });
         })

@@ -34,6 +34,8 @@ msg_callus = '{"status":"fail", "reason": "您目前的APIkey无权限访问高�
 
 
 def GetEntitybyID(sid):
+	try: sid = ObjectId(sid)
+	except: return None
 	return db.entity.find_one({'_id': ObjectId(sid)})
 
 def GetEntityName(ent):
@@ -49,7 +51,7 @@ def TestSpecialChars(sr):
 def SplitId(name):
 	ename = ''
 	eid = ljqpy.RM("<id:([0-9a-f]+)>", name)
-	if eid == "": return name, ""
+	if eid == "": return name, name
 	ename = re.sub("<id:([0-9a-f]+)>$", '', name)
 	return ename, eid
 
@@ -60,7 +62,7 @@ def triples():
 
 	name, eid = SplitId(name)
 
-	if eid != '': entity = GetEntitybyID(eid)
+	if eid != name: entity = GetEntitybyID(eid)
 	else: entity = db.entity.find_one({'name': name})
 	if entity is None:
 		ret['status'] = 'error'
@@ -119,7 +121,7 @@ def ment2ent():
 
 	rets = []
 
-	if eid != '': entity = GetEntitybyID(eid)
+	if eid != query: entity = GetEntitybyID(eid)
 	else: entity = db.entity.find_one({'name': query})
 
 	if entity is not None:
@@ -167,6 +169,7 @@ def newentity():
 
 def precheck_new_triple(sid, p, oid, oname):
 	print(sid, p, oid, oname)
+	sname, sid = SplitId(sid)
 	if sid == '' or GetEntitybyID(sid) is None: return '实体不存在'
 	if p == '': return '属性不能为空'
 	if TestSpecialChars(p): return '属性不能包含特殊符号或空白符'
@@ -194,13 +197,15 @@ def new_triple():
 	msg = precheck_new_triple(sid, p, oid, oname)
 	ret = {'status': 'error' if msg else 'ok', 'msg': msg}
 	if precheck: return json.dumps(ret, ensure_ascii=False)
+	sname, sid = SplitId(sid)
 	if not msg:
 		# oid非空表示关系，否则表示属性
 		if oid != '':
 			oname, oid = SplitId(oid)
-			db.triple_rel.insert_one({'sid': sid, 'p': p, 'oid': oid})
+			rr = db.triple_rel.insert_one({'sid': sid, 'p': p, 'oid': oid})
 		else:
-			db.triple_attr.insert_one({'sid': sid, 'p': p, 'o': oname})
+			rr = db.triple_attr.insert_one({'sid': sid, 'p': p, 'o': oname})
+	ret['eid'] = str(rr.inserted_id)
 	return json.dumps(ret, ensure_ascii=False)
 
 
@@ -264,6 +269,7 @@ def EntityRelatedInfos(idx):
 @app.route('/api/info_remove_entity', method = ['GET', 'POST'])
 def info_remove_entity():
 	eid = request.params.id
+	ename, eid = SplitId(eid)
 	ret = {'status':'ok','ret': EntityRelatedInfos(eid)}
 	return json.dumps(ret, ensure_ascii=False)
 
@@ -274,6 +280,101 @@ def remove_entity():
 	status = 'ok' if del_result.acknowledged else 'error'
 	ret = {'status':status, 'ret': 'ok'}
 	return json.dumps(ret, ensure_ascii=False)
+
+
+def entity2dict(entity):
+	#'timestamp': entity['timestamp'].timestamp(), 
+	return {'idx': str(entity['_id']), 'attr': [], 
+		 'name': GetEntityName(entity)}
+
+def o_is_entity(o):
+	return re.match(r'<a href="(.*?)">(.*?)</a>', o) is not None
+
+def triple2dict(triple):
+	ret = {'idx': str(triple['_id']), 
+		's': triple['sid'], 'p': triple['p'], 'o': triple.get('o', triple.get('oid', ''))}
+	return ret
+
+
+@app.route('/api/graph/query_entity', method=['GET', 'POST'])
+def query_entity():
+	ret = {
+		'status': 'fail',
+		'nodes': [],
+		'links': [],
+		'error': 'connection failed'
+	}
+	
+	no_expand = request.params.no_expand
+	eid = request.params.idx
+	if eid == '': return json.dumps(ret, ensure_ascii=False)
+
+	name, eid = SplitId(eid)
+
+	entity = GetEntitybyID(eid)
+	if entity is None:
+		ret['status'] = 'fail'
+		ret['error'] = 'entity not found'
+	else:
+		ret['status'] = 'success'
+		ret['error'] = ''
+
+		d = {}
+		entid = str(entity['_id'])
+		d[entid] = len(d)
+		ret['nodes'].append(entity2dict(entity))
+		if not no_expand:
+			for triple in db.triple_rel.find({'sid': entid}):
+				oid = triple['oid']
+				oent = db.entity.find_one({'_id': ObjectId(oid)})
+				oid = str(oent['_id'])
+				if oent is None:
+					ret['status'] = 'fail'
+					ret['error'] = 'oentity not found'
+				else:
+					if oid not in d:
+						d[oid] = len(d)
+						ret['nodes'].append(entity2dict(oent))
+					ret['links'].append({
+						'source': d[entid],
+						'target': d[oid],
+						'triple': triple2dict(triple)
+					})
+
+	for index in range(len(ret['nodes'])):
+		node = ret['nodes'][index]
+		for triple in db.triple_attr.find({'sid': node['idx']}):
+			ret['nodes'][index]['attr'].append(triple2dict(triple))
+	return json.dumps(ret, ensure_ascii=False)
+
+
+@app.route('/api/graph/update_triple_p', method=['GET', 'POST'])
+def update_triple_p():
+    ret = {
+        'status': 'fail',
+        'msg': 'connection failed'
+    }
+    _id = request.params.idx
+    new_p = request.params.new_p
+    triple = db.triple_rel.find_one({'_id': ObjectId(_id)})
+    if triple is None:
+        ret['status'] = 'fail'
+        ret['msg'] = '关系不存在：{}'.format(_id)
+    else:
+        s = triple['sid']
+        o = triple['oid']
+        if db.triples.find_one({'sid': s, 'p': new_p, 'oid': o}) is not None:
+            ret['status'] = 'fail'
+            ret['error'] = '关系重复: {}-{}-{}'.format(s, new_p, o)
+        else:
+            r = db.triple_rel.update_one({'_id': ObjectId(_id)}, {'$set': {'p': new_p, 'timestamp': datetime.now()}})
+            if not r.acknowledged:
+                ret['status'] = 'fail'
+                ret['msg'] = 'update failed'
+            else:
+                ret['status'] = 'success'
+                ret['msg'] = '修改关系成功'
+    return json.dumps(ret, ensure_ascii=False)
 
 
 @app.route('/', method='GET')

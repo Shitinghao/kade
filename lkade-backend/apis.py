@@ -406,6 +406,13 @@ def login_check():
 			sess.save()
 	return json.dumps(ret, ensure_ascii=False)
 
+@app.route('/login_exit', method=['POST', 'OPTIONS'])
+def login_exit():
+	sess = request.environ.get('beaker.session')
+	sess['isLogin'] = False
+	sess.save()
+	ret = {'status': 'ok'}
+	return json.dumps(ret, ensure_ascii=False)
 
 #from gevent import monkey; monkey.patch_all()
 #bottle.run(sapp, host='0.0.0.0', port=26551, server='gevent')

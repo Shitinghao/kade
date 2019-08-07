@@ -23,7 +23,24 @@ config = {
 
 db = client.cndbpedia
 
+
+import hashlib
+from beaker.middleware import SessionMiddleware
+
+session_opts = {
+	'session.type':'file',
+    'session.cookei_expires':300,
+    'session.data_dir':'./sessions',
+    'sessioni.auto':True
+}
 app = bottle.app()
+sapp = SessionMiddleware(app, session_opts)
+
+def check_authority():
+	return True
+	sess = request.environ.get('beaker.session')
+	return sess.get('isLogin', False)
+not_authority_ret = json.dumps({'status':'fail', 'msg':'未登录'}, ensure_ascii=False)
 
 @app.hook('after_request')
 def enable_cors(): response.headers['Access-Control-Allow-Origin'] = '*'
@@ -40,14 +57,6 @@ def enable_cors(): response.headers['Access-Control-Allow-Origin'] = '*'
 msg_badapikey = '{"status":"fail", "reason": "bad apikey"}'
 msg_toofreq = '{"status":"fail", "reason": "too many requests"}'
 msg_callus = '{"status":"fail", "reason": "您目前的APIkey无权限访问高级内容，请联系我们升级"}'
-
-
-def T(xx):
-	if xx is None: return xx
-	xx['_id'] = str(xx['_id'])
-	for k, v in xx.items():
-		if isinstance(v, datetime): xx[k] = v.timestamp()
-	return xx
 
 
 def DoPreCheck(params=[]): return 'ok', ''
@@ -132,6 +141,7 @@ def precheck_new_entity(name):
 
 @app.route('/api/new_entity', method = ['GET', 'POST'])
 def newentity():
+	if not check_authority(): return not_authority_ret
 	name = request.params.name
 	precheck = request.params.precheck
 	msg = precheck_new_entity(name)
@@ -375,12 +385,29 @@ def update_triple_p():
                 ret['msg'] = '修改关系成功'
     return json.dumps(ret, ensure_ascii=False)
 
-
 @app.route('/', method='GET')
 def index():
 	return static_file('index.html', root='views')
 
-#from gevent import monkey; monkey.patch_all()
-#bottle.run(app, host='0.0.0.0', port=26551, server='gevent')
 
-bottle.run(app, host='0.0.0.0', port=26551, debug=True, reloader=True)
+@app.route('/login_check', method=['POST', 'OPTIONS'])
+def login_check():
+	sess = request.environ.get('beaker.session')
+	ret = {'status': 'fail'}
+	response.headers['Access-Control-Allow-Headers'] = "Content-Type,XFILENAME,XFILECATEGORY,XFILESIZE,x-requested-with,Authorization"
+	user = request.params.user
+	passwd = request.params.passwd
+	theuser = db.user.find_one({'username': user})
+	if theuser is not None:
+		saltpass = (theuser.get('password', '')+'salt123').encode()
+		if passwd == hashlib.md5(saltpass).hexdigest():
+			ret['status'] = 'ok'
+			sess['isLogin'] = True
+			sess.save()
+	return json.dumps(ret, ensure_ascii=False)
+
+
+#from gevent import monkey; monkey.patch_all()
+#bottle.run(sapp, host='0.0.0.0', port=26551, server='gevent')
+
+bottle.run(sapp, host='0.0.0.0', port=26551, debug=True, reloader=True)

@@ -23,7 +23,23 @@ config = {
 
 db = client.bqb
 
+import hashlib
+from beaker.middleware import SessionMiddleware
+
+session_opts = {
+	'session.type':'file',
+    'session.cookei_expires':300,
+    'session.data_dir':'./sessions',
+    'sessioni.auto':True
+}
 app = bottle.app()
+sapp = SessionMiddleware(app, session_opts)
+
+def check_authority():
+	sess = request.environ.get('beaker.session')
+	return sess.get('isLogin', False)
+not_authority_ret = json.dumps({'status':'fail', 'msg':'未登录'}, ensure_ascii=False)
+
 
 @app.hook('after_request')
 def enable_cors(): response.headers['Access-Control-Allow-Origin'] = '*'
@@ -381,7 +397,24 @@ def update_triple_p():
 def index():
 	return static_file('index.html', root='views')
 
-#from gevent import monkey; monkey.patch_all()
-#bottle.run(app, host='0.0.0.0', port=26551, server='gevent')
+@app.route('/login_check', method=['POST', 'OPTIONS'])
+def login_check():
+	sess = request.environ.get('beaker.session')
+	ret = {'status': 'fail'}
+	response.headers['Access-Control-Allow-Headers'] = "Content-Type,XFILENAME,XFILECATEGORY,XFILESIZE,x-requested-with,Authorization"
+	user = request.params.user
+	passwd = request.params.passwd
+	theuser = db.user.find_one({'username': user})
+	if theuser is not None:
+		saltpass = (theuser.get('password', '')+'salt123').encode()
+		if passwd == hashlib.md5(saltpass).hexdigest():
+			ret['status'] = 'ok'
+			sess['isLogin'] = True
+			sess.save()
+	return json.dumps(ret, ensure_ascii=False)
 
-bottle.run(app, host='0.0.0.0', port=26551, debug=True, reloader=True)
+
+#from gevent import monkey; monkey.patch_all()
+#bottle.run(sapp, host='0.0.0.0', port=26551, server='gevent')
+
+bottle.run(sapp, host='0.0.0.0', port=26551, debug=True, reloader=True)

@@ -7,7 +7,7 @@
         <el-row :gutter="20">
           <el-col :span="12" :offset="6">
               <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-                <el-form-item label="姓名" prop="name">
+                <el-form-item label="用户名" prop="name">
                   <el-input v-model.number="ruleForm.name"></el-input>
                 </el-form-item>
                 <el-form-item label="密码" prop="pass">
@@ -32,12 +32,15 @@
 </template>
 
 <script>
+  import global from './nav.vue'
+  import qs from 'Qs'
+  import md5 from 'js-md5';
 export default {
   name: 'login',
   data () {
     var checkName = (rule, value, callback) => {
       if (!value) {
-        return callback(new Error('年龄不能为空'))
+        return callback(new Error('用户名不能为空'))
       } else {
         callback()
       }
@@ -82,10 +85,26 @@ export default {
   },
   methods: {
     submitForm: function (formName) {
+      let _this = this;
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          // alert('submit!');
-          this.$router.push({path: '/list'})
+          this.axios
+            .post(global.api_host + '/login_check', qs.stringify({
+               user: this.ruleForm.name,
+               passwd: md5(this.ruleForm.pass+'salt123')
+              })
+            )
+            .then(function (response) {
+              if (response.data.status === 'ok') {
+                _this.$router.push({ path: '/list' })
+              } else {
+                _this.$message.error("登陆失败")
+              }
+
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
         } else {
           console.log('error submit!!')
           return false
@@ -95,6 +114,8 @@ export default {
     resetForm (formName) {
       this.$refs[formName].resetFields()
     }
+  },
+  mounted() {
   }
 
 }

@@ -92,7 +92,7 @@
 
 
         <div class="btn-group" style="float: right;">
-          <el-button type="info" @click="dialogVisible=true" class="addBtn_style">新增关系</el-button>
+          <el-button type="info" @click="showNewTripleDialog" class="addBtn_style">新增关系</el-button>
           <el-dialog title="新增关系" :visible.sync="dialogVisible" width="50%" :before-close="handleClose">
             <div class="input_style">
               <label for="" style="float: left;">Subject: </label>
@@ -172,6 +172,7 @@ export default {
       entDialogVisible: false,
       m2eDialogVisible: false,
       entDelDialogVisible: false,
+      now_search_ent: { eid: '', ename: ''},
       ent_dels: { eid: '' },
       inserts: { sid: '', sname:'', p: '', oid: '', oname: '', old_titem: '' },
       ent_inserts: { ename: '' },
@@ -218,7 +219,7 @@ export default {
               ename: x.ename
             });
             global.main_entity = x.ename;
-            _this.inserts = { sid: x.eid, sname: x.ename, p: '', oid: '', old_titem: '' }
+            _this.now_search_ent = x;
           });
         })
         .catch(function (error) {
@@ -292,6 +293,11 @@ export default {
         });
     },
 
+    showNewTripleDialog() {
+      let x = this.now_search_ent;
+      this.inserts = { sid: x.eid, sname: x.ename, p: '', oid: '', old_titem: '' }
+      this.dialogVisible = true;
+    },
 
     showRemoveEntDialog(eid) {
       let _this = this;
@@ -331,7 +337,7 @@ export default {
           p: this.inserts.p,
           oid: this.inserts.oid,
           oname: this.inserts.oname,
-          old_titem: this.inserts.old_titem
+          old_tid: this.inserts.old_titem.id
         },
         function (response, _this) {
           if (_this.inserts.old_titem !== "") {

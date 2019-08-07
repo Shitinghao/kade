@@ -144,7 +144,7 @@ def newentity():
 
 
 def precheck_new_triple(sid, p, oid, oname, old_tid):
-	if GetEntitybyID(sid) is None: return '实体不存在'
+	if sid == '' or GetEntitybyID(sid) is None: return '实体不存在'
 	if p == '': return '属性不能为空'
 	if TestSpecialChars(p): return '属性不能包含特殊符号或空白符'
 	query = {'s': sid, 'p': p}
@@ -153,13 +153,16 @@ def precheck_new_triple(sid, p, oid, oname, old_tid):
 		exists = [x for x in exists if x['_id'] != ObjectId(old_tid)]
 	for xx in exists:
 		ooid, ooname = SplitDBO(xx)
-		if ooid == oid or ooname == oname: return '存在重复关系'
+		if ooname == oname: return '存在重复关系'
+		if oid != '' and ooid == oid: return '存在重复关系'
 	if oname != '':
 		if TestSpecialChars(oname): return '值不能包含特殊符号或空白符'
 	if oid != '':
 		oo = GetEntitybyID(oid)
 		if oo is None: return 'Object实体不存在'
 		if oname != '' and GetEntityName(oo) != oname: return "实体名称不匹配"
+	if oname == '' and oid == '':
+		return '值不能为空'
 
 @app.route('/api/new_triple', method = ['GET', 'POST'])
 def new_triple():

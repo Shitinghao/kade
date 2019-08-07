@@ -167,7 +167,7 @@ def newentity():
 
 def precheck_new_triple(sid, p, oid, oname):
 	print(sid, p, oid, oname)
-	if GetEntitybyID(sid) is None: return '实体不存在'
+	if sid == '' or GetEntitybyID(sid) is None: return '实体不存在'
 	if p == '': return '属性不能为空'
 	if TestSpecialChars(p): return '属性不能包含特殊符号或空白符'
 	if oname == '': return '值不能为空'

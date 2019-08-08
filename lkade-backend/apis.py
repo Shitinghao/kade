@@ -391,7 +391,11 @@ def update_triple_p():
 
 @app.route('/', method='GET')
 def index():
-	return static_file('index.html', root='views')
+	return static_file('index.html', root='./dist')
+
+@route('/static/<filepath:path>')
+def static(filepath):
+    return static_file(filepath, root="./dist/static")
 
 
 @app.route('/login_check', method=['POST', 'OPTIONS'])
@@ -417,6 +421,7 @@ def login_exit():
 	sess.save()
 	ret = {'status': 'ok'}
 	return json.dumps(ret, ensure_ascii=False)
+
 
 #from gevent import monkey; monkey.patch_all()
 #bottle.run(sapp, host='0.0.0.0', port=26551, server='gevent')

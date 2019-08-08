@@ -17,11 +17,15 @@ if DB == 'local':
 	client.admin.authenticate('gdmdbuser', '6QEUI8dhnq', mechanism='SCRAM-SHA-1')
 
 config = {
-		'entity_name_field': '_id',
-	}
+	'entity_name_field': '_id',
+}
 
 
-db = client.cndbpedia
+db = client.get_database('cndbpedia')
+user_table = db.get_collection('user')
+entity_table = db.get_collection('entities')
+triple_table = db.get_collection('triples')
+ment2ent_table = db.get_collection('ment2ent')
 
 
 import hashlib
@@ -65,7 +69,7 @@ def RemoveHref(x):
 	return re.sub('<a[^>]*>', '', x).replace('</a>', '')
 
 def GetEntitybyID(sid):
-	return db.entities.find_one( {'_id': sid} )
+	return entity_table.find_one( {'_id': sid} )
 
 def GetEntityName(ent):
 	if ent is None: return ''
@@ -98,7 +102,7 @@ def triples():
 	if len(entity) > 200: ok = False
 	procO = RemoveHref if keephref == '' else (lambda x:x)
 	entity = entity.replace('"', '').replace('"', '')
-	xx = db.triples.find({'s': entity}).limit(1000)
+	xx = triple_table.find({'s': entity}).limit(1000)
 	for x in xx:
 		oid, oname = SplitDBO(x)
 		item = {'id':str(x['_id']), 
@@ -121,9 +125,9 @@ def ment2ent():
 		ent = mention
 		rets.append({'m':mention, 'e':ent, 'isent': True})
 		if not no_other_m:
-			rets.extend(db.ment2ent.find({'e': ent}))
+			rets.extend(ment2ent_table.find({'e': ent}))
 
-	xx = db.ment2ent.find({'e': {'$ne': mention}, 'm': mention}).limit(1000)
+	xx = ment2ent_table.find({'e': {'$ne': mention}, 'm': mention}).limit(1000)
 	rets.extend(list(xx))
 	ret = [{'id':str(x.get('_id', '')), 'mention': x['m'], \
 		 'eid': x['e'], 'ename': GetEntityName(GetEntitybyID(x['e'])),
@@ -136,7 +140,7 @@ def precheck_new_entity(name):
 	if name == '': return '名称不能为空'
 	if TestSpecialChars(name): return '名称不能包含特殊符号或空白符'
 	ditem = {config['entity_name_field']: name}
-	exists = db.entities.find_one(ditem)
+	exists = entity_table.find_one(ditem)
 	if exists: return '实体已经存在'
 
 @app.route('/api/new_entity', method = ['GET', 'POST'])
@@ -149,7 +153,7 @@ def newentity():
 	if precheck: return json.dumps(ret, ensure_ascii=False)
 	if not msg:
 		ditem = {config['entity_name_field']: name}
-		rr = db.entities.insert_one(ditem)
+		rr = entity_table.insert_one(ditem)
 		ret['eid'] = str(rr.inserted_id)
 	return json.dumps(ret, ensure_ascii = False)
 
@@ -159,7 +163,7 @@ def precheck_new_triple(sid, p, oid, oname, old_tid):
 	if p == '': return '属性不能为空'
 	if TestSpecialChars(p): return '属性不能包含特殊符号或空白符'
 	query = {'s': sid, 'p': p}
-	exists = list(db.triples.find(query))
+	exists = list(triple_table.find(query))
 	if old_tid != '':
 		exists = [x for x in exists if x['_id'] != ObjectId(old_tid)]
 	for xx in exists:
@@ -190,7 +194,7 @@ def new_triple():
 		ostr = oname
 		if oid != '': ostr = '<a href="%s">%s</a>' % (oid, oname)
 		ditem = {'s': sid, 'p': p, 'o': ostr}
-		rr = db.triples.insert_one(ditem)
+		rr = triple_table.insert_one(ditem)
 		ret['eid'] = str(rr.inserted_id)
 	return json.dumps(ret, ensure_ascii=False)
 
@@ -198,9 +202,9 @@ def new_triple():
 def precheck_new_ment2ent(eid, mention):
 	if mention == '': return '别名不能为空'
 	if TestSpecialChars(mention): return '别名不能包含特殊符号或空白符'
-	if db.entities.find_one({'_id': eid}) is None: return '实体不存在'
+	if entity_table.find_one({'_id': eid}) is None: return '实体不存在'
 	ditem = {'m': mention, 'e': eid}
-	if db.ment2ent.find_one(ditem) is not None: return '库中已存在此关系'
+	if ment2ent_table.find_one(ditem) is not None: return '库中已存在此关系'
 
 @app.route('/api/new_ment2ent', method = ['GET', 'POST'])
 def new_ment2ent():
@@ -212,14 +216,14 @@ def new_ment2ent():
 	if precheck: return json.dumps(ret, ensure_ascii=False)
 	if not msg:
 		ditem = {'m': mention, 'e': eid}
-		db.ment2ent.insert_one(ditem)
+		ment2ent_table.insert_one(ditem)
 	return json.dumps(ret, ensure_ascii=False)
 
 @app.route('/api/remove_triple', method = ['GET', 'POST'])
 def remove_triple():
 	tid = request.params.id
 	ok = True
-	del_result = db.triples.delete_one({'_id': ObjectId(tid)})
+	del_result = triple_table.delete_one({'_id': ObjectId(tid)})
 	status = 'ok' if del_result.acknowledged else 'error'
 	ret = {'status':status, 'ret': 'ok'}
 	return json.dumps(ret, ensure_ascii=False)
@@ -228,21 +232,21 @@ def remove_triple():
 def remove_ment2ent():
 	tid = request.params.id
 	ok = True
-	del_result = db.ment2ent.delete_one({'_id': ObjectId(tid)})
+	del_result = ment2ent_table.delete_one({'_id': ObjectId(tid)})
 	status = 'ok' if del_result.acknowledged else 'error'
 	ret = {'status':status, 'ret': 'ok'}
 	return json.dumps(ret, ensure_ascii = False)
 
 def RemoveEntity(ent):
-	db.ment2ent.delete_many({'e': ent})
-	db.triples.delete_many({'s': ent})
-	return db.entities.delete_one({'_id': ent})
+	ment2ent_table.delete_many({'e': ent})
+	triple_table.delete_many({'s': ent})
+	return entity_table.delete_one({'_id': ent})
 
 def EntityRelatedInfos(ent):
 	tris = []
-	for x in db.ment2ent.find({'e': ent}):
+	for x in ment2ent_table.find({'e': ent}):
 		tris.append({'s':x['e'], 'p': '别名', 'o':x['m']})
-	for x in db.triples.find({'s': ent}):
+	for x in triple_table.find({'s': ent}):
 		tris.append({'s':x['s'], 'p': x['p'], 'o':x['o']})
 	return tris
 
@@ -290,7 +294,7 @@ def query_entity():
 	}
 	_id = request.params.idx
 	no_expand = request.params.no_expand
-	entity = db.entities.find_one({'_id': _id})
+	entity = entity_table.find_one({'_id': _id})
 	if entity is None:
 		ret['status'] = 'fail'
 		ret['error'] = 'entity not found: {}'.format(_id)
@@ -302,10 +306,10 @@ def query_entity():
 		d[entity['_id']] = len(d)
 		ret['nodes'].append(entity2dict(entity))
 		if not no_expand:
-			for triple in db.triples.find({'s': entity['_id']}):
+			for triple in triple_table.find({'s': entity['_id']}):
 				if o_is_entity(triple['o']):
 					o_id, _ = parse_href(triple['o'])
-					o = db.entities.find_one({'_id': o_id})
+					o = entity_table.find_one({'_id': o_id})
 					if o is None:
 						ret['status'] = 'fail'
 						ret['error'] = 'entity not found: {}'.format(o_id)
@@ -321,7 +325,7 @@ def query_entity():
 
 	for index in range(len(ret['nodes'])):
 		node = ret['nodes'][index]
-		for triple in db.triples.find({'s': node['idx']}):
+		for triple in triple_table.find({'s': node['idx']}):
 			if not o_is_entity(triple['o']):
 				ret['nodes'][index]['attr'].append(triple2dict(triple))
 
@@ -337,11 +341,11 @@ def add_entity():
 	}
 
 	_id = request.params.idx
-	if db.entities.find_one({'_id': _id}) is not None:
+	if entity_table.find_one({'_id': _id}) is not None:
 		ret['status'] = 'fail'
 		ret['error'] = 'entity exists: {}'.format(_id)
 	else:
-		r = db.entities.insert_one({'_id': _id, 'timestamp': datetime.now()})
+		r = entity_table.insert_one({'_id': _id, 'timestamp': datetime.now()})
 		if not r.acknowledged:
 			ret['status'] = 'fail'
 			ret['error'] = 'insert failed'
@@ -365,18 +369,18 @@ def update_triple_p():
     }
     _id = request.params.idx
     new_p = request.params.new_p
-    triple = db.triples.find_one({'_id': ObjectId(_id)})
+    triple = triple_table.find_one({'_id': ObjectId(_id)})
     if triple is None:
         ret['status'] = 'fail'
         ret['msg'] = '关系不存在：{}'.format(_id)
     else:
         s = triple['s']
         o = triple['o']
-        if db.triples.find_one({'s': s, 'p': new_p, 'o': o}) is not None:
+        if triple_table.find_one({'s': s, 'p': new_p, 'o': o}) is not None:
             ret['status'] = 'fail'
             ret['error'] = '关系重复: {}-{}-{}'.format(s, new_p, o)
         else:
-            r = db.triples.update_one({'_id': ObjectId(_id)}, {'$set': {'p': new_p, 'timestamp': datetime.now()}})
+            r = triple_table.update_one({'_id': ObjectId(_id)}, {'$set': {'p': new_p, 'timestamp': datetime.now()}})
             if not r.acknowledged:
                 ret['status'] = 'fail'
                 ret['msg'] = 'update failed'
@@ -397,7 +401,7 @@ def login_check():
 	response.headers['Access-Control-Allow-Headers'] = "Content-Type,XFILENAME,XFILECATEGORY,XFILESIZE,x-requested-with,Authorization"
 	user = request.params.user
 	passwd = request.params.passwd
-	theuser = db.user.find_one({'username': user})
+	theuser = user_table.find_one({'username': user})
 	if theuser is not None:
 		saltpass = (theuser.get('password', '')+'salt123').encode()
 		if passwd == hashlib.md5(saltpass).hexdigest():

@@ -3,7 +3,7 @@ from bottle import route, template, request, response, static_file
 from beaker.middleware import SessionMiddleware
 
 def check_authority():
-	return True
+	#return True
 	sess = request.environ.get('beaker.session')
 	return sess.get('issLogin', False)
 not_authority_ret = json.dumps({'status':'fail', 'msg':'未登录'}, ensure_ascii=False)

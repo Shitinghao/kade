@@ -16,8 +16,8 @@
 <script>
   import avatar from '@/assets/logo1.png'
   // 创建子组建，相对于路径对应的页面
-  const api_host = "http://127.0.0.1:26551";
-  //const api_host = "";
+  //const api_host = "http://127.0.0.1:26551";
+  const api_host = "";
   var main_entity = "";
   export default {
     name: 'Nav',

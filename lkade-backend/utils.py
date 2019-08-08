@@ -22,11 +22,11 @@ def DefineCommonFuncs(app, user_table):
 	@app.route('/', method='GET')
 	@app.error(404)
 	def index(error=''):
-		return static_file('index.html', root='./dist')
+		return static_file('index.html', root='./vdist')
 	
 	@app.route('/static/<filepath:path>')
 	def static(filepath):
-	    return static_file(filepath, root="./dist/static")
+	    return static_file(filepath, root="./vdist/static")
 	
 	@app.route('/login_check', method=['POST', 'OPTIONS'])
 	def login_check():

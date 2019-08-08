@@ -17,3 +17,4 @@ ATTENTION: change lkade-backend/utils.py line 6 to always return True to disable
 
 ## PROD
 Directly run lkade-backend/apis.py or lkade-backend/apis_v2.py.
+Change the last line of apis.py / apis_v2.py.

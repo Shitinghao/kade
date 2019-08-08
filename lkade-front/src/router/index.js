@@ -34,7 +34,8 @@ export default new Router({
       path: '/list',
       name: 'HelloWorld',
       meta: {
-        keepAlive: true
+        keepAlive: true,
+        isLogin: true
       },
       component: HelloWorld
     },
@@ -42,7 +43,8 @@ export default new Router({
       path: '/nodeGraph',
       name: 'nodeGraph',
       meta: {
-        keepAlive: true
+        keepAlive: true,
+        isLogin: true
       },
       component: nodeGraph
     },
@@ -59,10 +61,20 @@ export default new Router({
       path: '/list',
       name: 'list',
       meta: {
-        keepAlive: true
+        keepAlive: true,
+        isLogin: true
       },
       component: list
+    },
+    {
+      path:'/logout',
+      redirect: 'login'
+    },
+    {
+      path:'/admin',
+      redirect: 'list'
     }
 
   ]
 })
+

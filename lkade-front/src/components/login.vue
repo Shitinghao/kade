@@ -6,12 +6,12 @@
       <el-main>
         <el-row :gutter="20">
           <el-col :span="12" :offset="6">
-              <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+              <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm" style="margin-left: -70px;">
                 <el-form-item label="用户名" prop="name">
                   <el-input v-model.number="ruleForm.name"></el-input>
                 </el-form-item>
                 <el-form-item label="密码" prop="pass">
-                  <el-input type="password" v-model="ruleForm.pass" autocomplete="off"></el-input>
+                  <el-input type="password" v-model="ruleForm.pass" autocomplete="off" @keyup.enter.native="submitForm('ruleForm')"></el-input>
                 </el-form-item>
                 <!--<el-form-item label="确认密码" prop="checkPass">-->
                   <!--<el-input type="password" v-model="ruleForm.checkPass" autocomplete="off"></el-input>-->
@@ -26,6 +26,7 @@
         </el-row>
       </el-main>
     </el-container>
+    <div style="position: absolute;width: 100%;height: 100%;background:#FFFFFF;top: 0;z-index: -10"></div>
     <!--</div>-->
   </div>
 
@@ -95,10 +96,16 @@ export default {
               })
             )
             .then(function (response) {
+              console.log(response);
+              var ses = window.sessionStorage;
               if (response.data.status === 'ok') {
+                    ses.setItem('isLogin','ok');
                 _this.$router.push({ path: '/list' })
+
               } else {
                 _this.$message.error("登陆失败")
+                var ses = window.sessionStorage;
+                ses.setItem('isLogin','fail');
               }
 
             })

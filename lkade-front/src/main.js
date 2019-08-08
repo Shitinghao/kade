@@ -28,3 +28,20 @@ new Vue({
   components: { App },
   template: '<App/>'
 })
+
+router.beforeEach((to, from, next) => {
+  if (window.sessionStorage.getItem('isLogin') == 'ok'){
+    console.log(window.sessionStorage);
+    if (to.path === '/'){
+      next({path: '/list'});
+    }else{
+      next();
+    }
+  }else{
+     if (to.path === '/'){
+       next();
+     }else{
+       next({path: '/'})
+     }
+  }
+})

@@ -204,7 +204,10 @@ export default {
           }
         })
         .then(function (response) {
-          _this.tripleData = response.data.ret;
+          if (response.data.status !== "ok") {
+            _this.$message.error(response.data.msg);
+          } else
+            _this.tripleData = response.data.ret;
         })
         .catch(function (error) {
           console.log(error);

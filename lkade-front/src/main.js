@@ -17,7 +17,6 @@ Vue.use(VueRouter)
 Vue.use(Element)
 Vue.use(ElementUI)
 
-
 Vue.use(VueAxios, axios)
 Vue.config.productionTip = false
 
@@ -30,18 +29,18 @@ new Vue({
 })
 
 router.beforeEach((to, from, next) => {
-  if (window.sessionStorage.getItem('isLogin') == 'ok'){
-    console.log(window.sessionStorage);
-    if (to.path === '/'){
-      next({path: '/list'});
-    }else{
-      next();
+  if (window.sessionStorage.getItem('isLogin') === 'ok') {
+    console.log(window.sessionStorage)
+    if (to.path === '/') {
+      next({path: '/list'})
+    } else {
+      next()
     }
-  }else{
-     if (to.path === '/'){
-       next();
-     }else{
-       next({path: '/'})
-     }
+  } else {
+    if (to.path === '/') {
+      next()
+    } else {
+      next({path: '/'})
+    }
   }
 })

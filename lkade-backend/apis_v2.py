@@ -28,30 +28,10 @@ relation_table = db.get_collection('triple_rel')
 attribute_table = db.get_collection('triple_attr')
 ment2ent_table = db.get_collection('ment2ent')
 
-import hashlib
-from beaker.middleware import SessionMiddleware
 
-session_opts = {
-	'session.type':'file',
-    'session.cookei_expires':300,
-    'session.data_dir':'./sessions',
-    'sessioni.auto':True
-}
 app = bottle.app()
-sapp = SessionMiddleware(app, session_opts)
 
-def check_authority():
-	sess = request.environ.get('beaker.session')
-	return sess.get('isLogin', False)
-not_authority_ret = json.dumps({'status':'fail', 'msg':'未登录'}, ensure_ascii=False)
-
-
-@app.hook('after_request')
-def enable_cors(): response.headers['Access-Control-Allow-Origin'] = '*'
-
-msg_badapikey = '{"status":"fail", "reason": "bad apikey"}'
-msg_toofreq = '{"status":"fail", "reason": "too many requests"}'
-msg_callus = '{"status":"fail", "reason": "您目前的APIkey无权限访问高级内容，请联系我们升级"}'
+from utils import *
 
 
 def GetEntitybyID(sid):
@@ -78,6 +58,7 @@ def SplitId(name):
 
 @app.route('/api/triples', method=['GET', 'POST'])
 def triples():
+	if not check_authority(): return not_authority_ret
 	ret = {'status': 'error', 'ret': []}
 	name = request.params.entity
 
@@ -134,6 +115,7 @@ def triples():
 
 @app.route('/api/ment2ent', method = ['GET', 'POST'])
 def ment2ent():
+	if not check_authority(): return not_authority_ret
 	ret = {'status': 'error', 'ret': []}
 	query = request.params.q
 	no_other_m = request.params.no_other_m
@@ -176,6 +158,7 @@ def precheck_new_entity(name):
 
 @app.route('/api/new_entity', method = ['GET', 'POST'])
 def newentity():
+	if not check_authority(): return not_authority_ret
 	name = request.params.name
 	precheck = request.params.precheck
 	msg = precheck_new_entity(name)
@@ -189,7 +172,6 @@ def newentity():
 
 
 def precheck_new_triple(sid, p, oid, oname):
-	print(sid, p, oid, oname)
 	sname, sid = SplitId(sid)
 	if sid == '' or GetEntitybyID(sid) is None: return '实体不存在'
 	if p == '': return '属性不能为空'
@@ -210,6 +192,7 @@ def precheck_new_triple(sid, p, oid, oname):
 
 @app.route('/api/new_triple', method = ['GET', 'POST'])
 def new_triple():
+	if not check_authority(): return not_authority_ret
 	sid = request.params.sid
 	p = request.params.p
 	oid = request.params.oid
@@ -233,12 +216,15 @@ def new_triple():
 def precheck_new_ment2ent(eid, mention):
 	if mention == '': return '别名不能为空'
 	if TestSpecialChars(mention): return '别名不能包含特殊符号或空白符'
-	if GetEntitybyID(eid) is None: return '实体不存在'
+	ent = GetEntitybyID(eid)
+	if ent is None: return '实体不存在'
+	if GetEntityName(ent) == mention: return '别名不能和实体名相同'
 	ditem = {'m': mention, 'eid': eid}
 	if ment2ent_table.find_one(ditem) is not None: return '库中已存在此关系'
 
 @app.route('/api/new_ment2ent', method = ['GET', 'POST'])
 def new_ment2ent():
+	if not check_authority(): return not_authority_ret
 	eid = request.params.eid
 	mention = request.params.mention
 	precheck = request.params.precheck
@@ -262,6 +248,7 @@ def remove_triple():
 
 @app.route('/api/remove_ment2ent', method = ['GET', 'POST'])
 def remove_ment2ent():
+	if not check_authority(): return not_authority_ret
 	tid = request.params.id
 	del_result = ment2ent_table.delete_one({'_id': ObjectId(tid)})
 	status = 'ok' if del_result.acknowledged else 'error'
@@ -296,6 +283,7 @@ def info_remove_entity():
 
 @app.route('/api/remove_entity', method = ['GET', 'POST'])
 def remove_entity():
+	if not check_authority(): return not_authority_ret
 	eid = request.params.id
 	del_result = RemoveEntity(eid)
 	status = 'ok' if del_result.acknowledged else 'error'
@@ -319,6 +307,7 @@ def triple2dict(triple):
 
 @app.route('/api/graph/query_entity', method=['GET', 'POST'])
 def query_entity():
+	if not check_authority(): return not_authority_ret
 	ret = {
 		'status': 'fail',
 		'nodes': [],
@@ -397,31 +386,7 @@ def update_triple_p():
                 ret['msg'] = '修改关系成功'
     return json.dumps(ret, ensure_ascii=False)
 
-
-@app.route('/', method='GET')
-def index():
-	return static_file('index.html', root='./dist')
-
-@route('/static/<filepath:path>')
-def static(filepath):
-    return static_file(filepath, root="./dist/static")
-
-@app.route('/login_check', method=['POST', 'OPTIONS'])
-def login_check():
-	sess = request.environ.get('beaker.session')
-	ret = {'status': 'fail'}
-	response.headers['Access-Control-Allow-Headers'] = "Content-Type,XFILENAME,XFILECATEGORY,XFILESIZE,x-requested-with,Authorization"
-	user = request.params.user
-	passwd = request.params.passwd
-	theuser = user_table.find_one({'username': user})
-	if theuser is not None:
-		saltpass = (theuser.get('password', '')+'salt123').encode()
-		if passwd == hashlib.md5(saltpass).hexdigest():
-			ret['status'] = 'ok'
-			sess['isLogin'] = True
-			sess.save()
-	return json.dumps(ret, ensure_ascii=False)
-
+sapp = DefineCommonFuncs(app, user_table)
 
 #from gevent import monkey; monkey.patch_all()
 #bottle.run(sapp, host='0.0.0.0', port=26551, server='gevent')

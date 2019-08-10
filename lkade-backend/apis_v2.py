@@ -61,6 +61,7 @@ def triples():
 	if not check_authority(): return not_authority_ret
 	ret = {'status': 'error', 'ret': []}
 	name = request.params.entity
+	no_expand_o = request.params.no_expand_o
 
 	name, eid = SplitId(name)
 
@@ -71,42 +72,44 @@ def triples():
 		ret['msg'] = "实体未找到"
 	else:
 		ret['status'] = 'ok'
-		sid = str(entity['_id'])
-		sname = GetEntityName(entity)
+		eid = str(entity['_id'])
+		ename = GetEntityName(entity)
 
 		# 以查询节点为s的关系
-		for triple in relation_table.find({'sid': str(entity['_id'])}):
+		for triple in relation_table.find({'sid': eid}):
 			o = GetEntitybyID(triple['oid'])
 			if o is None:
 				print('entity not found: {}'.format(triple['oid']))
 				continue
 			ret['ret'].append({
 				'id': str(triple['_id']),
-				's': sid,
-				'sname': sname,
+				's': eid,
+				'sname': ename,
 				'p': triple['p'],
 				'oid': str(o['_id']),
 				'oname': GetEntityName(o)
 			})
-		# 以查询节点为o的关系
-		# for triple in relation_table.find({'oid': str(entity['_id'])}):
-		# 	s = GetEntitybyID(triple['sid'])
-		# 	if s is None:
-		# 		print('entity not found: {}'.format(triple['sid']))
-		# 		continue
-		# 	ret['ret'].append({
-		# 		'id': str(triple['_id']),
-		# 		's': GetEntityName(s),
-		# 		'p': triple['p'],
-		# 		'oid': str(entity['_id']),
-		# 		'oname': GetEntityName(entity)
-		# 	})
+		if not no_expand_o:
+			# 以查询节点为o的关系
+			for triple in relation_table.find({'oid': eid}):
+				s = GetEntitybyID(triple['sid'])
+				if s is None:
+					print('entity not found: {}'.format(triple['sid']))
+					continue
+				ret['ret'].append({
+					'id': str(triple['_id']),
+					's': str(s['_id']),
+					'sname': GetEntityName(s),
+					'p': triple['p'],
+					'oid': eid,
+					'oname': ename
+				})
 		# 以查询节点为s的属性
-		for triple in attribute_table.find({'sid': str(entity['_id'])}):
+		for triple in attribute_table.find({'sid': eid}):
 			ret['ret'].append({
 				'id': str(triple['_id']),
-				's': sid,
-				'sname': sname,
+				's': eid,
+				'sname': ename,
 				'p': triple['p'],
 				'oid': '',
 				'oname': triple['o']
@@ -316,6 +319,7 @@ def query_entity():
 	}
 	
 	no_expand = request.params.no_expand
+	no_expand_o = request.params.no_expand_o
 	eid = request.params.idx
 	if eid == '': return json.dumps(ret, ensure_ascii=False)
 
@@ -337,7 +341,6 @@ def query_entity():
 			for triple in relation_table.find({'sid': entid}):
 				oid = triple['oid']
 				oent = entity_table.find_one({'_id': ObjectId(oid)})
-				oid = str(oent['_id'])
 				if oent is None:
 					ret['status'] = 'fail'
 					ret['error'] = 'oentity not found'
@@ -350,6 +353,22 @@ def query_entity():
 						'target': d[oid],
 						'triple': triple2dict(triple)
 					})
+				if not no_expand_o:
+					for triple in relation_table.find({'oid': entid}):
+						sid = triple['sid']
+						sent = entity_table.find_one({'_id': ObjectId(oid)})
+						if sent is None:
+							ret['status'] = 'fail'
+							ret['error'] = 'sentity not found'
+						else:
+							if sid not in d:
+								d[sid] = len(d)
+								ret['nodes'].append(entity2dict(sent))
+							ret['links'].append({
+								'source': d[sid],
+								'target': d[entid],
+								'triple': triple2dict(triple)
+							})
 
 	for index in range(len(ret['nodes'])):
 		node = ret['nodes'][index]

@@ -99,13 +99,14 @@ export default {
               console.log(response);
               var ses = window.sessionStorage;
               if (response.data.status === 'ok') {
-                    ses.setItem('isLogin','ok');
+                ses.setItem('isLogin', 'ok');
+                ses.setItem('uname', response.data.uname);
                 _this.$router.push({ path: '/list' })
 
               } else {
                 _this.$message.error("登陆失败")
                 var ses = window.sessionStorage;
-                ses.setItem('isLogin','fail');
+                ses.setItem('isLogin', 'fail');
               }
 
             })

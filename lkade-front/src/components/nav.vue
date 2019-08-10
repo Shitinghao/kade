@@ -8,7 +8,7 @@
     <el-menu-item index="/nodegraph">图谱视图</el-menu-item>
     <!--<router-link class="nav-item" to="/home">首页</router-link>-->
     <el-menu-item index="/logout" class="dock-right" @click="logout">退出登录</el-menu-item>
-    <el-menu-item index="/admin" class="dock-right">admin</el-menu-item>
+    <el-menu-item index="/admin" class="dock-right">{{uname}}</el-menu-item>
 
   </el-menu>
 </template>
@@ -22,7 +22,8 @@
     name: 'Nav',
     data (){
       return{
-        imgUrl: '../../static/logo1.png'
+        imgUrl: '../../static/logo1.png',
+        uname: window.sessionStorage.getItem('uname')
       }
     },
     api_host,

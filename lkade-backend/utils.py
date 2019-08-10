@@ -3,7 +3,7 @@ from bottle import route, template, request, response, static_file
 from beaker.middleware import SessionMiddleware
 
 def check_authority(write=False):
-	return True
+	#return True
 	sess = request.environ.get('beaker.session')
 	islogin = sess.get('issLogin', False)
 	canwrite = sess.get('canWrite', False)
@@ -44,6 +44,7 @@ def DefineCommonFuncs(app, user_table):
 			saltpass = (theuser.get('password', '')+'salt123').encode()
 			if passwd == hashlib.md5(saltpass).hexdigest():
 				ret['status'] = 'ok'
+				ret['uname'] = user
 				sess['issLogin'] = True
 				sess['canWrite'] = theuser.get('isguest') is None
 				sess.save()

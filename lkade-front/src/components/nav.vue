@@ -1,6 +1,6 @@
 <template>
-  <el-menu router="true"  default-active="/list" mode="horizontal" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b">
-    <el-menu-item disabled="true" :unique-opened="true" style="opacity:1;width:200px;">
+  <el-menu router default-active="/list" mode="horizontal" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b">
+    <el-menu-item disabled :unique-opened="true" style="opacity:1;width:200px;">
       <img :src="imgUrl" style="width: 100%;"/>
     </el-menu-item>
 

@@ -126,7 +126,7 @@
         <div style="clear: both"></div>
          <hr class="hr_style"/>
         <div class="grid-content">
-          <el-table :data="tripleData" style="width: 100%" :default-sort="{prop: 'p', order: 'descending'}" center="True">
+          <el-table :data="tripleData" style="width: 100%" :default-sort="{prop: 'sname', order: 'descending'}" center="True">
             <el-table-column prop="sname" label="Subject" sortable>
             </el-table-column>
             <el-table-column prop="p" label="Predicate" sortable>
@@ -460,7 +460,7 @@ export default {
     }
   },
   mounted() {
-    if (this.searchStr === "") {
+    if (this.searchStr === ""  && global.main_entity !== '') {
       this.search_entity(global.main_entity, null);
     }
   }

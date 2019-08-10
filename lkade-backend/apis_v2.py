@@ -68,8 +68,7 @@ def triples():
 	if eid != name: entity = GetEntitybyID(eid)
 	else: entity = entity_table.find_one({'name': name})
 	if entity is None:
-		ret['status'] = 'error'
-		ret['msg'] = "实体未找到"
+		ret['status'] = 'ok'
 	else:
 		ret['status'] = 'ok'
 		eid = str(entity['_id'])
@@ -161,7 +160,7 @@ def precheck_new_entity(name):
 
 @app.route('/api/new_entity', method = ['GET', 'POST'])
 def newentity():
-	if not check_authority(): return not_authority_ret
+	if not check_authority(write=True): return not_authority_ret
 	name = request.params.name
 	precheck = request.params.precheck
 	msg = precheck_new_entity(name)
@@ -227,7 +226,7 @@ def precheck_new_ment2ent(eid, mention):
 
 @app.route('/api/new_ment2ent', method = ['GET', 'POST'])
 def new_ment2ent():
-	if not check_authority(): return not_authority_ret
+	if not check_authority(write=True): return not_authority_ret
 	eid = request.params.eid
 	mention = request.params.mention
 	precheck = request.params.precheck
@@ -241,6 +240,7 @@ def new_ment2ent():
 
 @app.route('/api/remove_triple', method = ['GET', 'POST'])
 def remove_triple():
+	if not check_authority(write=True): return not_authority_ret
 	tid = request.params.id
 	oid = request.params.oid
 	if oid != '': rr = relation_table.delete_one({'_id': ObjectId(tid)})
@@ -251,7 +251,7 @@ def remove_triple():
 
 @app.route('/api/remove_ment2ent', method = ['GET', 'POST'])
 def remove_ment2ent():
-	if not check_authority(): return not_authority_ret
+	if not check_authority(write=True): return not_authority_ret
 	tid = request.params.id
 	del_result = ment2ent_table.delete_one({'_id': ObjectId(tid)})
 	status = 'ok' if del_result.acknowledged else 'error'
@@ -286,7 +286,7 @@ def info_remove_entity():
 
 @app.route('/api/remove_entity', method = ['GET', 'POST'])
 def remove_entity():
-	if not check_authority(): return not_authority_ret
+	if not check_authority(write=True): return not_authority_ret
 	eid = request.params.id
 	del_result = RemoveEntity(eid)
 	status = 'ok' if del_result.acknowledged else 'error'
@@ -340,7 +340,7 @@ def query_entity():
 		if not no_expand:
 			for triple in relation_table.find({'sid': entid}):
 				oid = triple['oid']
-				oent = entity_table.find_one({'_id': ObjectId(oid)})
+				oent = GetEntitybyID(oid)
 				if oent is None:
 					ret['status'] = 'fail'
 					ret['error'] = 'oentity not found'
@@ -356,7 +356,7 @@ def query_entity():
 				if not no_expand_o:
 					for triple in relation_table.find({'oid': entid}):
 						sid = triple['sid']
-						sent = entity_table.find_one({'_id': ObjectId(oid)})
+						sent = GetEntitybyID(sid)
 						if sent is None:
 							ret['status'] = 'fail'
 							ret['error'] = 'sentity not found'

@@ -197,14 +197,13 @@
             console.log(error);
           });
       },
-
-      showEntity() {
+      expandEntity() {
         let _this = this;
         let point = _this.ent_select.point;
-        let ename = _this.ent_select.eid;
+        let exid = _this.ent_select.eid;
 
         if (_this.nodes.length == 0) {
-          _this.searchWords = ename;
+          _this.searchWords = exid;
           _this.start();
           _this.showEntDialogVisible = false;
           return;
@@ -212,14 +211,47 @@
         this.axios
           .get(_this.api_host+"/api/graph/query_entity", {
             params: {
-              idx: ename,
+              idx: exid,
+              no_expand: 1
+            }
+          })
+          .then(function (response) {
+            $.each(response.data.nodes, function(i,val) {
+              let node = { id: ++_this.lastNodeId, idx: val.idx, name: val.idx, reflexive: false, info: val.attr };
+              if (val.name != null)  node.name = val.name;
+              node.x = point[0];
+              node.y = point[1];
+              _this.nodes.push(node);
+            });
+            _this.showEntDialogVisible = false;
+            _this.restart();
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      },
+      showEntity() {
+        let _this = this;
+        let point = _this.ent_select.point;
+        let exid = _this.ent_select.eid;
+
+        if (_this.nodes.length == 0) {
+          _this.searchWords = exid;
+          _this.start();
+          _this.showEntDialogVisible = false;
+          return;
+        }
+        this.axios
+          .get(_this.api_host+"/api/graph/query_entity", {
+            params: {
+              idx: exid,
               no_expand: 1
             }
           })
           .then(function (response) {
             if (response.data.nodes.length === 0) {
-              _this.ent_inserts.ename = ename;
-              _this.$confirm('是否新建名为 ' + ename + ' 的实体？', '提示', {
+              _this.ent_inserts.ename = exid;
+              _this.$confirm('是否新建名为 ' + exid + ' 的实体？', '提示', {
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
                 type: 'info'

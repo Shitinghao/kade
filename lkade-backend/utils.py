@@ -2,11 +2,15 @@ import json, hashlib
 from bottle import route, template, request, response, static_file
 from beaker.middleware import SessionMiddleware
 
-def check_authority():
-	#return True
+def check_authority(write=False):
+	return True
 	sess = request.environ.get('beaker.session')
-	return sess.get('issLogin', False)
-not_authority_ret = json.dumps({'status':'fail', 'msg':'未登录'}, ensure_ascii=False)
+	islogin = sess.get('issLogin', False)
+	canwrite = sess.get('canWrite', False)
+	if not islogin: return False
+	if write and not canwrite: return False
+	return True
+not_authority_ret = json.dumps({'status':'fail', 'msg':'没有权限'}, ensure_ascii=False)
 
 session_opts = {
 	'session.type':'file',
@@ -41,13 +45,14 @@ def DefineCommonFuncs(app, user_table):
 			if passwd == hashlib.md5(saltpass).hexdigest():
 				ret['status'] = 'ok'
 				sess['issLogin'] = True
+				sess['canWrite'] = theuser.get('isguest') is None
 				sess.save()
 		return json.dumps(ret, ensure_ascii=False)
 	
 	@app.route('/login_exit', method=['POST', 'OPTIONS'])
 	def login_exit():
 		sess = request.environ.get('beaker.session')
-		sess['isLogin'] = False
+		sess['issLogin'] = False
 		sess.save()
 		ret = {'status': 'ok'}
 		return json.dumps(ret, ensure_ascii=False)

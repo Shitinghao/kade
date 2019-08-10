@@ -90,7 +90,7 @@ def triples():
 			})
 		if not no_expand_o:
 			# 以查询节点为o的关系
-			for triple in relation_table.find({'oid': eid}):
+			for triple in relation_table.find({'oid': eid}).limit(100):
 				s = GetEntitybyID(triple['sid'])
 				if s is None:
 					print('entity not found: {}'.format(triple['sid']))
@@ -354,7 +354,7 @@ def query_entity():
 						'triple': triple2dict(triple)
 					})
 				if not no_expand_o:
-					for triple in relation_table.find({'oid': entid}):
+					for triple in relation_table.find({'oid': entid}).limit(100):
 						sid = triple['sid']
 						sent = GetEntitybyID(sid)
 						if sent is None:

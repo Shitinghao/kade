@@ -65,7 +65,7 @@
       </el-row>
       <span slot="footer" class="dialog-footer">
         <el-button @click="showEntDialogVisible=false">取 消</el-button>
-        <el-button type="primary" @click="showEntity">确 定</el-button>
+        <el-button type="primary" @click="showEntity()">确 定</el-button>
       </span>
     </el-dialog>
     <!-- add link -->
@@ -197,55 +197,38 @@
             console.log(error);
           });
       },
-      expandEntity() {
-        let _this = this;
-        let point = _this.ent_select.point;
-        let exid = _this.ent_select.eid;
-
-        if (_this.nodes.length == 0) {
-          _this.searchWords = exid;
-          _this.start();
-          _this.showEntDialogVisible = false;
-          return;
-        }
-        this.axios
-          .get(_this.api_host+"/api/graph/query_entity", {
-            params: {
-              idx: exid,
-              no_expand: 1
-            }
-          })
-          .then(function (response) {
-            $.each(response.data.nodes, function(i,val) {
-              let node = { id: ++_this.lastNodeId, idx: val.idx, name: val.idx, reflexive: false, info: val.attr };
-              if (val.name != null)  node.name = val.name;
-              node.x = point[0];
-              node.y = point[1];
-              _this.nodes.push(node);
-            });
-            _this.showEntDialogVisible = false;
-            _this.restart();
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
+      findNode(idx) {
+        let xx = this.nodes.filter(x => (x.idx === idx));
+        return xx[0];
       },
-      showEntity() {
+      checkRepNodes(node) {
+        let xx = this.nodes.filter(x => (x.idx === node.idx));
+        return xx.length == 0;
+      },
+      checkRepLinks(link) {
+        let xx = this.links.filter(x => (x.triple.idx === link.triple.idx));
+        return xx.length == 0;
+      },
+      showEntity(eeid, do_expand) {
         let _this = this;
-        let point = _this.ent_select.point;
-        let exid = _this.ent_select.eid;
+        let point = null;
+        let exid = eeid;
 
-        if (_this.nodes.length == 0) {
-          _this.searchWords = exid;
-          _this.start();
-          _this.showEntDialogVisible = false;
-          return;
+        if (eeid == null) {
+          point = _this.ent_select.point;
+          exid = _this.ent_select.eid;
         }
+
+        if (_this.nodes.length == 0) do_expand = 1;
+
+        let no_expand = 1;
+        if (do_expand != null) no_expand = "";
+
         this.axios
           .get(_this.api_host+"/api/graph/query_entity", {
             params: {
               idx: exid,
-              no_expand: 1
+              no_expand: no_expand
             }
           })
           .then(function (response) {
@@ -257,9 +240,14 @@
                 type: 'info'
               }).then(() => {
                 _this.submitNewEntity(function (response) {
-                  let node = { id: ++_this.lastNodeId, idx: response.data.eid, name: ename, reflexive: false, info: [] };
-                  node.x = point[0];
-                  node.y = point[1];
+                  let node = {
+                    id: ++_this.lastNodeId, idx: response.data.eid,
+                    name: exid, reflexive: false, info: []
+                  };
+                  if (point != null) {
+                    node.x = point[0];
+                    node.y = point[1];
+                  }
                   _this.nodes.push(node);
                   _this.showEntDialogVisible = false;
                   _this.restart();
@@ -271,10 +259,22 @@
             $.each(response.data.nodes, function(i,val) {
               let node = { id: ++_this.lastNodeId, idx: val.idx, name: val.idx, reflexive: false, info: val.attr };
               if (val.name != null)  node.name = val.name;
-              node.x = point[0];
-              node.y = point[1];
-              _this.nodes.push(node);
+              if (point != null) {
+                 node.x = point[0];
+                 node.y = point[1];
+              }
+              if (_this.checkRepNodes(node)) _this.nodes.push(node);
             });
+            $.each(response.data.links, function (i, val) {
+              let snode = _this.findNode(response.data.nodes[val.source].idx);
+              let onode = _this.findNode(response.data.nodes[val.target].idx);
+              let link = {source: snode, target: onode,
+                left: false, right: true, relation: val.triple.p,
+                triple: val.triple
+              }
+              if (_this.checkRepLinks(link)) _this.links.push(link);
+            });
+
             _this.showEntDialogVisible = false;
             _this.restart();
           })
@@ -316,7 +316,7 @@
         this.$notify({
           title: '使用提示',
           message: h('i', { style: 'color: teal' },
-            '双击空白部分以选择要显示的节点，点击元素以进行更改，在实体间连线以新增关系, 按CTRL键拖动节点。')
+            '双击空白部分以选择要显示的节点，点击元素以进行更改，在实体间连线以新增关系, 按CTRL键拖动节点。选定节点按Enter以扩展节点。')
         });
       },
 
@@ -766,48 +766,7 @@
 
       start();
       function start() {
-        console.log(_this.searchWords);
-        $.get(api_host+"/api/graph/query_entity?idx="+ _this.searchWords, function (response) {
-          response = JSON.parse(response);
-          console.log(response);
-          if(response.status == "success"){
-            console.log("检索成功");
-          } else {
-            if (_this.searchWords !== "") {
-              let ename = _this.searchWords;
-              _this.ent_inserts.ename = ename;
-              _this.$confirm('是否新建名为 ' + ename + ' 的实体？', '提示', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'info'
-              }).then(() => {
-                _this.submitNewEntity(function (response) {
-                  _this.searchWords = response.data.eid;
-                  _this.start()
-                });
-              }).catch(() => {   
-              });
-            }
-            return;
-          }
-          _this.lastNodeId = response.nodes.length - 1;
-          $.each(response.nodes, function (i, val) {
-            let node = { id: i, idx: val.idx, name: val.idx, reflexive: false, info: val.attr };
-            if (val.name != null) node.name = val.name;
-            nodes.push(node);
-          });
-          $.each(response.links, function(i,val){
-            var id = val.source;
-            var tid = val.target;
-            links.push({source:nodes[id], target:nodes[tid], left:false, right:true, relation:val.triple.p, triple:val.triple});
-          })
-          console.log('nodes:');
-          console.log(nodes);
-          console.log('links:');
-          console.log(links);
-
-          // init D3 force layout
-          var force = d3.layout.force()
+        var force = d3.layout.force()
             .nodes(nodes)
             .links(links)
             .size([width, height])
@@ -815,32 +774,34 @@
             .charge(-500)
             .on('tick', tick);
 
-          _this.force = force;
-          // update force layout (called automatically each iteration)
-          function tick() {
-            // draw directed edges with proper padding from node centers
-            path.attr('d', function(d) {
-              var deltaX = d.target.x - d.source.x,
-                deltaY = d.target.y - d.source.y,
-                dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY),
-                normX = deltaX / dist,
-                normY = deltaY / dist,
-                sourcePadding = d.left ? 17 : 12,
-                targetPadding = d.right ? 17 : 12,
-                sourceX = d.source.x + (sourcePadding * normX),
-                sourceY = d.source.y + (sourcePadding * normY),
-                targetX = d.target.x - (targetPadding * normX),
-                targetY = d.target.y - (targetPadding * normY);
-              return 'M' + sourceX + ',' + sourceY + 'L' + targetX + ',' + targetY;
-            });
-            circle.attr('transform', function(d) {
-              return 'translate(' + d.x + ',' + d.y + ')';
-            });
-          }
+        _this.force = force;
 
-          restart();
-        });
-        // function satrt  end
+          // update force layout (called automatically each iteration)
+        function tick() {
+          // draw directed edges with proper padding from node centers
+          path.attr('d', function(d) {
+            var deltaX = d.target.x - d.source.x,
+              deltaY = d.target.y - d.source.y,
+              dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY),
+              normX = deltaX / dist,
+              normY = deltaY / dist,
+              sourcePadding = d.left ? 17 : 12,
+              targetPadding = d.right ? 17 : 12,
+              sourceX = d.source.x + (sourcePadding * normX),
+              sourceY = d.source.y + (sourcePadding * normY),
+              targetX = d.target.x - (targetPadding * normX),
+              targetY = d.target.y - (targetPadding * normY);
+            return 'M' + sourceX + ',' + sourceY + 'L' + targetX + ',' + targetY;
+          });
+          circle.attr('transform', function(d) {
+            return 'translate(' + d.x + ',' + d.y + ')';
+          });
+        }
+
+        if (_this.searchWords !== "") {
+          _this.showEntity(_this.searchWords, true);
+        }
+        // function start  end
       }
 
       _this.start = start;
@@ -963,7 +924,9 @@
             });
             $("#edit").css('display','none');
             break;
-
+          case 13: // enter
+            _this.showEntity(selected_node.idx, true);
+            break;
           case 37://left
             if(selected_node){
               if (SELECT(selected_node).left == undefined){

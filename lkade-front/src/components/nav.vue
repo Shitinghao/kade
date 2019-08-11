@@ -1,5 +1,5 @@
 <template>
-  <el-menu router="true"  default-active="/list" mode="horizontal" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b">
+  <el-menu router="true" :default-active="$route.path" mode="horizontal" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b">
     <el-menu-item disabled="true" >此处放数眼logo</el-menu-item>
     <el-menu-item index="/list">数据表视图</el-menu-item>
     <el-menu-item index="/nodegraph">图谱视图</el-menu-item>

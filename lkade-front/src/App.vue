@@ -1,6 +1,7 @@
 <template>
   <div id="app" style="margin-top: 0;">
     <!--<header-tab></header-tab>-->
+    <!--<img src="./assets/logo1.png">-->
     <!--<h2>{{msg}}</h2>-->
      <div v-if="$route.meta.keepAlive">
        <Nav></Nav>

@@ -8,6 +8,8 @@
         <div class="grid-content content_style">
           <div style="">
             <el-button type="info" @click="entDialogVisible=true" class="addBtn_style">新增实体</el-button>
+            <div style="clear: both"></div>
+            <hr class="hr_style" />
             <el-dialog title="新增实体" :visible.sync="entDialogVisible" width="50%" :before-close="handleClose">
               <label for="" style="float: left;">name:</label>
               <el-input type="text" v-model="ent_inserts.ename" placeholder="请输入新增实体的名称"></el-input>
@@ -50,7 +52,7 @@
         <hr/>
         <div class="content_style">
           <div style="clear: both"></div>
-          <hr class="hr_style" />
+          <!--<hr class="hr_style" />-->
           <div class="grid-content">
             <el-table :data="ment2entData" style="width: 100%" :default-sort="{prop: 'eid', order: 'descending'}" center="True">
               <el-table-column prop="mention" label="Mention" sortable>
@@ -124,7 +126,7 @@
         <div style="clear: both"></div>
          <hr class="hr_style"/>
         <div class="grid-content">
-          <el-table :data="tripleData" style="width: 100%" :default-sort="{prop: 'p', order: 'descending'}" center="True">
+          <el-table :data="tripleData" style="width: 100%" :default-sort="{prop: 'sname', order: 'descending'}" center="True">
             <el-table-column prop="sname" label="Subject" sortable>
             </el-table-column>
             <el-table-column prop="p" label="Predicate" sortable>
@@ -202,7 +204,10 @@ export default {
           }
         })
         .then(function (response) {
-          _this.tripleData = response.data.ret;
+          if (response.data.status !== "ok") {
+            _this.$message.error(response.data.msg);
+          } else
+            _this.tripleData = response.data.ret;
         })
         .catch(function (error) {
           console.log(error);
@@ -455,7 +460,7 @@ export default {
     }
   },
   mounted() {
-    if (this.searchStr === "") {
+    if (this.searchStr === ""  && global.main_entity !== '') {
       this.search_entity(global.main_entity, null);
     }
   }
@@ -487,7 +492,8 @@ a {
   /*table hr*/
   .hr_style{
     border:0;
-    background-color:#F56C6C;
+    /*background-color:#F56C6C;*/
+    background-color: #ffd04b;
     height:1px;
   }
   .addBtn_style{

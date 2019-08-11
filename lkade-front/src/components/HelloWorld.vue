@@ -1,7 +1,7 @@
 <template>
   <div class="hello">
     <nav></nav>
-    <h1>{{ msg }}</h1>
+    <h1 style="margin: 60px 0;">{{ msg }}</h1>
     <!--<h2>Essential Links</h2>-->
     <Triples></Triples>
   </div>
@@ -16,7 +16,7 @@ export default {
   },
   data () {
     return {
-      msg: 'Welcome to Kade'
+      msg: '数据表视图'
     }
   },
   created(){

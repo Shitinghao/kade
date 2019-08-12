@@ -24,23 +24,26 @@ config = {
 	'entity_name_field': 'name',
 }
 
-db = client.get_database('bqb')
+db = client.get_database('huawei_sample')
 user_table = db.get_collection('user')
 entity_table = db.get_collection('entity')
 relation_table = db.get_collection('triple_rel')
 attribute_table = db.get_collection('triple_attr')
 ment2ent_table = db.get_collection('ment2ent')
+mongo_entity_id = False
 
 
 app = bottle.app()
 
 from utils import *
 
+def ConvertEntityId(id):
+	return ObjectId(id) if mongo_entity_id else id
 
 def GetEntitybyID(sid):
-	try: sid = ObjectId(sid)
+	try: sid = ConvertEntityId(sid)
 	except: return None
-	return entity_table.find_one({'_id': ObjectId(sid)})
+	return entity_table.find_one({'_id': sid})
 
 def GetEntityName(ent):
 	if ent is None: return ''
@@ -54,9 +57,9 @@ def TestSpecialChars(sr):
 
 def SplitId(name):
 	ename = ''
-	eid = ljqpy.RM("<id:([0-9a-f]+)>", name)
+	eid = ljqpy.RM("<id:([^>]+)>", name)
 	if eid == "": return name, name
-	ename = re.sub("<id:([0-9a-f]+)>$", '', name)
+	ename = re.sub("<id:([^>]+)>$", '', name)
 	return ename, eid
 
 @app.route('/api/triples', method=['GET', 'POST'])
@@ -68,11 +71,13 @@ def triples():
 
 	name, eid = SplitId(name)
 
-	if eid != name: entity = GetEntitybyID(eid)
-	else: entity = entity_table.find_one({'name': name})
-	if entity is None:
-		ret['status'] = 'ok'
-	else:
+	entities = []
+	if eid != name: 
+		entity = GetEntitybyID(eid)
+		if entity is not None: entities.append(entity)
+	else: entities.extend(list(entity_table.find({config['entity_name_field']: name})))
+
+	for entity in entities:
 		ret['status'] = 'ok'
 		eid = str(entity['_id'])
 		ename = GetEntityName(entity)
@@ -129,17 +134,23 @@ def ment2ent():
 
 	rets = []
 
-	if eid != query: entity = GetEntitybyID(eid)
-	else: entity = entity_table.find_one({'name': query})
+	entities = []
+	if eid != query: 
+		entity = GetEntitybyID(eid)
+		if entity is not None: entities.append(entity)
+	else: entities.extend(list(entity_table.find({config['entity_name_field']: query})))
 
-	if entity is not None:
+	for entity in entities:
 		rets.append({
 			'm': query,
 			'eid': str(entity['_id']),
 			'isent': True
 		})
+		ename = GetEntityName(entity)
 		if not no_other_m:
-			rets.extend(list(ment2ent_table.find({'eid': str(entity['_id'])})))
+			m2el = list(ment2ent_table.find({'eid': str(entity['_id'])}))
+			m2el = [x for x in m2el if x['m'] != ename]
+			rets.extend(m2el)
 
 	rets.extend(list(ment2ent_table.find({'m': query})))
 
@@ -157,9 +168,11 @@ def ment2ent():
 def precheck_new_entity(name):
 	if name == '': return '名称不能为空'
 	if TestSpecialChars(name): return '名称不能包含特殊符号或空白符'
-	ditem = {config['entity_name_field']: name}
-	exists = entity_table.find_one(ditem)
+	exists = entity_table.find_one({config['entity_name_field']: name})
 	if exists: return '实体已经存在'
+	if not mongo_entity_id:
+		exists = entity_table.find_one({'_id': name})
+		if exists: return '实体已经存在'
 
 @app.route('/api/new_entity', method = ['GET', 'POST'])
 def newentity():
@@ -171,6 +184,7 @@ def newentity():
 	if precheck: return json.dumps(ret, ensure_ascii=False)
 	if not msg:
 		ditem = {config['entity_name_field']: name}
+		if not mongo_entity_id: ditem['_id'] = name
 		rr = entity_table.insert_one(ditem)
 		ret['eid'] = str(rr.inserted_id)
 	return json.dumps(ret, ensure_ascii = False)
@@ -266,7 +280,7 @@ def RemoveEntity(eid):
 	relation_table.delete_many({'sid': eid})
 	relation_table.delete_many({'oid': eid})
 	attribute_table.delete_many({'sid': eid})
-	return entity_table.delete_one({'_id': ObjectId(eid)})
+	return entity_table.delete_one({'_id': ConvertEntityId(eid)})
 
 def EntityRelatedInfos(idx):
 	tris = []
@@ -327,6 +341,7 @@ def query_entity():
 	if eid == '': return json.dumps(ret, ensure_ascii=False)
 
 	name, eid = SplitId(eid)
+	print(name, eid)
 
 	entity = GetEntitybyID(eid)
 	if entity is None:

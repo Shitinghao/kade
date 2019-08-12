@@ -127,11 +127,16 @@
          <hr class="hr_style"/>
         <div class="grid-content">
           <el-table :data="tripleData" style="width: 100%" :default-sort="{prop: 'sname', order: 'descending'}" center="True">
-            <el-table-column prop="sname" label="Subject" sortable>
+            <el-table-column label="Subject" sortable :sort-by="['sname']">
+              <template slot-scope="scope">
+                <el-tooltip class="item" effect="dark" :content="scope.row.s" placement="top-end">
+                  <a @click="search_entity(scope.row.sname, scope.row.s)" class="buttonText">{{scope.row.sname}}</a>
+                </el-tooltip>
+              </template>
             </el-table-column>
             <el-table-column prop="p" label="Predicate" sortable>
             </el-table-column>
-            <el-table-column label="Object">
+            <el-table-column label="Object" sortable :sort-by="['oname']">
               <template slot-scope="scope">
                 <el-tooltip class="item" effect="dark" :content="scope.row.oid" placement="top-end" v-if="scope.row.oid !== ''">
                   <a @click="search_entity(scope.row.oname, scope.row.oid)" class="buttonText">{{scope.row.oname}}</a>

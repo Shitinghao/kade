@@ -4,6 +4,12 @@
 + apis.py: CNDBpedia form
 + apis_v2.py: entities with ID, distinguish REL and ATTR.
 
+##
+≤‚ ‘ø‚£∫
+v1: mongo26/cndbpedia
+v2: mongo26/bqb, mongo_entity_id = True
+v2: mongo26/huawei_sample, mongo_entity_id = False
+
 ## DEV
 ```
 pushd lkade-backend

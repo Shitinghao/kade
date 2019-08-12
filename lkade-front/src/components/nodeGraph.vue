@@ -93,6 +93,7 @@
 <script>
   import * as d3 from 'd3'
   import global from './nav.vue'
+  import qs from 'Qs'
   export default {
     name: "nodeGraph",
     data() {
@@ -134,18 +135,14 @@
       checkAndSubmit(_this, url, pparams, succ_func, fail_func) {
         pparams["precheck"] = 1
         _this.axios
-          .get(url, {
-            params: pparams
-          })
+          .post(url, qs.stringify(pparams))
           .then(function (response) {
             if (response.data.status !== "ok") {
               fail_func(response, _this)
             } else {
               delete pparams["precheck"];
               _this.axios
-                .get(url, {
-                  params: pparams
-                })
+                .post(url, qs.stringify(pparams))
                 .then(response => succ_func(response, _this))
                 .catch(function (error) {
                   console.log(error);
@@ -176,12 +173,11 @@
       objectSuggestion(query, cb) {
         let _this = this;
         this.axios
-          .get(_this.api_host+'/api/ment2ent', {
-            params: {
+          .post(_this.api_host+'/api/ment2ent', qs.stringify({
               q: query,
               no_other_m: 1
-            }
-          })
+            })
+          )
           .then(function (response) {
             let ents = response.data.ret;
             let options = [];
@@ -225,12 +221,11 @@
         if (do_expand != null) no_expand = "";
 
         this.axios
-          .get(_this.api_host+"/api/graph/query_entity", {
-            params: {
+          .post(_this.api_host+"/api/graph/query_entity", qs.stringify({
               idx: exid,
               no_expand: no_expand
-            }
-          })
+            })
+          )
           .then(function (response) {
             if (response.data.nodes.length === 0) {
               _this.ent_inserts.ename = exid;
@@ -329,11 +324,7 @@
       remove_entity(tid) {
         let _this = this;
         this.axios
-          .get(this.api_host+'/api/remove_entity', {
-            params: {
-              id: tid
-            }
-          })
+          .post(this.api_host+'/api/remove_entity', qs.stringify({id: tid}))
           .then(function (response) {
             _this.nodes.splice(_this.nodes.indexOf(_this.ent_dels.related_node), 1);
             _this.spliceLinksForNode(_this.ent_dels.related_node);
@@ -352,11 +343,7 @@
         let _this = this;
         this.ent_dels.eid = eid;
         this.axios
-          .get(this.api_host+'/api/info_remove_entity', {
-            params: {
-              id: eid
-            }
-          })
+          .post(this.api_host+'/api/info_remove_entity', qs.stringify({id: eid}))
           .then(function (response) {
             _this.delEntData = response.data.ret;
             _this.entDelDialogVisible = true;
@@ -905,11 +892,10 @@
               _this.$confirm('确定要删除关系吗？')
                 .then(_ => {
                   _this.axios
-                    .get(_this.api_host+'/api/remove_triple', {
-                      params: {
+                    .post(_this.api_host+'/api/remove_triple', qs.stringify({
                         id: should_remove_link.triple.idx,
-                      }
-                    })
+                      })
+                    )
                     .then(function (response) {
                       _this.links.splice(_this.links.indexOf(should_remove_link), 1);
                       _this.restart();
@@ -931,7 +917,7 @@
             $("#edit").css('display','none');
             break;
           case 13: // enter
-            _this.showEntity(selected_node.idx, true);
+            if (selected_node !== null) _this.showEntity(selected_node.idx, true);
             break;
           case 37://left
             if(selected_node){

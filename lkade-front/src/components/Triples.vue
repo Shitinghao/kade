@@ -159,6 +159,7 @@
 
 <script>
 import global from './nav.vue'
+import qs from 'Qs'
 export default {
   name: 'Triples',
   data () {
@@ -198,11 +199,10 @@ export default {
       if (queryStr != null && queryStr !== "") this.searchStr = queryStr;
       let _this = this;
       this.axios
-        .get(this.api_host+'/api/triples', {
-          params: {
+        .post(this.api_host + '/api/triples', qs.stringify({
             entity: this.searchStr
-          }
-        })
+          })
+        )
         .then(function (response) {
           if (response.data.status !== "ok") {
             _this.$message.error(response.data.msg);
@@ -213,11 +213,10 @@ export default {
           console.log(error);
         });
       this.axios
-        .get(this.api_host+'/api/ment2ent', {
-          params: {
+        .post(this.api_host+'/api/ment2ent', qs.stringify({
             q: this.searchStr
-          }
-        })
+          })
+        )
         .then(function (response) {
           _this.ment2entData = response.data.ret;
           let ents = response.data.ret.filter(x => (x.isent));
@@ -259,9 +258,7 @@ export default {
 
     simple_remove(_this, url, pparams) {
       this.axios
-        .get(url, {
-          params: pparams
-        })
+        .post(url, qs.stringify(pparams))
         .then(function (response) {
           _this.search_entity(_this.nowsearchStr);
         })
@@ -287,11 +284,7 @@ export default {
     remove_entity(tid) {
       let _this = this;
       this.axios
-        .get(this.api_host+'/api/remove_entity', {
-          params: {
-            id: tid
-          }
-        })
+        .post(this.api_host + '/api/remove_entity', qs.stringify({id: tid}))
         .then(function (response) {
           _this.search_entity(_this.nowsearchStr);
           _this.entDelDialogVisible = false;
@@ -312,11 +305,7 @@ export default {
       let _this = this;
       this.ent_dels.eid = eid;
       this.axios
-        .get(this.api_host+'/api/info_remove_entity', {
-          params: {
-            id: eid
-          }
-        })
+        .post(this.api_host + '/api/info_remove_entity', qs.stringify({id: eid}))
         .then(function (response) {
           _this.delEntData = response.data.ret;
           _this.entDelDialogVisible = true;
@@ -382,18 +371,14 @@ export default {
     checkAndSubmit(_this, url, pparams, succ_func, fail_func) {
       pparams["precheck"] = 1
       _this.axios
-        .get(url, {
-          params: pparams
-        })
+        .post(url, qs.stringify(pparams))
         .then(function (response) {
           if (response.data.status !== "ok") {
             fail_func(response, _this)
           } else {
             delete pparams["precheck"];
             _this.axios
-              .get(url, {
-                params: pparams
-              })
+              .post(url, qs.stringify(pparams))
               .then(response => succ_func(response, _this))
               .catch(function (error) {
                 console.log(error);
@@ -429,12 +414,11 @@ export default {
     objectSuggestion(update_oid) {
       let _this = this;
       this.axios
-        .get(this.api_host+'/api/ment2ent', {
-          params: {
+        .post(this.api_host+'/api/ment2ent', qs.stringify({
             q: this.inserts.oname,
             no_other_m: 1
-          }
-        })
+          })
+        )
         .then(function (response) {
           let ents = response.data.ret;
           let new_inserts = JSON.parse(JSON.stringify(_this.inserts)); //deepcopy

@@ -1,8 +1,11 @@
+import sys
+if 'prod' in sys.argv:
+	from gevent import monkey; monkey.patch_all()
+
 import shutil, re, json, random, requests
-import sys, os, time
+import os, time, traceback
 import urllib.parse
 import bottle, platform
-import traceback
 from bottle import route, template, request, response, static_file
 from pymongo import MongoClient
 from datetime import datetime
@@ -374,7 +377,7 @@ def update_triple_p():
 
 sapp = DefineCommonFuncs(app, user_table)
 
-#from gevent import monkey; monkey.patch_all()
-#bottle.run(sapp, host='0.0.0.0', port=26551, server='gevent')
-
-bottle.run(sapp, host='0.0.0.0', port=26551, debug=True, reloader=True)
+if 'prod' in sys.argv:
+	bottle.run(sapp, host='0.0.0.0', port=26551, server='gevent')
+else: 
+	bottle.run(sapp, host='0.0.0.0', port=26551, debug=True, reloader=True)

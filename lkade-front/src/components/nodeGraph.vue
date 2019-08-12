@@ -247,6 +247,9 @@
                   if (point != null) {
                     node.x = point[0];
                     node.y = point[1];
+                  } else {
+                    node.x = 0;
+                    node.y = 1;
                   }
                   _this.nodes.push(node);
                   _this.showEntDialogVisible = false;
@@ -262,6 +265,9 @@
               if (point != null) {
                  node.x = point[0];
                  node.y = point[1];
+              } else {
+                 node.x = 0;
+                 node.y = 1;
               }
               if (_this.checkRepNodes(node)) _this.nodes.push(node);
             });
@@ -782,7 +788,7 @@
           path.attr('d', function(d) {
             var deltaX = d.target.x - d.source.x,
               deltaY = d.target.y - d.source.y,
-              dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY),
+              dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY) + 1,
               normX = deltaX / dist,
               normY = deltaY / dist,
               sourcePadding = d.left ? 17 : 12,

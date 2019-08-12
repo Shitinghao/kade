@@ -257,12 +257,7 @@ def entity2dict(entity):
 	return {'idx': entity['_id'], 'attr': []}
 
 def o_is_entity(o):
-	return re.match(r'<a href="(.*?)">(.*?)</a>', o) is not None
-
-def parse_href(o):
-	r = re.match(r'<a href="(.*?)">(.*?)</a>', o)
-	o_id, o_name = r.group(1), r.group(2)
-	return o_id, o_name
+	return re.match(r'<a(.*?)</a>', o) is not None
 
 def triple2dict(triple):
 	ret = {'idx': str(triple['_id']), 's': triple['s'], 'p': triple['p'], 'o': triple['o']}
@@ -294,12 +289,9 @@ def query_entity():
 		if not no_expand:
 			for triple in triple_table.find({'s': entity['_id']}):
 				if o_is_entity(triple['o']):
-					o_id, _ = parse_href(triple['o'])
-					o = entity_table.find_one({'_id': o_id})
-					if o is None:
-						ret['status'] = 'fail'
-						ret['error'] = 'entity not found: {}'.format(o_id)
-					else:
+					o_id, _ = SplitHref(triple['o'])
+					o = GetEntitybyID(o_id)
+					if o is not None:
 						if o['_id'] not in d:
 							d[o['_id']] = len(d)
 							ret['nodes'].append(entity2dict(o))

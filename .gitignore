@@ -1,3 +1,4 @@
 .vs/
 lkade-backend/sessions/
 lkade-backend/__pycache__/
+import_sample/

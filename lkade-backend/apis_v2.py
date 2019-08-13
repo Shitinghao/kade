@@ -211,7 +211,7 @@ def precheck_new_triple(sid, p, oid, oname):
 
 @app.route('/api/new_triple', method = ['GET', 'POST'])
 def new_triple():
-	if not check_authority(): return not_authority_ret
+	if not check_authority(write=True): return not_authority_ret
 	sid = request.params.sid
 	p = request.params.p
 	oid = request.params.oid

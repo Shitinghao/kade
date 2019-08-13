@@ -7,30 +7,12 @@ import os, time, traceback
 import urllib.parse
 import bottle, platform
 from bottle import route, template, request, response, static_file
-from pymongo import MongoClient
 from datetime import datetime
 import logging
 import logging.handlers
 from bson.objectid import ObjectId
 import ljqpy
-
-
-DB = 'local'
-if DB == 'local':
-	client = MongoClient('10.141.208.26', 27017)
-	client.admin.authenticate('gdmdbuser', '6QEUI8dhnq', mechanism='SCRAM-SHA-1')
-
-config = {
-	'entity_name_field': 'name',
-}
-
-db = client.get_database('huawei_sample')
-user_table = db.get_collection('user')
-entity_table = db.get_collection('entity')
-relation_table = db.get_collection('triple_rel')
-attribute_table = db.get_collection('triple_attr')
-ment2ent_table = db.get_collection('ment2ent')
-schema_table = db.get_collection('schema')
+from config import *
 
 mongo_entity_id = False
 prefix_match = True

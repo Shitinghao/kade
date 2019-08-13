@@ -397,31 +397,32 @@ def query_entity():
 
 @app.route('/api/graph/update_triple_p', method=['GET', 'POST'])
 def update_triple_p():
-    ret = {
-        'status': 'fail',
-        'msg': 'connection failed'
-    }
-    _id = request.params.idx
-    new_p = request.params.new_p
-    triple = relation_table.find_one({'_id': ObjectId(_id)})
-    if triple is None:
-        ret['status'] = 'fail'
-        ret['msg'] = '关系不存在：{}'.format(_id)
-    else:
-        s = triple['sid']
-        o = triple['oid']
-        if relation_table.find_one({'sid': s, 'p': new_p, 'oid': o}) is not None:
-            ret['status'] = 'fail'
-            ret['error'] = '关系重复: {}-{}-{}'.format(s, new_p, o)
-        else:
-            r = relation_table.update_one({'_id': ObjectId(_id)}, {'$set': {'p': new_p, 'timestamp': datetime.now()}})
-            if not r.acknowledged:
-                ret['status'] = 'fail'
-                ret['msg'] = 'update failed'
-            else:
-                ret['status'] = 'success'
-                ret['msg'] = '修改关系成功'
-    return json.dumps(ret, ensure_ascii=False)
+	if not check_authority(write=True): return not_authority_ret
+	ret = {
+		'status': 'fail',
+		'msg': 'connection failed'
+	}
+	_id = request.params.idx
+	new_p = request.params.new_p
+	triple = relation_table.find_one({'_id': ObjectId(_id)})
+	if triple is None:
+		ret['status'] = 'fail'
+		ret['msg'] = '关系不存在：{}'.format(_id)
+	else:
+		s = triple['sid']
+		o = triple['oid']
+		if relation_table.find_one({'sid': s, 'p': new_p, 'oid': o}) is not None:
+			ret['status'] = 'fail'
+			ret['error'] = '关系重复: {}-{}-{}'.format(s, new_p, o)
+		else:
+			r = relation_table.update_one({'_id': ObjectId(_id)}, {'$set': {'p': new_p, 'timestamp': datetime.now()}})
+			if not r.acknowledged:
+				ret['status'] = 'fail'
+				ret['msg'] = 'update failed'
+			else:
+				ret['status'] = 'success'
+				ret['msg'] = '修改关系成功'
+	return json.dumps(ret, ensure_ascii=False)
 
 sapp = DefineCommonFuncs(app, user_table)
 

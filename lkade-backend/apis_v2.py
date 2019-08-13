@@ -31,6 +31,7 @@ relation_table = db.get_collection('triple_rel')
 attribute_table = db.get_collection('triple_attr')
 ment2ent_table = db.get_collection('ment2ent')
 mongo_entity_id = False
+prefix_match = True
 
 
 app = bottle.app()
@@ -153,6 +154,16 @@ def ment2ent():
 			rets.extend(m2el)
 
 	rets.extend(list(ment2ent_table.find({'m': query})))
+
+	# 增加同义词查不到时候的模糊匹配
+	if not rets and prefix_match:
+		try:
+			limit = int(request.params.limit)
+		except Exception: limit = 5
+		rets = [ {"m":item[config['entity_name_field']], "eid":item["_id"], "isent":True}
+			for item in entity_table.find({config['entity_name_field']: {"$regex":"^"+query}}).limit(limit)]
+		if not rets:
+			rets += list(ment2ent_table.find({"m": {"$regex":"^"+query}}).limit(limit))
 
 	ret['ret'] = [{
 		'id': str(x.get('_id', '')),

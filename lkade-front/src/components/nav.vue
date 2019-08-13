@@ -2,10 +2,11 @@
 
   <el-menu router :default-active="$route.path" mode="horizontal" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b">
     <el-menu-item disabled :unique-opened="true" style="opacity:1;width:200px;">
-      <img :src="imgUrl" style="width: 100%;"/>
+      <img :src="imgUrl" style="width: 100%;" />
     </el-menu-item>
     <el-menu-item index="/list">数据表视图</el-menu-item>
     <el-menu-item index="/nodegraph">图谱视图</el-menu-item>
+    <el-menu-item index="/schema">Schema视图</el-menu-item>
     <!--<router-link class="nav-item" to="/home">首页</router-link>-->
     <el-menu-item index="/logout" class="dock-right" @click="logout">退出登录</el-menu-item>
     <el-menu-item index="/admin" class="dock-right">{{uname}}</el-menu-item>

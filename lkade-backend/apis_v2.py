@@ -30,6 +30,8 @@ entity_table = db.get_collection('entity')
 relation_table = db.get_collection('triple_rel')
 attribute_table = db.get_collection('triple_attr')
 ment2ent_table = db.get_collection('ment2ent')
+schema_table = db.get_collection('schema')
+
 mongo_entity_id = False
 prefix_match = True
 
@@ -78,8 +80,8 @@ def triples():
 		if entity is not None: entities.append(entity)
 	else: entities.extend(list(entity_table.find({config['entity_name_field']: name})))
 
+	ret['status'] = 'ok'
 	for entity in entities:
-		ret['status'] = 'ok'
 		eid = str(entity['_id'])
 		ename = GetEntityName(entity)
 
@@ -156,13 +158,12 @@ def ment2ent():
 	rets.extend(list(ment2ent_table.find({'m': query})))
 
 	# 增加同义词查不到时候的模糊匹配
-	if not rets and prefix_match:
-		try:
-			limit = int(request.params.limit)
-		except Exception: limit = 5
+	if prefix_match and len(rets) == 0:
+		try: limit = int(request.params.limit)
+		except: limit = 5
 		rets = [ {"m":item[config['entity_name_field']], "eid":item["_id"], "isent":True}
 			for item in entity_table.find({config['entity_name_field']: {"$regex":"^"+query}}).limit(limit)]
-		if not rets:
+		if len(rets) == 0:
 			rets += list(ment2ent_table.find({"m": {"$regex":"^"+query}}).limit(limit))
 
 	ret['ret'] = [{
@@ -219,6 +220,11 @@ def precheck_new_triple(sid, p, oid, oname):
 		if TestSpecialChars(oname): return '值不能包含特殊符号或空白符'
 		if attribute_table.find_one({'sid': sid, 'p': p, 'o': oname}) is not None:
 			return '存在重复属性'
+	if schema_table is not None:
+		related_rules = list(schema_table.find({'cond_p': p}))
+		ret = check_schema_rules(related_rules, oname)
+		if ret != 'ok': return 'Schema验证失败：' + ret
+
 
 @app.route('/api/new_triple', method = ['GET', 'POST'])
 def new_triple():
@@ -435,7 +441,9 @@ def update_triple_p():
 				ret['msg'] = '修改关系成功'
 	return json.dumps(ret, ensure_ascii=False)
 
+
 sapp = DefineCommonFuncs(app, user_table)
+DefineSchemaFuncs(app, schema_table)
 
 if 'prod' in sys.argv:
 	bottle.run(sapp, host='0.0.0.0', port=26551, server='gevent')

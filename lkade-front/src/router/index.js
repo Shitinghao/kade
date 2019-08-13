@@ -1,15 +1,15 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import HelloWorld from '@/components/HelloWorld'
-import list from '@/components/list'
+import Triples from '@/components/Triples'
 import login from '@/components/login'
 import reg from '@/components/reg'
 import nodeGraph from '@/components/nodeGraph'
+import Schema from '@/components/Schema'
 
 Vue.use(Router)
 
 export default new Router({
-  mode:'history',
+  mode: 'history',
   routes: [
     {
       path: '/login',
@@ -23,21 +23,15 @@ export default new Router({
     {
       path: '/',
       redirect: 'login'
-      // name: 'HelloWorld',
-      // meta: {
-      //   requireAuth: true
-      // },
-      // component: HelloWorld
-
     },
     {
       path: '/list',
-      name: 'HelloWorld',
+      name: 'triples',
       meta: {
         keepAlive: true,
         isLogin: true
       },
-      component: HelloWorld
+      component: Triples
     },
     {
       path: '/nodeGraph',
@@ -49,6 +43,15 @@ export default new Router({
       component: nodeGraph
     },
     {
+      path: '/schema',
+      name: 'Schema',
+      meta: {
+        keepAlive: true,
+        isLogin: true
+      },
+      component: Schema
+    },
+    {
       path: '/reg',
       name: 'reg',
       meta: {
@@ -58,23 +61,13 @@ export default new Router({
       component: reg
     },
     {
-      path: '/list',
-      name: 'list',
-      meta: {
-        keepAlive: true,
-        isLogin: true
-      },
-      component: list
-    },
-    {
-      path:'/logout',
+      path: '/logout',
       redirect: 'login'
     },
     {
-      path:'/admin',
+      path: '/admin',
       redirect: 'list'
     }
 
   ]
 })
-

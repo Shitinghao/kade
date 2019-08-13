@@ -1,5 +1,6 @@
 <template>
   <div class="triples">
+    <h1 style="margin: 60px 0;">数据表视图</h1>
     <el-row type="flex" class="row-bg" justify="center">
       <el-col :span="18">
         <el-input type="text" :name="searchStr" v-model="searchStr" placeholder="搜索" suffix-icon="el-icon-search" style="width:80%" @keyup.enter.native="search_entity(null)"></el-input>
@@ -49,7 +50,7 @@
           </el-table>
 
         </div>
-        <hr/>
+        <hr />
         <div class="content_style">
           <div style="clear: both"></div>
           <!--<hr class="hr_style" />-->
@@ -89,74 +90,74 @@
           </el-dialog>
         </div>
 
-        <hr/>
-       <div class="content_style">
+        <hr />
+        <div class="content_style">
 
 
-        <div class="btn-group" style="float: right;">
-          <el-button type="info" @click="showNewTripleDialog" class="addBtn_style">新增关系</el-button>
-          <el-dialog title="新增关系" :visible.sync="dialogVisible" width="50%" :before-close="handleClose">
-            <div class="input_style">
-              <label for="" style="float: left;">Subject: </label>
-              <el-input type="text" v-model="inserts.sname" placeholder="" :disabled="true"></el-input>
-              <el-input type="text" v-model="inserts.sid" placeholder="" :disabled="true"  v-if="inserts.sid !== inserts.sname"></el-input>
-            </div>
-            <div class="input_style">
-              <label for="" style="float: left;"> Predicate:</label>
-              <el-input type="text" v-model="inserts.p" placeholder=""></el-input>
-            </div>
-            <div class="input_style">
-              <label for="" style="float: left;"> Object:</label>
-              <el-input type="text" v-model="inserts.oname" placeholder="" v-on:input="objectSuggestion(true)"></el-input>
-            </div>
-            <div class="input_style">
-              <label for="" style="float: left;"> 实体ID:</label>
+          <div class="btn-group" style="float: right;">
+            <el-button type="info" @click="showNewTripleDialog" class="addBtn_style">新增关系</el-button>
+            <el-dialog title="新增关系" :visible.sync="dialogVisible" width="50%" :before-close="handleClose">
+              <div class="input_style">
+                <label for="" style="float: left;">Subject: </label>
+                <el-input type="text" v-model="inserts.sname" placeholder="" :disabled="true"></el-input>
+                <el-input type="text" v-model="inserts.sid" placeholder="" :disabled="true" v-if="inserts.sid !== inserts.sname"></el-input>
+              </div>
+              <div class="input_style">
+                <label for="" style="float: left;"> Predicate:</label>
+                <el-input type="text" v-model="inserts.p" placeholder=""></el-input>
+              </div>
+              <div class="input_style">
+                <label for="" style="float: left;"> Object:</label>
+                <el-input type="text" v-model="inserts.oname" placeholder="" v-on:input="objectSuggestion(true)"></el-input>
+              </div>
+              <div class="input_style">
+                <label for="" style="float: left;"> 实体ID:</label>
                 <el-select v-model="inserts.oid" placeholder="实体id" @change="objectSelectEnt($event)" style="width: 100%;">
                   <el-option v-for="item in inserts.options" :key="item.value"
                              :label="item.label" :value="item.value" style="width: 100%">
                   </el-option>
                 </el-select>
-            </div>
-            <span slot="footer" class="dialog-footer">
-              <el-button @click="dialogVisible=false">取 消</el-button>
-              <el-button type="primary" @click="submitNewTriple">确 定</el-button>
-            </span>
-          </el-dialog>
+              </div>
+              <span slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible=false">取 消</el-button>
+                <el-button type="primary" @click="submitNewTriple">确 定</el-button>
+              </span>
+            </el-dialog>
+          </div>
+          <div style="clear: both"></div>
+          <hr class="hr_style" />
+          <div class="grid-content">
+            <el-table :data="tripleData" style="width: 100%" :default-sort="{prop: 'sname', order: 'descending'}" center="True">
+              <el-table-column label="Subject" sortable :sort-by="['sname']">
+                <template slot-scope="scope">
+                  <el-tooltip class="item" effect="dark" :content="scope.row.s" placement="top-end">
+                    <a @click="search_entity(scope.row.sname, scope.row.s)" class="buttonText">{{scope.row.sname}}</a>
+                  </el-tooltip>
+                </template>
+              </el-table-column>
+              <el-table-column prop="p" label="Predicate" sortable>
+              </el-table-column>
+              <el-table-column label="Object" sortable :sort-by="['oname']">
+                <template slot-scope="scope">
+                  <el-tooltip class="item" effect="dark" :content="scope.row.oid" placement="top-end" v-if="scope.row.oid !== ''">
+                    <a @click="search_entity(scope.row.oname, scope.row.oid)" class="buttonText">{{scope.row.oname}}</a>
+                  </el-tooltip>
+                  <span v-if="scope.row.oid === ''">{{scope.row.oname}}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="Operation" width="180">
+                <template slot-scope="scope">
+                  <el-tooltip class="item" effect="dark" :content="scope.row.id" placement="top-end" v-if="scope.row.id !== ''">
+                    <el-button type="danger" size="medium" @click="handleRemove(remove_triple, scope.row)">删除</el-button>
+                  </el-tooltip>
+                  <el-tooltip class="item" effect="dark" :content="scope.row.id" placement="top-end" v-if="scope.row.id !== ''">
+                    <el-button type="info" size="medium" @click="modify_triple(scope.row)">修改</el-button>
+                  </el-tooltip>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
         </div>
-        <div style="clear: both"></div>
-         <hr class="hr_style"/>
-        <div class="grid-content">
-          <el-table :data="tripleData" style="width: 100%" :default-sort="{prop: 'sname', order: 'descending'}" center="True">
-            <el-table-column label="Subject" sortable :sort-by="['sname']">
-              <template slot-scope="scope">
-                <el-tooltip class="item" effect="dark" :content="scope.row.s" placement="top-end">
-                  <a @click="search_entity(scope.row.sname, scope.row.s)" class="buttonText">{{scope.row.sname}}</a>
-                </el-tooltip>
-              </template>
-            </el-table-column>
-            <el-table-column prop="p" label="Predicate" sortable>
-            </el-table-column>
-            <el-table-column label="Object" sortable :sort-by="['oname']">
-              <template slot-scope="scope">
-                <el-tooltip class="item" effect="dark" :content="scope.row.oid" placement="top-end" v-if="scope.row.oid !== ''">
-                  <a @click="search_entity(scope.row.oname, scope.row.oid)" class="buttonText">{{scope.row.oname}}</a>
-                </el-tooltip>
-                <span v-if="scope.row.oid === ''">{{scope.row.oname}}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="Operation" width="180">
-              <template slot-scope="scope">
-                <el-tooltip class="item" effect="dark" :content="scope.row.id" placement="top-end" v-if="scope.row.id !== ''">
-                  <el-button type="danger" size="medium" @click="handleRemove(remove_triple, scope.row)">删除</el-button>
-                </el-tooltip>
-                <el-tooltip class="item" effect="dark" :content="scope.row.id" placement="top-end" v-if="scope.row.id !== ''">
-                  <el-button type="info" size="medium" @click="modify_triple(scope.row)">修改</el-button>
-                </el-tooltip>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
-       </div>
       </el-col>
     </el-row>
   </div>

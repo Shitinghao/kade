@@ -28,6 +28,7 @@ user_table = db.get_collection('user')
 entity_table = db.get_collection('entities')
 triple_table = db.get_collection('triples')
 ment2ent_table = db.get_collection('ment2ent')
+schema_table = db.get_collection('schemas')
 
 app = bottle.app()
 
@@ -121,7 +122,7 @@ def precheck_new_entity(name):
 	ditem = {config['entity_name_field']: name}
 	exists = entity_table.find_one(ditem)
 	if exists: return '实体已经存在'
-
+		
 @app.route('/api/new_entity', method = ['GET', 'POST'])
 def newentity():
 	if not check_authority(write=True): return not_authority_ret
@@ -149,12 +150,22 @@ def precheck_new_triple(sid, p, oid, oname, old_tid):
 		ooid, ooname = SplitDBO(xx)
 		if ooname == oname: return '存在重复关系'
 		if oid != '' and ooid == oid: return '存在重复关系'
+
+	if schema_table is not None:
+		related_rules = list(schema_table.find({'cond_p': p}))
+
 	if oname != '':
 		if TestSpecialChars(oname): return '值不能包含特殊符号或空白符'
+		if len(related_rules) > 0:
+			ret = check_schema_rules(related_rules, oname)
+			if ret != 'ok': return 'Schema验证失败：' + ret
 	if oid != '':
 		oo = GetEntitybyID(oid)
 		if oo is None: return 'Object实体不存在'
 		if oname != '' and GetEntityName(oo) != oname: return "实体名称不匹配"
+		if len(related_rules) > 0:
+			ret = check_schema_rules(related_rules, GetEntityName(oo))
+			if ret != 'ok': return 'Schema验证失败：' + ret
 	if oname == '' and oid == '':
 		return '值不能为空'
 
@@ -345,6 +356,7 @@ def update_triple_p():
 	return json.dumps(ret, ensure_ascii=False)
 
 sapp = DefineCommonFuncs(app, user_table)
+DefineSchemaFuncs(app, schema_table)
 
 if 'prod' in sys.argv:
 	bottle.run(sapp, host='0.0.0.0', port=26551, server='gevent')

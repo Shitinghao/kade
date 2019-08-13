@@ -124,7 +124,7 @@ def precheck_new_entity(name):
 
 @app.route('/api/new_entity', method = ['GET', 'POST'])
 def newentity():
-	if not check_authority(): return not_authority_ret
+	if not check_authority(write=True): return not_authority_ret
 	name = request.params.name
 	precheck = request.params.precheck
 	msg = precheck_new_entity(name)
@@ -160,7 +160,7 @@ def precheck_new_triple(sid, p, oid, oname, old_tid):
 
 @app.route('/api/new_triple', method = ['GET', 'POST'])
 def new_triple():
-	if not check_authority(): return not_authority_ret
+	if not check_authority(write=True): return not_authority_ret
 	sid = request.params.sid
 	p = request.params.p
 	oid = request.params.oid
@@ -191,7 +191,7 @@ def precheck_new_ment2ent(eid, mention):
 
 @app.route('/api/new_ment2ent', method = ['GET', 'POST'])
 def new_ment2ent():
-	if not check_authority(): return not_authority_ret
+	if not check_authority(write=True): return not_authority_ret
 	eid = request.params.eid
 	mention = request.params.mention
 	precheck = request.params.precheck
@@ -205,6 +205,7 @@ def new_ment2ent():
 
 @app.route('/api/remove_triple', method = ['GET', 'POST'])
 def remove_triple():
+	if not check_authority(write=True): return not_authority_ret
 	tid = request.params.id
 	ok = True
 	del_result = triple_table.delete_one({'_id': ObjectId(tid)})
@@ -214,6 +215,7 @@ def remove_triple():
 
 @app.route('/api/remove_ment2ent', method = ['GET', 'POST'])
 def remove_ment2ent():
+	if not check_authority(write=True): return not_authority_ret
 	tid = request.params.id
 	ok = True
 	del_result = ment2ent_table.delete_one({'_id': ObjectId(tid)})
@@ -242,7 +244,7 @@ def info_remove_entity():
 
 @app.route('/api/remove_entity', method = ['GET', 'POST'])
 def remove_entity():
-	if not check_authority(): return not_authority_ret
+	if not check_authority(write=True): return not_authority_ret
 	eid = request.params.id
 	ok = True
 	del_result = RemoveEntity(eid)
@@ -309,63 +311,38 @@ def query_entity():
 
 	return json.dumps(ret, ensure_ascii=False)
 
-# not used
-@app.route('/api/graph/add_entity', method=['GET', 'POST'])
-def add_entity():
-	ret = {
-		'status': 'fail',
-		'idx': '',
-		'error': 'connection failed'
-	}
-
-	_id = request.params.idx
-	if entity_table.find_one({'_id': _id}) is not None:
-		ret['status'] = 'fail'
-		ret['error'] = 'entity exists: {}'.format(_id)
-	else:
-		r = entity_table.insert_one({'_id': _id, 'timestamp': datetime.now()})
-		if not r.acknowledged:
-			ret['status'] = 'fail'
-			ret['error'] = 'insert failed'
-		else:
-			ret['status'] = 'success'
-			ret['idx'] = r.inserted_id
-			ret['error'] = ''
-
-	return json.dumps(ret, ensure_ascii=False)
-
-
 
 def make_href(o_id, o_name):
 	return '<a href="{}">{}</a>'.format(o_id, o_name)
 
 @app.route('/api/graph/update_triple_p', method=['GET', 'POST'])
 def update_triple_p():
-    ret = {
-        'status': 'fail',
-        'msg': 'connection failed'
-    }
-    _id = request.params.idx
-    new_p = request.params.new_p
-    triple = triple_table.find_one({'_id': ObjectId(_id)})
-    if triple is None:
-        ret['status'] = 'fail'
-        ret['msg'] = '关系不存在：{}'.format(_id)
-    else:
-        s = triple['s']
-        o = triple['o']
-        if triple_table.find_one({'s': s, 'p': new_p, 'o': o}) is not None:
-            ret['status'] = 'fail'
-            ret['error'] = '关系重复: {}-{}-{}'.format(s, new_p, o)
-        else:
-            r = triple_table.update_one({'_id': ObjectId(_id)}, {'$set': {'p': new_p, 'timestamp': datetime.now()}})
-            if not r.acknowledged:
-                ret['status'] = 'fail'
-                ret['msg'] = 'update failed'
-            else:
-                ret['status'] = 'success'
-                ret['msg'] = '修改关系成功'
-    return json.dumps(ret, ensure_ascii=False)
+	if not check_authority(): return not_authority_ret
+	ret = {
+		'status': 'fail',
+		'msg': 'connection failed'
+	}
+	_id = request.params.idx
+	new_p = request.params.new_p
+	triple = triple_table.find_one({'_id': ObjectId(_id)})
+	if triple is None:
+		ret['status'] = 'fail'
+		ret['msg'] = '关系不存在：{}'.format(_id)
+	else:
+		s = triple['s']
+		o = triple['o']
+		if triple_table.find_one({'s': s, 'p': new_p, 'o': o}) is not None:
+			ret['status'] = 'fail'
+			ret['error'] = '关系重复: {}-{}-{}'.format(s, new_p, o)
+		else:
+			r = triple_table.update_one({'_id': ObjectId(_id)}, {'$set': {'p': new_p, 'timestamp': datetime.now()}})
+			if not r.acknowledged:
+				ret['status'] = 'fail'
+				ret['msg'] = 'update failed'
+			else:
+				ret['status'] = 'success'
+				ret['msg'] = '修改关系成功'
+	return json.dumps(ret, ensure_ascii=False)
 
 sapp = DefineCommonFuncs(app, user_table)
 

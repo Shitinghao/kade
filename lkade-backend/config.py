@@ -11,7 +11,9 @@ config = {
     "relation_table": "triple_rel",
     "attribute_table": "triple_attr",
     "ment2ent_table": "ment2ent",
-    "schema_table": "schema"
+    "schema_table": "schema",
+    "mongo_entity_id": False,
+    "prefix_match": True,
 }
 
 client = MongoClient(config["mongo_host"])
@@ -24,3 +26,5 @@ relation_table = db.get_collection(config['relation_table'])
 attribute_table = db.get_collection(config['attribute_table'])
 ment2ent_table = db.get_collection(config['ment2ent_table'])
 schema_table = db.get_collection(config['schema_table'])
+mongo_entity_id = config["mongo_entity_id"]
+prefix_match = config["prefix_match"]

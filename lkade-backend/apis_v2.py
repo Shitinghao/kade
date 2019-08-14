@@ -14,10 +14,6 @@ from bson.objectid import ObjectId
 import ljqpy
 from config import *
 
-mongo_entity_id = False
-prefix_match = True
-
-
 app = bottle.app()
 
 from utils import *

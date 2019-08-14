@@ -136,7 +136,7 @@ def ment2ent():
 	rets.extend(list(ment2ent_table.find({'m': query})))
 
 	# 增加同义词查不到时候的模糊匹配
-	if prefix_match and len(rets) == 0:
+	if prefix_match and len(rets) == 0 and query:
 		try: limit = int(request.params.limit)
 		except: limit = 5
 		rets = [ {"m":item[config['entity_name_field']], "eid":item["_id"], "isent":True}

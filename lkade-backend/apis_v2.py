@@ -366,22 +366,22 @@ def query_entity():
 						'target': d[oid],
 						'triple': triple2dict(triple)
 					})
-				if not no_expand_o:
-					for triple in relation_table.find({'oid': entid}).limit(100):
-						sid = triple['sid']
-						sent = GetEntitybyID(sid)
-						if sent is None:
-							ret['status'] = 'fail'
-							ret['error'] = 'sentity not found'
-						else:
-							if sid not in d:
-								d[sid] = len(d)
-								ret['nodes'].append(entity2dict(sent))
-							ret['links'].append({
-								'source': d[sid],
-								'target': d[entid],
-								'triple': triple2dict(triple)
-							})
+			if not no_expand_o:
+				for triple in relation_table.find({'oid': entid}).limit(100):
+					sid = triple['sid']
+					sent = GetEntitybyID(sid)
+					if sent is None:
+						ret['status'] = 'fail'
+						ret['error'] = 'sentity not found'
+					else:
+						if sid not in d:
+							d[sid] = len(d)
+							ret['nodes'].append(entity2dict(sent))
+						ret['links'].append({
+							'source': d[sid],
+							'target': d[entid],
+							'triple': triple2dict(triple)
+						})
 
 	for index in range(len(ret['nodes'])):
 		node = ret['nodes'][index]

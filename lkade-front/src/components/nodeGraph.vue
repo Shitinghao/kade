@@ -991,6 +991,24 @@
             }
             restart();
             break;
+          case 72://hide
+            if (selected_node) {
+              _this.nodes.splice(_this.nodes.indexOf(selected_node),1);
+              spliceLinksForNode(selected_node);
+            } else if (selected_link) {
+              let should_remove_link = selected_link;
+              _this.links.splice(_this.links.indexOf(should_remove_link), 1);
+            }
+            selected_link = null;
+            selected_node = null;
+            //删除节点后，将原本的id换成新的id因为原本的node的自带的索引会自动减少，而元素的id属性不会自动减少，所以需要重新刷新id，否则会报错
+            --_this.lastNodeId;
+            restart();
+            $.each(nodes,function(i,val){
+              val.id = i;
+            });
+            $("#edit").css('display','none');
+            break;
         }
       }
 

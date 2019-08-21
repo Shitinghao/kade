@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="b21652ef-0561-437d-b4ff-4f3a11252775" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lkade-backend/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/lkade-backend/utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue" beforeDir="false" afterPath="$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -36,14 +35,14 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="js" value="483" />
-          <entry key="vue" value="5165" />
+          <entry key="vue" value="7490" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="CSS" value="1" />
           <entry key="JavaScript" value="483" />
-          <entry key="Vue.js" value="5164" />
+          <entry key="Vue.js" value="7489" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -100,7 +99,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lkade-front/src/components/Triples.vue">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4110">
+            <state relative-caret-position="608">
               <caret line="274" column="44" selection-start-line="274" selection-start-column="36" selection-end-line="274" selection-end-column="44" />
               <folding>
                 <element signature="n#style#0;n#el-input#0;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
@@ -114,7 +113,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/lkade-front/src/components/login.vue">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1275">
+            <state relative-caret-position="15">
               <caret line="87" column="34" selection-start-line="87" selection-start-column="26" selection-end-line="87" selection-end-column="34" />
               <folding>
                 <element signature="n#style#0;n#el-form#0;n#el-col#0;n#el-row#0;n#el-main#0;n#el-container#0;n#div#0;n#template#0;n#!!top" expanded="true" />
@@ -136,11 +135,12 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="177">
-              <caret line="1000" column="13" lean-forward="true" selection-start-line="1000" selection-start-column="13" selection-end-line="1000" selection-end-column="13" />
+            <state relative-caret-position="504">
+              <caret line="1594" column="3" selection-start-line="1594" selection-start-column="3" selection-end-line="1594" selection-end-column="3" />
               <folding>
+                <element signature="n#style#0;n#div#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
                 <element signature="n#style#0;n#div#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="e#4135#4159#0" expanded="true" />
+                <element signature="e#4675#4699#0" expanded="true" />
                 <element signature="n#style#0;n#span#0;n#div#0;n#!!top" expanded="true" />
                 <element signature="n#style#0;n#div#0;n#!!top" expanded="true" />
                 <element signature="n#style#0;n#div#0;n#div#0;n#!!top" expanded="true" />
@@ -156,7 +156,7 @@
         <entry file="file://$PROJECT_DIR$/README.md">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="240">
-              <caret line="16" lean-forward="true" selection-start-line="16" selection-end-line="16" />
+              <caret line="16" selection-start-line="16" selection-end-line="16" />
             </state>
           </provider>
         </entry>
@@ -200,7 +200,6 @@
       <find>search_entity(null)</find>
       <find>age</find>
       <find>提示</find>
-      <find>spliceLinksForNode</find>
       <find>#sea</find>
       <find>main_entity</find>
       <find>#S</find>
@@ -215,6 +214,16 @@
       <find>submitNewEntity</find>
       <find>node</find>
       <find>showRemoveEntDialog</find>
+      <find>edit</find>
+      <find>spliceLinksForNode</find>
+      <find>about</find>
+      <find>button_group</find>
+      <find>remove_entity</find>
+      <find>ent_dels.eid</find>
+      <find>showEntity</find>
+      <find>selected_node</find>
+      <find>deleteNode</find>
+      <find>tooltip</find>
     </findStrings>
     <dirStrings>
       <dir>$PROJECT_DIR$</dir>
@@ -265,8 +274,8 @@
     </packageJsonPaths>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="472" />
-    <option name="y" value="29" />
+    <option name="x" value="257" />
+    <option name="y" value="97" />
     <option name="width" value="1307" />
     <option name="height" value="791" />
   </component>
@@ -396,13 +405,13 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="110347000" />
+    <option name="totallyTimeSpent" value="134880000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="472" y="29" width="1307" height="791" extended-state="0" />
+    <frame x="257" y="97" width="1307" height="791" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.0" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.041990668" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -453,8 +462,20 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
-          <line>282</line>
+          <line>297</line>
           <option name="timeStamp" value="5" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>366</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>1068</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="8" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -594,7 +615,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/lkade-front/src/components/Triples.vue">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4110">
+        <state relative-caret-position="608">
           <caret line="274" column="44" selection-start-line="274" selection-start-column="36" selection-end-line="274" selection-end-column="44" />
           <folding>
             <element signature="n#style#0;n#el-input#0;n#el-col#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
@@ -606,7 +627,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/lkade-front/src/components/login.vue">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1275">
+        <state relative-caret-position="15">
           <caret line="87" column="34" selection-start-line="87" selection-start-column="26" selection-end-line="87" selection-end-column="34" />
           <folding>
             <element signature="n#style#0;n#el-form#0;n#el-col#0;n#el-row#0;n#el-main#0;n#el-container#0;n#div#0;n#template#0;n#!!top" expanded="true" />
@@ -645,17 +666,18 @@
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="240">
-          <caret line="16" lean-forward="true" selection-start-line="16" selection-end-line="16" />
+          <caret line="16" selection-start-line="16" selection-end-line="16" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="177">
-          <caret line="1000" column="13" lean-forward="true" selection-start-line="1000" selection-start-column="13" selection-end-line="1000" selection-end-column="13" />
+        <state relative-caret-position="504">
+          <caret line="1594" column="3" selection-start-line="1594" selection-start-column="3" selection-end-line="1594" selection-end-column="3" />
           <folding>
+            <element signature="n#style#0;n#div#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
             <element signature="n#style#0;n#div#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-            <element signature="e#4135#4159#0" expanded="true" />
+            <element signature="e#4675#4699#0" expanded="true" />
             <element signature="n#style#0;n#span#0;n#div#0;n#!!top" expanded="true" />
             <element signature="n#style#0;n#div#0;n#!!top" expanded="true" />
             <element signature="n#style#0;n#div#0;n#div#0;n#!!top" expanded="true" />

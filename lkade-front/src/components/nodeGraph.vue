@@ -12,6 +12,7 @@
       </el-table>
     </el-drawer>
     <!--node button group-->
+
     <el-row>
       <div id="button_group" style="box-shadow:0 0 2px lightgrey;position: absolute;background:rgba(225,225,225,0.6);z-index:2;padding:0 10px;display: none;width: 140px;">
         <el-tooltip content=" 隐藏节与关系" placement="bottom" effect="light">
@@ -24,6 +25,24 @@
           <el-button type="danger" size="mini" circle icon="el-icon-close" class="delete circle" @click="remove_option"></el-button>
         </el-tooltip>
       </div>
+    </el-row>
+
+    <el-row class="right hideSingle">
+      <el-tooltip content="隐藏孤立点" placement="bottom" effect="light">
+        <el-button type="info" size="mini" circle icon="el-icon-zoom-out" class="delete circle" @click="hideSingle_option"></el-button>
+      </el-tooltip>
+      <!--<el-tooltip content="筛选关系" placement="bottom" effect="light">-->
+        <!--<el-button type="info" size="mini" circle icon="el-icon-document-checked" class="delete circle" @click="select_option"></el-button>-->
+        <!--<el-button type="info" size="mini" circle icon="el-icon-document-checked" class="delete circle" @click="select_option"></el-button>-->
+        <el-select v-model="value" clearable placeholder="请选择">
+          <el-option
+            v-for="item in options"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
+      <!--</el-tooltip>-->
     </el-row>
     <!-- link edit input -->
     <div id="edit" class="edit">
@@ -126,6 +145,23 @@
         inserts: { sid: '', p: '', oid: '', oname: '', old_tid: '' },
         searchWords: global.main_entity,
         selectedNode:'12312',
+        options:[{
+          value: '选项1',
+          label: '黄金糕'
+        }, {
+          value: '选项2',
+          label: '双皮奶'
+        }, {
+          value: '选项3',
+          label: '蚵仔煎'
+        }, {
+          value: '选项4',
+          label: '龙须面'
+        }, {
+          value: '选项5',
+          label: '北京烤鸭'
+        }],
+        value: ''
       };
 
     },
@@ -294,7 +330,7 @@
             _this.restart();
           })
           .catch(function (error) {
-            console.log(error);
+            // console.log(error);
           });
       },
       submitNewTriple() {
@@ -362,6 +398,14 @@
       hide_option(){
         let _this = this;
         _this.deleteNode(_this.selectedNode,false);
+      },
+      hideSingle_option(){
+        let _this = this;
+        _this.hideSingle();
+
+      },
+      select_option(){
+        console.log('select');
       },
       showRemoveEntDialog(eid) {
         let _this = this;
@@ -582,7 +626,7 @@
               d3.select(this).style('fill','#1E90FF');
               $("#edit").css({
                 'display':'inline-block',
-                "top":(d.target.y - d.source.y)/2 + d.source.y + "px",
+                "top":(d.target.y - d.source.y)/2 + d.source.y + 70 + "px",
                 "left":(d.target.x - d.source.x)/2 + d.source.x + "px",
               });
               selected_node = null;
@@ -621,8 +665,16 @@
 
         g.append('svg:circle')
           .attr('class', 'node')
-          .attr('r', 12)
-          //      .attr('r', 10)
+          // .attr('r', 12)
+          .attr('r', function(d){
+            // console.log(d.name );
+            // console.log(nodes[0].name);
+            if (d.name == nodes[0].name){
+              return 15;
+            }else{
+              return 10;
+            }
+          })
           .style('fill', function(d) {
             return (d === selected_node) ? d3.rgb(150,215,250).brighter().toString() : d3.rgb(150,215,250);
           })
@@ -689,7 +741,7 @@
             }else{
               $("#button_group").css({
                 'display':'inline-block',
-                "top":selected_node.y-20 + "px",
+                "top":selected_node.y-20+70 + "px",
                 "left":selected_node.x+30 + "px",
               });
               selected_link = null;
@@ -773,7 +825,7 @@
             _this.dialogVisible = true;
 
             link = {
-              source: source, target: target, left: false, right: false,
+              source:source , target: target, left: false, right: false,
               relation: '', triple: { idx: '', o: _this.inserts.oid, p: '', s: _this.inserts.sid }
             }
             link[direction] = true;
@@ -814,7 +866,14 @@
 
             }
           })
-          .text(function(d) {return  d.name;});
+          .text(function(d) {
+            if(d.name.length>10){
+              d.name = d.name.substr(0,10)+'...';
+              return  d.name;
+            }else{
+              return  d.name;
+            }
+          });
 
         // remove old nodes
         circle.exit().remove();
@@ -965,7 +1024,7 @@
                 // aboutInfo(selected_node);
                 $("#button_group").css({
                   'display':'inline-block',
-                  "top":selected_node.y-20 + "px",
+                  "top":selected_node.y-20+70 + "px",
                   "left":selected_node.x+30 + "px",
                 });
               }
@@ -981,7 +1040,7 @@
                 // aboutInfo(selected_node)
                 $("#button_group").css({
                   'display':'inline-block',
-                  "top":selected_node.y-20 + "px",
+                  "top":selected_node.y-20+70 + "px",
                   "left":selected_node.x+30 + "px",
                 });
               }
@@ -997,7 +1056,7 @@
                 // aboutInfo(selected_node);
                 $("#button_group").css({
                   'display':'inline-block',
-                  "top":selected_node.y-20 + "px",
+                  "top":selected_node.y-20+70 + "px",
                   "left":selected_node.x+30 + "px",
                 });
               }
@@ -1013,7 +1072,7 @@
                 // aboutInfo(selected_node);
                 $("#button_group").css({
                   'display':'inline-block',
-                  "top":selected_node.y-20 + "px",
+                  "top":selected_node.y-20+70 + "px",
                   "left":selected_node.x+30 + "px",
                 });
               }
@@ -1034,8 +1093,11 @@
             restart();
             break;
           case 27://esc
-            console.log(123);
             if(selected_node){
+              $("#edit").css({'display':'none',});
+              $("#button_group").css({'display':'none'})
+            }
+            if(selected_link_text){
               $("#edit").css({'display':'none',});
             }
             restart();
@@ -1055,6 +1117,7 @@
 
 
       svg.style('width','100%');
+
       //delete
       function deleteNode(selected_node,isdelete){
         if(isdelete) {
@@ -1107,6 +1170,41 @@
         tooltip.style('display','none');
       }
       _this.deleteNode = deleteNode;
+      //hide single node
+      function hideSingle(){
+        var linkTargetNodesArr = [];
+        var linkSourceNodeArr = [];
+        $.each(links,function(i,val){
+            linkTargetNodesArr.push(val.target);
+            linkSourceNodeArr.push(val.source);
+        })
+        var newNode =linkSourceNodeArr.concat(linkTargetNodesArr);
+            newNode = [...new Set(newNode)];
+        var myArray = [];//要删除的孤立点
+        if (newNode.length != nodes.length && nodes.length> newNode.length){
+            myArray = $.grep(nodes,function (value){
+              return $.inArray(value,newNode) < 0;
+          })
+        }
+        $.each(myArray,function(i,val){
+          nodes.splice(nodes.indexOf(val),1);
+          --_this.lastNodeId;
+        });
+        //初始化操作，将选中的节点或者连线选中状态取消
+        selected_link = null;
+        selected_node = null;
+        restart();
+        $.each(nodes,function(i,val){
+          val.id = i;
+        });
+        $("#edit").css('display','none');
+        $("#button_group").css('display','none');
+        tooltip.style("opacity",0.0);
+        tooltip.style('display','none');
+
+      }
+      _this.hideSingle = hideSingle;
+
       //关于数据的整理
       function tabNode(selected_node){
         var arr_x = [];
@@ -1593,4 +1691,11 @@ svg g .link{
   .el-drawer__body{
     overflow: scroll;
   }
+  .hideSingle{
+    border: 1px solid #b4bccc;
+    padding: 10px;margin: 10px;
+    /*position: fixed;*/
+    /*right: 0;*/
+  }
+
 </style>

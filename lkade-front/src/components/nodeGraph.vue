@@ -401,7 +401,7 @@
       },
       hideSingle_option(){
         let _this = this;
-        _this.hideSingle();
+        _this.hideSingle(_this.selectedNode,true);
 
       },
       select_option(){
@@ -457,11 +457,13 @@
       var entitydelete = false;
       var select_Entity = null;
       var select_line = null;
+      var removeLine = [];
 
       _this.nodes = nodes;
       _this.links = links;
       _this.svg = svg;
       _this.lastNodeId = null;
+      _this.removeLine = removeLine;
 
       
       // line displayed when dragging new nodes
@@ -823,12 +825,13 @@
             if (mouseup_node.name !== mouseup_node.idx)
               _this.inserts.oid = _this.make_readable_id(mouseup_node.name, mouseup_node.idx)
             _this.dialogVisible = true;
-
+            //修改了source与target的数据，原因是source指出去的，target是指向的点，按原本的操作变反了
             link = {
-              source:source , target: target, left: false, right: false,
+              source: target, target:source , left: false, right: true,
               relation: '', triple: { idx: '', o: _this.inserts.oid, p: '', s: _this.inserts.sid }
             }
-            link[direction] = true;
+            link[direction] = false;
+            console.log(links);
             _this.inserts.link = link;
           });
 
@@ -929,7 +932,8 @@
         var toSplice = links.filter(function(l) {
           return (l.source === node || l.target === node);
         });
-        console.log(toSplice);
+         _this.removeLine = toSplice;
+
         toSplice.map(function(l) {
           links.splice(links.indexOf(l), 1);
         });
@@ -1120,7 +1124,7 @@
 
       //delete
       function deleteNode(selected_node,isdelete){
-        if(isdelete) {
+        if(isdelete) { //isselect来判断是隐藏还是删除，true是删除，false是隐藏
           if (selected_node) {
             let should_remove_eid = selected_node.idx;
             _this.ent_dels.related_node = selected_node;
@@ -1150,7 +1154,12 @@
           if (selected_node) {
             _this.nodes.splice(_this.nodes.indexOf(selected_node),1);
             spliceLinksForNode(selected_node);
-
+            console.log(_this.removeLine);
+            var tNode = [];
+            $.each(_this.removeLine,function(i,val){
+              tNode.push(val.target);
+            })
+            hideSingle(tNode,false);
           } else if (selected_link) {
             let should_remove_link = selected_link;
             _this.links.splice(_this.links.indexOf(should_remove_link), 1);
@@ -1170,8 +1179,9 @@
         tooltip.style('display','none');
       }
       _this.deleteNode = deleteNode;
+
       //hide single node
-      function hideSingle(){
+      function hideSingle(tNode,clickHide){
         var linkTargetNodesArr = [];
         var linkSourceNodeArr = [];
         $.each(links,function(i,val){
@@ -1186,10 +1196,27 @@
               return $.inArray(value,newNode) < 0;
           })
         }
-        $.each(myArray,function(i,val){
-          nodes.splice(nodes.indexOf(val),1);
-          --_this.lastNodeId;
-        });
+        console.log(myArray);
+        // //第二遍
+        console.log(clickHide);
+        if(clickHide == true){
+          $.each(myArray,function(i,val){
+            nodes.splice(nodes.indexOf(val),1);
+            --_this.lastNodeId;
+          });
+        }else{
+          var nolinkNode = myArray.filter(function (el) {
+            return tNode.indexOf(el) < 0 ;
+          })
+          myArray = myArray.filter(function (el) {
+            return nolinkNode.indexOf(el) < 0 ;
+          })
+          $.each(myArray,function(i,val){
+            nodes.splice(nodes.indexOf(val),1);
+            --_this.lastNodeId;
+          });
+        }
+
         //初始化操作，将选中的节点或者连线选中状态取消
         selected_link = null;
         selected_node = null;

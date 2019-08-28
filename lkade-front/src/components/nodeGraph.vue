@@ -1158,7 +1158,13 @@
             var tNode = [];
             $.each(_this.removeLine,function(i,val){
               tNode.push(val.target);
+              tNode.push(val.source);
             })
+            var tNode = [...new Set(tNode)];
+            tNode.splice(tNode.indexOf(selected_node),1);
+            console.log(tNode);
+            
+
             hideSingle(tNode,false);
           } else if (selected_link) {
             let should_remove_link = selected_link;
@@ -1196,22 +1202,22 @@
               return $.inArray(value,newNode) < 0;
           })
         }
-        // console.log(myArray);
+        console.log(myArray);
         // //第二遍
         console.log(clickHide);
-        if(clickHide == true){
+        if(clickHide == true){  //如果点击单个清除单个节点的按钮，就清除页面中的所有的孤立点
           $.each(myArray,function(i,val){
             nodes.splice(nodes.indexOf(val),1);
             --_this.lastNodeId;
           });
-        }else{
-          console.log(tNode); //t的target节点
-          console.log(myArray);//是孤立点
-          var nolinkNode = myArray.filter(function (el) {
+        }else{    //selected_node中的hide操作
+          console.log(tNode); //selecte节点的相关节点
+          console.log(myArray);//放置孤立点的数组
+          var nolinkNode = myArray.filter(function (el) { //在myArray中删除包含的tNode中包含的所有元素
             return tNode.indexOf(el) < 0 ;
           })
-          console.log(nolinkNode);
-          if(myArray.length>nolinkNode.length){
+          console.log(nolinkNode);//新增的孤立的节点
+          if(myArray.length>nolinkNode.length){ //孤立节点数组的长度 > 新增的孤立节点数 也就是说绝对为true（因为nolinkNode就是myArray的元素）
             myArray = myArray.filter(function (el) {
               return nolinkNode.indexOf(el) < 0 ;
             })
@@ -1219,7 +1225,7 @@
           // myArray = myArray.filter(function (el) {
           //   return nolinkNode.indexOf(el) < 0 ;
           // })
-          console.log(myArray);
+          console.log(myArray); //拿到的是selected_node的相关关系的孤立点
 
           //判断如果在myArray中没有tnode
           var containIndex = true;
@@ -1249,11 +1255,6 @@
               --_this.lastNodeId;
             });
           }
-          // $.each(myArray,function(i,val){
-          //   nodes.splice(nodes.indexOf(val),1);
-          //   --_this.lastNodeId;
-          // });
-
         }
 
         //初始化操作，将选中的节点或者连线选中状态取消

@@ -1196,7 +1196,7 @@
               return $.inArray(value,newNode) < 0;
           })
         }
-        console.log(myArray);
+        // console.log(myArray);
         // //第二遍
         console.log(clickHide);
         if(clickHide == true){
@@ -1205,16 +1205,55 @@
             --_this.lastNodeId;
           });
         }else{
+          console.log(tNode); //t的target节点
+          console.log(myArray);//是孤立点
           var nolinkNode = myArray.filter(function (el) {
             return tNode.indexOf(el) < 0 ;
           })
-          myArray = myArray.filter(function (el) {
-            return nolinkNode.indexOf(el) < 0 ;
-          })
-          $.each(myArray,function(i,val){
-            nodes.splice(nodes.indexOf(val),1);
-            --_this.lastNodeId;
-          });
+          console.log(nolinkNode);
+          if(myArray.length>nolinkNode.length){
+            myArray = myArray.filter(function (el) {
+              return nolinkNode.indexOf(el) < 0 ;
+            })
+          }
+          // myArray = myArray.filter(function (el) {
+          //   return nolinkNode.indexOf(el) < 0 ;
+          // })
+          console.log(myArray);
+
+          //判断如果在myArray中没有tnode
+          var containIndex = true;
+          if (tNode.length > myArray.length){
+            $.each(tNode,function(i,val){
+              if (myArray.includes(val)){
+                containIndex = true;
+              } else{
+                containIndex = false;
+              }
+            })
+          }else{
+            $.each(myArray,function(i,val){
+              if (tNode.includes(val)){
+                console.log('yes');
+                containIndex = true;
+              } else{
+                console.log('no');
+                containIndex = false;
+              }
+            })
+          }
+
+          if (containIndex == true){
+            $.each(myArray,function(i,val){
+              nodes.splice(nodes.indexOf(val),1);
+              --_this.lastNodeId;
+            });
+          }
+          // $.each(myArray,function(i,val){
+          //   nodes.splice(nodes.indexOf(val),1);
+          //   --_this.lastNodeId;
+          // });
+
         }
 
         //初始化操作，将选中的节点或者连线选中状态取消
@@ -1232,7 +1271,9 @@
       }
       _this.hideSingle = hideSingle;
 
-      //关于数据的整理
+
+
+    //关于数据的整理
       function tabNode(selected_node){
         var arr_x = [];
         var arr_y = [];

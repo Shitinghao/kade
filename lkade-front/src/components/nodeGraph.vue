@@ -11,7 +11,40 @@
         <el-table-column property="s" label="S"></el-table-column>
       </el-table>
     </el-drawer>
-    <!-- node edit input -->
+    <!--node button group-->
+
+    <el-row>
+      <div id="button_group" style="box-shadow:0 0 2px lightgrey;position: absolute;background:rgba(225,225,225,0.6);z-index:2;padding:0 10px;display: none;width: 140px;">
+        <el-tooltip content=" 隐藏节与关系" placement="bottom" effect="light">
+          <el-button type="info" size="mini" circle icon="el-icon-minus"  class="node_hide circle" @click="hide_option"></el-button>
+        </el-tooltip>
+        <el-tooltip content="功能扩展" placement="bottom" effect="light">
+          <el-button type="primary" size="mini" circle icon="el-icon-magic-stick" class="edit_word circle" ></el-button>
+        </el-tooltip>
+        <el-tooltip content="删除节点" placement="bottom" effect="light">
+          <el-button type="danger" size="mini" circle icon="el-icon-close" class="delete circle" @click="remove_option"></el-button>
+        </el-tooltip>
+      </div>
+    </el-row>
+
+    <el-row class="right hideSingle">
+      <el-tooltip content="隐藏孤立点" placement="bottom" effect="light">
+        <el-button type="info" size="mini" circle icon="el-icon-zoom-out" class="delete circle" @click="hideSingle_option"></el-button>
+      </el-tooltip>
+      <!--<el-tooltip content="筛选关系" placement="bottom" effect="light">-->
+        <!--<el-button type="info" size="mini" circle icon="el-icon-document-checked" class="delete circle" @click="select_option"></el-button>-->
+        <!--<el-button type="info" size="mini" circle icon="el-icon-document-checked" class="delete circle" @click="select_option"></el-button>-->
+        <el-select v-model="value" clearable placeholder="请选择">
+          <el-option
+            v-for="item in options"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
+      <!--</el-tooltip>-->
+    </el-row>
+    <!-- link edit input -->
     <div id="edit" class="edit">
       <input type="text" name="" id="words" class="words" autofocus="autofocus" value="" />
     </div>
@@ -112,6 +145,24 @@
         ent_inserts: { ename: '' },
         inserts: { sid: '', p: '', oid: '', oname: '', old_tid: '' },
         searchWords: global.main_entity,
+        selectedNode:'12312',
+        options:[{
+          value: '选项1',
+          label: '黄金糕'
+        }, {
+          value: '选项2',
+          label: '双皮奶'
+        }, {
+          value: '选项3',
+          label: '蚵仔煎'
+        }, {
+          value: '选项4',
+          label: '龙须面'
+        }, {
+          value: '选项5',
+          label: '北京烤鸭'
+        }],
+        value: ''
       };
 
     },
@@ -176,8 +227,7 @@
           .post(_this.api_host+'/api/ment2ent', qs.stringify({
               q: query,
               no_other_m: 1
-            })
-          )
+            }))
           .then(function (response) {
             let ents = response.data.ret;
             let options = [];
@@ -224,8 +274,7 @@
           .post(_this.api_host+"/api/graph/query_entity", qs.stringify({
               idx: exid,
               no_expand: no_expand
-            })
-          )
+          }))
           .then(function (response) {
             if (response.data.nodes.length === 0) {
               _this.ent_inserts.ename = exid;
@@ -242,9 +291,6 @@
                   if (point != null) {
                     node.x = point[0];
                     node.y = point[1];
-                  } else {
-                    node.x = 0;
-                    node.y = 1;
                   }
                   _this.nodes.push(node);
                   _this.showEntDialogVisible = false;
@@ -260,9 +306,6 @@
               if (point != null) {
                  node.x = point[0];
                  node.y = point[1];
-              } else {
-                 node.x = 0;
-                 node.y = 1;
               }
               if (_this.checkRepNodes(node)) _this.nodes.push(node);
             });
@@ -280,7 +323,7 @@
             _this.restart();
           })
           .catch(function (error) {
-            console.log(error);
+            // console.log(error);
           });
       },
       submitNewTriple() {
@@ -337,8 +380,22 @@
             console.log(error);
           });
       },
+      remove_option(){
+        let _this = this;
+        _this.deleteNode(_this.selectedNode,true);
+      },
+      hide_option(){
+        let _this = this;
+        _this.deleteNode(_this.selectedNode,false);
+      },
+      hideSingle_option(){
+        let _this = this;
+        _this.hideSingle(_this.selectedNode,true);
 
-
+      },
+      select_option(){
+        console.log('select');
+      },
       showRemoveEntDialog(eid) {
         let _this = this;
         this.ent_dels.eid = eid;
@@ -385,11 +442,13 @@
       var entitydelete = false;
       var select_Entity = null;
       var select_line = null;
+      var removeLine = [];
 
       _this.nodes = nodes;
       _this.links = links;
       _this.svg = svg;
       _this.lastNodeId = null;
+      _this.removeLine = removeLine;
 
       
       // line displayed when dragging new nodes
@@ -438,6 +497,10 @@
         mousedown_link_text = null,
         mousedown_node = null,
         mouseup_node = null;
+
+       _this.selected_node = selected_node;
+
+
       var tooltip = d3.select("body")
         .append("div")//添加div并设置成透明
         .attr("class","tooltip")
@@ -517,10 +580,14 @@
           .style("pointer-events", "auto")
           .attr('class','ptext')
           .text(function(d){return d.relation;})
+          .on('mouseover',function (d) {
+            d3.select(this).style('cursor', 'pointer');
+          })
           .on('mousedown',function(d){
             if(d3.event.ctrlKey) return;
             //设置样式与数据
             mousedown_link_text = d;
+
             selected = mousedown_link_text;
             $("#edit").css('display','block');
             $('.detailEdit').css('display','none');
@@ -530,12 +597,6 @@
             edit_relation = true;
             svg.selectAll('.ptext')
               .style('fill','black')
-            d3.select(this).style('fill','#1E90FF');
-            $("#edit").css({
-              'display':'inline-block',
-              "top":mousedown_link_text.target.y + "px",
-              "left":mousedown_link_text.target.x + "px",
-            });
 
             if (mousedown_link_text === selected_link_text) selected_link_text = null;
             else {
@@ -543,8 +604,26 @@
               selected_link = mousedown_link_text;
             }
             console.log(selected_link_text);
+            if(selected_link_text == null){
+              d3.select(this).style('fill','black');
+              $("#edit").css({
+                'display':'none',
+              });
+            }else{
+              d3.select(this).style('fill','#1E90FF');
+              $("#edit").css({
+                'display':'inline-block',
+                "top":(d.target.y - d.source.y)/2 + d.source.y + 70 + "px",
+                "left":(d.target.x - d.source.x)/2 + d.source.x + "px",
+              });
+              selected_node = null;
+              if (selected_node == null){
+                $("#button_group").css('display','none');
+              }
 
-            selected_node = null;
+            }
+
+
             //输入框聚焦
             $("#words").focus();
             restart();
@@ -573,13 +652,22 @@
 
         g.append('svg:circle')
           .attr('class', 'node')
-          .attr('r', 12)
-          //      .attr('r', 10)
+          // .attr('r', 12)
+          .attr('r', function(d){
+            // console.log(d.name );
+            // console.log(nodes[0].name);
+            if (d.name == nodes[0].name){
+              return 15;
+            }else{
+              return 10;
+            }
+          })
           .style('fill', function(d) {
             return (d === selected_node) ? d3.rgb(150,215,250).brighter().toString() : d3.rgb(150,215,250);
           })
           .classed('reflexive', function(d) { return d.reflexive; })
           .on('mouseover', function(d) {
+            d3.select(this).style('cursor', 'pointer');
             var html = '';
             var desc = '';
             if(d.info.length == 0){
@@ -606,6 +694,7 @@
             if(!mousedown_node || d === mousedown_node) return;
             // enlarge target node
             d3.select(this).attr('transform', 'scale(1.1)');
+
           })
           .on('mouseout', function(d) {
             tooltip.style("opacity",0.0);
@@ -625,15 +714,33 @@
               global.main_entity = _this.make_readable_id(selected_node.name, selected_node.idx);
               global.entityInfo = selected_node.info;
             }
-            selected_link = null;
+
             //显示info信息
-            aboutInfo(selected_node);
+
+            // aboutInfo(selected_node);
             //选中节点后，调用SELECT（）计算4个象限
             //findnode
             if(selected_node == null ){
               //newResult = findNode(selected_node);
               //i = 0;
+              console.log('no seleeted');
+              $("#button_group").css({'display':'none'});
             }else{
+              $("#button_group").css({
+                'display':'inline-block',
+                "top":selected_node.y-20+70 + "px",
+                "left":selected_node.x+30 + "px",
+              });
+              selected_link = null;
+              selected_link_text = null;
+              _this.selectedNode = selected_node;
+              if (selected_link_text == null){
+                $("#edit").css('display','none');
+                svg.selectAll('.ptext')
+                  .style('fill','black')
+
+              }
+
               //关于space的节点遍历
               newResult = findNode(selected_node);
               // SELECT(selected_node);
@@ -656,7 +763,6 @@
             if(!mousedown_node) return;
             //因为在mousedown事件比up事件靠前，所以，将focus事件写在mousedown里面不生效（不会执行），mousedown > focus > mouseup > click
             $("#edit input").focus();
-            console.log('taiqi');
             // needed by FF
             drag_line
               .classed('hidden', true)
@@ -704,12 +810,13 @@
             if (mouseup_node.name !== mouseup_node.idx)
               _this.inserts.oid = _this.make_readable_id(mouseup_node.name, mouseup_node.idx)
             _this.dialogVisible = true;
-
+            //修改了source与target的数据，原因是source指出去的，target是指向的点，按原本的操作变反了
             link = {
-              source: source, target: target, left: false, right: false,
+              source: target, target:source , left: false, right: true,
               relation: '', triple: { idx: '', o: _this.inserts.oid, p: '', s: _this.inserts.sid }
             }
-            link[direction] = true;
+            link[direction] = false;
+            console.log(links);
             _this.inserts.link = link;
           });
 
@@ -747,7 +854,14 @@
 
             }
           })
-          .text(function(d) {return  d.name;});
+          .text(function(d) {
+            if(d.name.length>10){
+              d.name = d.name.substr(0,10)+'...';
+              return  d.name;
+            }else{
+              return  d.name;
+            }
+          });
 
         // remove old nodes
         circle.exit().remove();
@@ -775,7 +889,7 @@
           path.attr('d', function(d) {
             var deltaX = d.target.x - d.source.x,
               deltaY = d.target.y - d.source.y,
-              dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY) + 1,
+              dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY),
               normX = deltaX / dist,
               normY = deltaY / dist,
               sourcePadding = d.left ? 17 : 12,
@@ -803,6 +917,8 @@
         var toSplice = links.filter(function(l) {
           return (l.source === node || l.target === node);
         });
+         _this.removeLine = toSplice;
+
         toSplice.map(function(l) {
           links.splice(links.indexOf(l), 1);
         });
@@ -883,38 +999,7 @@
         switch(d3.event.keyCode) {
       //  case 8: // backspace
           case 46: // delete
-            if (selected_node) {
-              let should_remove_eid = selected_node.idx;
-              _this.ent_dels.related_node = selected_node;
-              _this.showRemoveEntDialog(should_remove_eid);
-            } else if (selected_link) {
-              let should_remove_link = selected_link;
-              _this.$confirm('确定要删除关系吗？')
-                .then(_ => {
-                  _this.axios
-                    .post(_this.api_host+'/api/remove_triple', qs.stringify({
-                        id: should_remove_link.triple.idx,
-                      })
-                    )
-                    .then(function (response) {
-                      _this.links.splice(_this.links.indexOf(should_remove_link), 1);
-                      _this.restart();
-                    })
-                    .catch(function (error) {
-                      console.log(error);
-                    });
-                })
-                .catch(_ => {});
-            }
-            selected_link = null;
-            selected_node = null;
-            //删除节点后，将原本的id换成新的id因为原本的node的自带的索引会自动减少，而元素的id属性不会自动减少，所以需要重新刷新id，否则会报错
-            --_this.lastNodeId;
-            restart();
-            $.each(nodes,function(i,val){
-              val.id = i;
-            });
-            $("#edit").css('display','none');
+            deleteNode(selected_node,true);
             break;
           case 13: // enter
             if (selected_node !== null) _this.showEntity(selected_node.idx, true);
@@ -925,7 +1010,12 @@
                 return false;
               }else{
                 selected_node = SELECT(selected_node).left.data.data;
-                aboutInfo(selected_node);
+                // aboutInfo(selected_node);
+                $("#button_group").css({
+                  'display':'inline-block',
+                  "top":selected_node.y-20+70 + "px",
+                  "left":selected_node.x+30 + "px",
+                });
               }
             }
             restart();
@@ -936,7 +1026,12 @@
                 return false;
               }else{
                 selected_node = SELECT(selected_node).up.data.data;
-                aboutInfo(selected_node)
+                // aboutInfo(selected_node)
+                $("#button_group").css({
+                  'display':'inline-block',
+                  "top":selected_node.y-20+70 + "px",
+                  "left":selected_node.x+30 + "px",
+                });
               }
             }
             restart();
@@ -947,7 +1042,12 @@
                 return false;
               }else{
                 selected_node = SELECT(selected_node).right.data.data;
-                aboutInfo(selected_node);
+                // aboutInfo(selected_node);
+                $("#button_group").css({
+                  'display':'inline-block',
+                  "top":selected_node.y-20+70 + "px",
+                  "left":selected_node.x+30 + "px",
+                });
               }
             }
             restart();
@@ -958,7 +1058,12 @@
                 return false;
               }else{
                 selected_node = SELECT(selected_node).down.data.data;
-                aboutInfo(selected_node);
+                // aboutInfo(selected_node);
+                $("#button_group").css({
+                  'display':'inline-block',
+                  "top":selected_node.y-20+70 + "px",
+                  "left":selected_node.x+30 + "px",
+                });
               }
             }
             restart();
@@ -977,11 +1082,17 @@
             restart();
             break;
           case 27://esc
-            console.log(123);
             if(selected_node){
+              $("#edit").css({'display':'none',});
+              $("#button_group").css({'display':'none'})
+            }
+            if(selected_link_text){
               $("#edit").css({'display':'none',});
             }
             restart();
+            break;
+          case 72://hide
+            deleteNode(selected_node,false);
             break;
         }
       }
@@ -995,7 +1106,158 @@
 
 
       svg.style('width','100%');
-      //关于数据的整理
+
+      //delete
+      function deleteNode(selected_node,isdelete){
+        if(isdelete) { //isselect来判断是隐藏还是删除，true是删除，false是隐藏
+          if (selected_node) {
+            let should_remove_eid = selected_node.idx;
+            _this.ent_dels.related_node = selected_node;
+            _this.showRemoveEntDialog(should_remove_eid);
+          } else if (selected_link) {
+            let should_remove_link = selected_link;
+            _this.$confirm('确定要删除关系吗？')
+              .then(_ => {
+                _this.axios
+                  .post(_this.api_host+'/api/remove_triple', qs.stringify({
+                    id: should_remove_link.triple.idx,
+                  }))
+                  .then(function (response) {
+                    _this.links.splice(_this.links.indexOf(should_remove_link), 1);
+                    _this.restart();
+                  })
+                  .catch(function (error) {
+                    console.log(error);
+                  });
+              })
+              .catch(_ => {
+              });
+          }
+        }else{
+          if (selected_node) {
+            _this.nodes.splice(_this.nodes.indexOf(selected_node),1);
+            spliceLinksForNode(selected_node);
+            console.log(_this.removeLine);
+            var tNode = [];
+            $.each(_this.removeLine,function(i,val){
+              tNode.push(val.target);
+              tNode.push(val.source);
+            })
+            var tNode = [...new Set(tNode)];
+            tNode.splice(tNode.indexOf(selected_node),1);
+            console.log(tNode);
+            
+
+            hideSingle(tNode,false);
+          } else if (selected_link) {
+            let should_remove_link = selected_link;
+            _this.links.splice(_this.links.indexOf(should_remove_link), 1);
+          }
+        }
+        selected_link = null;
+        selected_node = null;
+        //删除节点后，将原本的id换成新的id因为原本的node的自带的索引会自动减少，而元素的id属性不会自动减少，所以需要重新刷新id，否则会报错
+        --_this.lastNodeId;
+        restart();
+        $.each(nodes,function(i,val){
+          val.id = i;
+        });
+        $("#edit").css('display','none');
+        $("#button_group").css('display','none');
+        tooltip.style("opacity",0.0);
+        tooltip.style('display','none');
+      }
+      _this.deleteNode = deleteNode;
+
+      //hide single node
+      function hideSingle(tNode,clickHide){
+        var linkTargetNodesArr = [];
+        var linkSourceNodeArr = [];
+        $.each(links,function(i,val){
+            linkTargetNodesArr.push(val.target);
+            linkSourceNodeArr.push(val.source);
+        })
+        var newNode =linkSourceNodeArr.concat(linkTargetNodesArr);
+            newNode = [...new Set(newNode)];
+        var myArray = [];//要删除的孤立点
+        if (newNode.length != nodes.length && nodes.length> newNode.length){
+            myArray = $.grep(nodes,function (value){
+              return $.inArray(value,newNode) < 0;
+          })
+        }
+        console.log(myArray);
+        // //第二遍
+        console.log(clickHide);
+        if(clickHide == true){  //如果点击单个清除单个节点的按钮，就清除页面中的所有的孤立点
+          $.each(myArray,function(i,val){
+            nodes.splice(nodes.indexOf(val),1);
+            --_this.lastNodeId;
+          });
+        }else{    //selected_node中的hide操作
+          console.log(tNode); //selecte节点的相关节点
+          console.log(myArray);//放置孤立点的数组
+          var nolinkNode = myArray.filter(function (el) { //在myArray中删除包含的tNode中包含的所有元素
+            return tNode.indexOf(el) < 0 ;
+          })
+          console.log(nolinkNode);//新增的孤立的节点
+          if(myArray.length>nolinkNode.length){ //孤立节点数组的长度 > 新增的孤立节点数 也就是说绝对为true（因为nolinkNode就是myArray的元素）
+            myArray = myArray.filter(function (el) {
+              return nolinkNode.indexOf(el) < 0 ;
+            })
+          }
+          // myArray = myArray.filter(function (el) {
+          //   return nolinkNode.indexOf(el) < 0 ;
+          // })
+          console.log(myArray); //拿到的是selected_node的相关关系的孤立点
+
+          //判断如果在myArray中没有tnode
+          var containIndex = true;
+          if (tNode.length > myArray.length){
+            $.each(tNode,function(i,val){
+              if (myArray.includes(val)){
+                containIndex = true;
+              } else{
+                containIndex = false;
+              }
+            })
+          }else{
+            $.each(myArray,function(i,val){
+              if (tNode.includes(val)){
+                console.log('yes');
+                containIndex = true;
+              } else{
+                console.log('no');
+                containIndex = false;
+              }
+            })
+          }
+
+          if (containIndex == true){
+            $.each(myArray,function(i,val){
+              nodes.splice(nodes.indexOf(val),1);
+              --_this.lastNodeId;
+            });
+          }
+        }
+
+        //初始化操作，将选中的节点或者连线选中状态取消
+        selected_link = null;
+        selected_node = null;
+        restart();
+        $.each(nodes,function(i,val){
+          val.id = i;
+        });
+        $("#edit").css('display','none');
+        $("#button_group").css('display','none');
+        tooltip.style("opacity",0.0);
+        tooltip.style('display','none');
+
+      }
+      _this.hideSingle = hideSingle;
+
+
+
+    //关于数据的整理
       function tabNode(selected_node){
         var arr_x = [];
         var arr_y = [];
@@ -1367,11 +1629,11 @@
 
 <style scoped>
   .edit{
-    padding-left:10px;
+    padding:0 10px;
     /*border-radius: 4px;	   */
     background: rgba(225,225,225,0.5);
     box-shadow: 0px 0px 5px lightgray;
-
+    /*width: 150px;*/
   }
   #edit{
     display: none;
@@ -1481,4 +1743,11 @@ svg g .link{
   .el-drawer__body{
     overflow: scroll;
   }
+  .hideSingle{
+    border: 1px solid #b4bccc;
+    padding: 10px;margin: 10px;
+    /*position: fixed;*/
+    /*right: 0;*/
+  }
+
 </style>

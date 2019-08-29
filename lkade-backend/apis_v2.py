@@ -112,6 +112,7 @@ def ment2ent():
 	no_other_m = request.params.no_other_m
 
 	query, eid = SplitId(query)
+	print(query, eid)
 
 	rets = []
 

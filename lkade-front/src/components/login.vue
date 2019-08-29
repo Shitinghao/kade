@@ -101,7 +101,7 @@ export default {
               if (response.data.status === 'ok') {
                 ses.setItem('isLogin', 'ok');
                 ses.setItem('uname', response.data.uname);
-                _this.$router.push({ path: '/list' })
+                _this.$router.push({ path: '/kg/kade/list' })
 
               } else {
                 _this.$message.error("登陆失败")

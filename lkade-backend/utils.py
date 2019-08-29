@@ -24,16 +24,16 @@ def DefineCommonFuncs(app, user_table):
 	@app.hook('after_request')
 	def enable_cors(): response.headers['Access-Control-Allow-Origin'] = '*'
 
-	@app.route('/', method='GET')
+	@app.route('/kg/kade/', method='GET')
 	@app.error(404)
 	def index(error=''):
 		return static_file('index.html', root='./vdist')
 	
-	@app.route('/static/<filepath:path>')
+	@app.route('/kg/kade/static/<filepath:path>')
 	def static(filepath):
 	    return static_file(filepath, root="./vdist/static")
 	
-	@app.route('/login_check', method=['POST', 'OPTIONS'])
+	@app.route('/kg/kade/login_check', method=['POST', 'OPTIONS'])
 	def login_check():
 		sess = request.environ.get('beaker.session')
 		ret = {'status': 'fail'}
@@ -51,7 +51,7 @@ def DefineCommonFuncs(app, user_table):
 				sess.save()
 		return json.dumps(ret, ensure_ascii=False)
 	
-	@app.route('/login_exit', method=['POST', 'OPTIONS'])
+	@app.route('/kg/kade/login_exit', method=['POST', 'OPTIONS'])
 	def login_exit():
 		sess = request.environ.get('beaker.session')
 		sess['issLogin'] = False
@@ -68,7 +68,7 @@ def DefineSchemaFuncs(app, schema_table):
 	'''
 	SCHEMA相关
 	'''
-	@app.route('/api/schemas', method=['GET', 'POST'])
+	@app.route('/kg/kade/api/schemas', method=['GET', 'POST'])
 	def schemas():
 		if not check_authority(): return not_authority_ret
 		if schema_table is None: return {'status': 'error', 'msg': '库中没有Schema功能'}
@@ -84,7 +84,7 @@ def DefineSchemaFuncs(app, schema_table):
 			ret['ret'].append(item) 
 		return ret
 
-	@app.route('/api/remove_schema', method = ['GET', 'POST'])
+	@app.route('/kg/kade/api/remove_schema', method = ['GET', 'POST'])
 	def remove_schema():
 		if not check_authority(write=True): return not_authority_ret
 		tid = request.params.id
@@ -101,7 +101,7 @@ def DefineSchemaFuncs(app, schema_table):
 		if len(limit_o) == 0: return 'limit_o不能为空'
 		if limit_o_type == 'eval' and len(limit_o) > 10: return '出于安全考虑，当limit_o_type为eval时limit_o有长度限制'
 
-	@app.route('/api/new_schema', method = ['GET', 'POST'])
+	@app.route('/kg/kade/api/new_schema', method = ['GET', 'POST'])
 	def new_schema():
 		if not check_authority(write=True): return not_authority_ret
 		cond_p = request.params.cond_p

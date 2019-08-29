@@ -43,7 +43,7 @@ def SplitId(name):
 	ename = re.sub("<id:([^>]+)>$", '', name)
 	return ename, eid
 
-@app.route('/api/triples', method=['GET', 'POST'])
+@app.route('/kg/kade/api/triples', method=['GET', 'POST'])
 def triples():
 	if not check_authority(): return not_authority_ret
 	ret = {'status': 'error', 'ret': []}
@@ -104,7 +104,7 @@ def triples():
 			})
 	return json.dumps(ret, ensure_ascii = False)
 
-@app.route('/api/ment2ent', method = ['GET', 'POST'])
+@app.route('/kg/kade/api/ment2ent', method = ['GET', 'POST'])
 def ment2ent():
 	if not check_authority(): return not_authority_ret
 	ret = {'status': 'error', 'ret': []}
@@ -165,7 +165,7 @@ def precheck_new_entity(name):
 		exists = entity_table.find_one({'_id': name})
 		if exists: return '实体已经存在'
 
-@app.route('/api/new_entity', method = ['GET', 'POST'])
+@app.route('/kg/kade/api/new_entity', method = ['GET', 'POST'])
 def newentity():
 	if not check_authority(write=True): return not_authority_ret
 	name = request.params.name
@@ -205,7 +205,7 @@ def precheck_new_triple(sid, p, oid, oname):
 		if ret != 'ok': return 'Schema验证失败：' + ret
 
 
-@app.route('/api/new_triple', method = ['GET', 'POST'])
+@app.route('/kg/kade/api/new_triple', method = ['GET', 'POST'])
 def new_triple():
 	if not check_authority(write=True): return not_authority_ret
 	sid = request.params.sid
@@ -237,7 +237,7 @@ def precheck_new_ment2ent(eid, mention):
 	ditem = {'m': mention, 'eid': eid}
 	if ment2ent_table.find_one(ditem) is not None: return '库中已存在此关系'
 
-@app.route('/api/new_ment2ent', method = ['GET', 'POST'])
+@app.route('/kg/kade/api/new_ment2ent', method = ['GET', 'POST'])
 def new_ment2ent():
 	if not check_authority(write=True): return not_authority_ret
 	eid = request.params.eid
@@ -251,7 +251,7 @@ def new_ment2ent():
 		ment2ent_table.insert_one(ditem)
 	return json.dumps(ret, ensure_ascii=False)
 
-@app.route('/api/remove_triple', method = ['GET', 'POST'])
+@app.route('/kg/kade/api/remove_triple', method = ['GET', 'POST'])
 def remove_triple():
 	if not check_authority(write=True): return not_authority_ret
 	tid = request.params.id
@@ -262,7 +262,7 @@ def remove_triple():
 	ret = {'status':status, 'ret': 'ok'}
 	return json.dumps(ret, ensure_ascii=False)
 
-@app.route('/api/remove_ment2ent', method = ['GET', 'POST'])
+@app.route('/kg/kade/api/remove_ment2ent', method = ['GET', 'POST'])
 def remove_ment2ent():
 	if not check_authority(write=True): return not_authority_ret
 	tid = request.params.id
@@ -290,14 +290,14 @@ def EntityRelatedInfos(idx):
 		tris.append({'s': GetEntityName(GetEntitybyID(x['sid'])), 'p': x['p'], 'o': x['o']})
 	return tris
 
-@app.route('/api/info_remove_entity', method = ['GET', 'POST'])
+@app.route('/kg/kade/api/info_remove_entity', method = ['GET', 'POST'])
 def info_remove_entity():
 	eid = request.params.id
 	ename, eid = SplitId(eid)
 	ret = {'status':'ok','ret': EntityRelatedInfos(eid)}
 	return json.dumps(ret, ensure_ascii=False)
 
-@app.route('/api/remove_entity', method = ['GET', 'POST'])
+@app.route('/kg/kade/api/remove_entity', method = ['GET', 'POST'])
 def remove_entity():
 	if not check_authority(write=True): return not_authority_ret
 	eid = request.params.id
@@ -321,7 +321,7 @@ def triple2dict(triple):
 	return ret
 
 
-@app.route('/api/graph/query_entity', method=['GET', 'POST'])
+@app.route('/kg/kade/api/graph/query_entity', method=['GET', 'POST'])
 def query_entity():
 	if not check_authority(): return not_authority_ret
 	ret = {
@@ -391,7 +391,7 @@ def query_entity():
 	return json.dumps(ret, ensure_ascii=False)
 
 
-@app.route('/api/graph/update_triple_p', method=['GET', 'POST'])
+@app.route('/kg/kade/api/graph/update_triple_p', method=['GET', 'POST'])
 def update_triple_p():
 	if not check_authority(write=True): return not_authority_ret
 	ret = {

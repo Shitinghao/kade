@@ -31,16 +31,16 @@ new Vue({
 router.beforeEach((to, from, next) => {
   if (window.sessionStorage.getItem('isLogin') === 'ok') {
     console.log(window.sessionStorage)
-    if (to.path === '/') {
-      next({path: '/list'})
+    if (to.path === '/kg/kade/') {
+      next({path: '/kg/kade/list'})
     } else {
       next()
     }
   } else {
-    if (to.path === '/') {
+    if (to.path === '/kg/kade') {
       next()
     } else {
-      next({path: '/'})
+      next({path: '/kg/kade'})
     }
   }
 })

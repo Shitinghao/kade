@@ -12,7 +12,7 @@ export default new Router({
   mode: 'history',
   routes: [
     {
-      path: '/login',
+      path: '/kg/kade/login',
       name: 'login',
       meta: {
         isLogin: false,
@@ -21,11 +21,11 @@ export default new Router({
       component: login
     },
     {
-      path: '/',
-      redirect: 'login'
+      path: '/kg/kade/',
+      redirect: '/kg/kade/login'
     },
     {
-      path: '/list',
+      path: '/kg/kade/list',
       name: 'triples',
       meta: {
         keepAlive: true,
@@ -34,7 +34,7 @@ export default new Router({
       component: Triples
     },
     {
-      path: '/nodeGraph',
+      path: '/kg/kade/nodeGraph',
       name: 'nodeGraph',
       meta: {
         keepAlive: true,
@@ -43,7 +43,7 @@ export default new Router({
       component: nodeGraph
     },
     {
-      path: '/schema',
+      path: '/kg/kade/schema',
       name: 'Schema',
       meta: {
         keepAlive: true,
@@ -52,7 +52,7 @@ export default new Router({
       component: Schema
     },
     {
-      path: '/reg',
+      path: '/kg/kade/reg',
       name: 'reg',
       meta: {
         isLogin: false,
@@ -61,12 +61,12 @@ export default new Router({
       component: reg
     },
     {
-      path: '/logout',
-      redirect: 'login'
+      path: '/kg/kade/logout',
+      redirect: '/kg/kade/login'
     },
     {
-      path: '/admin',
-      redirect: 'list'
+      path: '/kg/kade/admin',
+      redirect: '/kg/kade/list'
     }
 
   ]

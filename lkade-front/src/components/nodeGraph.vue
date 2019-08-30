@@ -777,7 +777,7 @@
               })
               .classed('hidden', false)
               .attr('d', 'M' + mousedown_node.x + ',' + mousedown_node.y + 'L' + mousedown_node.x + ',' + mousedown_node.y);
-            restart();
+            //restart();
           })
           .on('mouseup', function(d) {  // 拖动新增关系
             if(!mousedown_node) return;
@@ -968,7 +968,7 @@
         // update drag line
         drag_line.attr('d', 'M' + mousedown_node.x + ',' + mousedown_node.y + 'L' + d3.mouse(this)[0] + ',' + d3.mouse(this)[1]);
 
-        restart();
+        //restart();
       }
 
       function mouseup() {

@@ -466,15 +466,41 @@
       _this.removeLine = removeLine;
 
       
+
+
+      // mouse event vars
+      var selected_node = null,
+        selected_link = null,
+        selected_link_text = null,
+        mousedown_link = null,
+        mousedown_link_text = null,
+        mousedown_node = null,
+        mouseup_node = null;
+
+       _this.selected_node = selected_node;
+
+
+      var tooltip = d3.select("body")
+        .append("div")//添加div并设置成透明
+        .attr("class","tooltip")
+        .style("opacity", 0.0);
+
+      var path, path_text, circle;
+      
+      function restart() {
+        let force = _this.force;
+        if (!force) return;
+
+        $("svg").empty();
       // line displayed when dragging new nodes
       var drag_line = svg.append('svg:path')
         .attr('class', 'link dragline hidden')
         .attr('d', 'M0,0L0,0');
 
       // handles to link and node element groups
-      var path = svg.append('svg:g').selectAll('path'),
-        path_text = svg.append("g").selectAll(".edgelabel"),
-        circle = svg.append('svg:g').selectAll('g');
+      path = svg.append('svg:g').selectAll('path'),
+      path_text = svg.append("g").selectAll(".edgelabel"),
+      circle = svg.append('svg:g').selectAll('g');
 
       
       // define arrow markers for graph links
@@ -504,27 +530,6 @@
 
 
 
-      // mouse event vars
-      var selected_node = null,
-        selected_link = null,
-        selected_link_text = null,
-        mousedown_link = null,
-        mousedown_link_text = null,
-        mousedown_node = null,
-        mouseup_node = null;
-
-       _this.selected_node = selected_node;
-
-
-      var tooltip = d3.select("body")
-        .append("div")//添加div并设置成透明
-        .attr("class","tooltip")
-        .style("opacity", 0.0);
-
-      
-      function restart() {
-        let force = _this.force;
-        if (!force) return;
         // 1.path
         // path (link) group
         path = path.data(links);
@@ -1140,7 +1145,10 @@
                     }
                   })
                   .then(function (response) {
+                    console.log(should_remove_link);
+                    console.log(_this.links);
                     _this.links.splice(_this.links.indexOf(should_remove_link), 1);
+                    console.log(_this.links);
                     _this.restart();
                   })
                   .catch(function (error) {

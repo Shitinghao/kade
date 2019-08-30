@@ -827,10 +827,10 @@
             _this.dialogVisible = true;
             //修改了source与target的数据，原因是source指出去的，target是指向的点，按原本的操作变反了
             link = {
-              source: target, target:source , left: false, right: true,
+              source:source , target: target, left: false, right: false,
               relation: '', triple: { idx: '', o: _this.inserts.oid, p: '', s: _this.inserts.sid }
             }
-            link[direction] = false;
+            link[direction] = true;
             console.log(links);
             _this.inserts.link = link;
           });
@@ -1154,6 +1154,7 @@
           if (selected_node) {
             _this.nodes.splice(_this.nodes.indexOf(selected_node),1);
             spliceLinksForNode(selected_node);
+            console.log();
             console.log(_this.removeLine);
             var tNode = [];
             $.each(_this.removeLine,function(i,val){
@@ -1162,10 +1163,10 @@
             })
             var tNode = [...new Set(tNode)];
             tNode.splice(tNode.indexOf(selected_node),1);
-            console.log(tNode);
+            // console.log(tNode);
             
 
-            hideSingle(tNode,false);
+            // hideSingle(tNode,false);
           } else if (selected_link) {
             let should_remove_link = selected_link;
             _this.links.splice(_this.links.indexOf(should_remove_link), 1);

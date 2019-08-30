@@ -485,7 +485,7 @@
         .attr("class","tooltip")
         .style("opacity", 0.0);
 
-      var path, path_text, circle;
+      var path, path_text, circle, drag_line;
       
       function restart() {
         let force = _this.force;
@@ -493,7 +493,7 @@
 
         $("svg").empty();
       // line displayed when dragging new nodes
-      var drag_line = svg.append('svg:path')
+      drag_line = svg.append('svg:path')
         .attr('class', 'link dragline hidden')
         .attr('d', 'M0,0L0,0');
 

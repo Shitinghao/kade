@@ -30,7 +30,14 @@
       <el-tooltip content="隐藏孤立点" placement="bottom" effect="light">
         <el-button type="info" size="mini" circle icon="el-icon-zoom-out" class="delete circle" @click="hideSingle_option"></el-button>
       </el-tooltip>
-      <el-select v-model="value" clearable placeholder="请选择">
+      <el-select
+        v-model="value2"
+        multiple
+        collapse-tags
+        style="margin-left: 20px;"
+        @change="showSelect(value2)"
+
+        placeholder="筛选实体关系">
         <el-option
           v-for="item in options"
           :key="item.value"
@@ -140,23 +147,8 @@ export default {
       inserts: { sid: '', p: '', oid: '', oname: '', old_tid: '' },
       searchWords: global.main_entity,
       selectedNode: '12312',
-      options: [{
-        value: '选项1',
-        label: '黄金糕'
-      }, {
-        value: '选项2',
-        label: '双皮奶'
-      }, {
-        value: '选项3',
-        label: '蚵仔煎'
-      }, {
-        value: '选项4',
-        label: '龙须面'
-      }, {
-        value: '选项5',
-        label: '北京烤鸭'
-      }],
-      value: ''
+      options: [],
+      value2: ''
     }
   },
   methods: {
@@ -277,7 +269,6 @@ export default {
           }
         })
         .then(function (response) {
-          console.log(response);
           if (response.data.nodes.length === 0) {
             _this.ent_inserts.ename = exid
             _this.$confirm('是否新建名为 ' + exid + ' 的实体？', '提示', {
@@ -328,7 +319,8 @@ export default {
             if (_this.checkRepLinks(link)) _this.links.push(link)
           })
 
-          _this.showEntDialogVisible = false
+          _this.showEntDialogVisible = false;
+          _this.selectOption(_this.links);
           _this.restart()
         })
         .catch(function (error) {
@@ -405,8 +397,32 @@ export default {
       let _this = this
       _this.hide();
     },
-    select_option () {
-      console.log('select')
+    showSelect(value){
+      let _this = this;
+      //value放置选择的数据
+      console.log(value);
+      //根据value的值进行links的匹配
+      // console.log(_this.links);
+      var linksRelations = [];
+
+      _this.links.forEach(function (item) {
+        linksRelations.push(item.relation);
+      });
+      var noSelectLinks =  linksRelations.filter(item => value.indexOf(item) < 0);
+      console.log(noSelectLinks);
+      var selectLinks = _this.links.filter(item => noSelectLinks.indexOf(item.relation)<0);
+      console.log(selectLinks);
+      var noselect = _this.links.filter(item => noSelectLinks.indexOf(item.relation)<0);
+      var snodes = []
+      selectLinks.forEach(function (item) {
+        snodes.push(item.target);
+        snodes.push(item.source);
+      })
+      snodes = [...new Set(snodes)];
+      console.log(snodes);
+      _this.restart();
+
+
     },
     showRemoveEntDialog (eid) {
       let _this = this
@@ -485,7 +501,7 @@ export default {
       if (!force) return
 
       $('svg').empty()
-
+      // svg.selectAll("g > *").remove();
       // line displayed when dragging new nodes
       drag_line = svg.append('svg:path')
         .attr('class', 'link dragline hidden')
@@ -813,6 +829,7 @@ export default {
 
     start()
     function start () {
+
       var force = d3.layout.force()
           .nodes(nodes)
           .links(links)
@@ -822,7 +839,6 @@ export default {
           .on('tick', tick)
 
       _this.force = force
-
       // update force layout (called automatically each iteration)
       function tick () {
 
@@ -1158,7 +1174,22 @@ export default {
       tooltip.style('display', 'none')
     }
     _this.hide = hide;
-
+    //筛选关系
+    function selectOption(links) {
+      // console.log(links);
+      var relationsName = [];
+      var selectOptionGroup = [];
+      $.each(links,function (i,val) {
+        relationsName.push(val.relation);
+      });
+      relationsName = [...new Set(relationsName)];
+      $.each(relationsName,function (i,val) {
+        selectOptionGroup.push({value:val,label:val});
+      })
+      _this.options = selectOptionGroup;
+      // _this.select_option
+    }
+    _this.selectOption = selectOption;
     // 关于数据的整理
     function tabNode (selected_node) {
       var arr_x = []

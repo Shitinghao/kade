@@ -305,10 +305,8 @@ export default {
             })
             return
           }
-          var nodeid2object = new Map();
           $.each(response.data.nodes, function (i, val) {
             let node = { id: ++_this.lastNodeId, idx: val.idx, name: val.idx, reflexive: false, info: val.attr };
-            nodeid2object.set(i, { id: ++_this.lastNodeId, idx: val.idx, name: val.idx, reflexive: false, info: val.attr, source_list: [], target_list:[]});
             if (val.name != null) node.name = val.name
             if (point != null) {
               node.x = point[0]
@@ -327,13 +325,6 @@ export default {
               relation: val.triple.p,
               triple: val.triple
             }
-            var source_idx = val.source;
-             var target_idx = val.target;
-
-            nodeid2object.get(source_idx).target_list.push(target_idx);
-            nodeid2object.get(target_idx).source_list.push(source_idx);
-
-            console.log(nodeid2object);
             if (_this.checkRepLinks(link)) _this.links.push(link)
           })
 
@@ -404,16 +395,14 @@ export default {
     },
     remove_option () {
       let _this = this
-      _this.deleteNode(_this.selectedNode, true)
+      _this.deleteNode(_this.selectedNode)
     },
     hide_option () {
       let _this = this
-      _this.deleteNode(_this.selectedNode, false)
-      // _this.hide(_this.selectedNode);
+      _this.hide(_this.selectedNode);
     },
     hideSingle_option () {
       let _this = this
-      // _this.hideSingle(_this.selectedNode, true)
       _this.hide();
     },
     select_option () {
@@ -945,7 +934,7 @@ export default {
       switch (d3.event.keyCode) {
       //  case 8: // backspace
         case 46: // delete
-          deleteNode(selected_node, true)
+          deleteNode(selected_node)
           break
         case 13: // enter
           _this.showEntity(selected_node.idx, true)
@@ -1038,7 +1027,7 @@ export default {
           restart()
           break
         case 72:// hide
-          deleteNode(selected_node, false)
+          hide(selected_node)
           break
       }
     }
@@ -1052,9 +1041,8 @@ export default {
 
     svg.style('width', '100%')
 
-    // delete & hide
-    function deleteNode (selected_node, isdelete) {
-      if (isdelete) { // isselect来判断是隐藏还是删除，true是删除，false是隐藏
+    // delete
+    function deleteNode (selected_node) {
         if (selected_node) {
           let should_remove_eid = selected_node.idx
           _this.ent_dels.related_node = selected_node
@@ -1083,13 +1071,6 @@ export default {
             .catch(_ => {
             })
         }
-      } else {
-        if (selected_node) {
-          _this.nodes.splice(_this.nodes.indexOf(selected_node), 1)
-          spliceLinksForNode(selected_node);
-          hide(selected_node);
-        }
-      }
       selected_link = null
       selected_node = null
       // 删除节点后，将原本的id换成新的id因为原本的node的自带的索引会自动减少，而元素的id属性不会自动减少，所以需要重新刷新id，否则会报错
@@ -1105,8 +1086,19 @@ export default {
     }
     _this.deleteNode = deleteNode;
 
+    //hide
     function hide(selected_node){
       if(selected_node){
+        _this.nodes.splice(_this.nodes.indexOf(selected_node), 1)
+        spliceLinksForNode(selected_node);
+        var NodeGroup = []; //拿到选中节点的相关联的节点
+        $.each(_this.removeLine,function(i,val){
+            NodeGroup.push(val.source);
+            NodeGroup.push(val.target);
+        })
+        NodeGroup = [...new Set(NodeGroup)].filter(function (el) {
+          if(el.idx != selected_node.idx){return el;}
+        });
         var nodeMap = new Map();
         $.each(_this.nodes,function(i,val){
           nodeMap.set(val.name,{sourceList:[],targetList:[]});
@@ -1117,14 +1109,14 @@ export default {
           nodeMap.get(source).targetList.push(val.target);
           nodeMap.get(target).sourceList.push(val.source);
         })
-        var sNode = [];
+        var sNode = [];//这里拿到所有的孤立点
         nodeMap.forEach(function (value,key) {
           if (value.targetList.length == 0 && value.sourceList.length == 0){
             sNode.push(key);
           }
         })
         var hideNode = [];
-        $.each(_this.nodes,function (i,val) {
+        $.each(NodeGroup,function (i,val) {
           var index = val.idx;
           $.each(sNode,function (j,val2) {
             if(index == val2){
@@ -1166,6 +1158,7 @@ export default {
       tooltip.style('display', 'none')
     }
     _this.hide = hide;
+
     // 关于数据的整理
     function tabNode (selected_node) {
       var arr_x = []

@@ -30,21 +30,6 @@
       <el-tooltip content="隐藏孤立点" placement="bottom" effect="light">
         <el-button type="info" size="mini" circle icon="el-icon-zoom-out" class="delete circle" @click="hideSingle_option"></el-button>
       </el-tooltip>
-      <el-select
-        v-model="value2"
-        multiple
-        collapse-tags
-        style="margin-left: 20px;"
-        @change="showSelect(value2)"
-
-        placeholder="筛选实体关系">
-        <el-option
-          v-for="item in options"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value">
-        </el-option>
-      </el-select>
     </el-row>
     <!-- link edit input -->
     <div id="edit" class="edit">
@@ -147,8 +132,6 @@ export default {
       inserts: { sid: '', p: '', oid: '', oname: '', old_tid: '' },
       searchWords: global.main_entity,
       selectedNode: '12312',
-      options: [],
-      value2: ''
     }
   },
   methods: {
@@ -396,33 +379,6 @@ export default {
     hideSingle_option () {
       let _this = this
       _this.hide();
-    },
-    showSelect(value){
-      let _this = this;
-      //value放置选择的数据
-      console.log(value);
-      //根据value的值进行links的匹配
-      // console.log(_this.links);
-      var linksRelations = [];
-
-      _this.links.forEach(function (item) {
-        linksRelations.push(item.relation);
-      });
-      var noSelectLinks =  linksRelations.filter(item => value.indexOf(item) < 0);
-      console.log(noSelectLinks);
-      var selectLinks = _this.links.filter(item => noSelectLinks.indexOf(item.relation)<0);
-      console.log(selectLinks);
-      var noselect = _this.links.filter(item => noSelectLinks.indexOf(item.relation)<0);
-      var snodes = []
-      selectLinks.forEach(function (item) {
-        snodes.push(item.target);
-        snodes.push(item.source);
-      })
-      snodes = [...new Set(snodes)];
-      console.log(snodes);
-      _this.restart();
-
-
     },
     showRemoveEntDialog (eid) {
       let _this = this

@@ -231,15 +231,15 @@
         let point = null;
         let exid = eeid;
 
-      if (eeid == null) {
+        if (eeid == null) {
         point = _this.ent_select.point
         exid = _this.ent_select.eid
       }
 
-      if (_this.nodes.length == 0) do_expand = 1
+        if (_this.nodes.length == 0) do_expand = 1
 
-      let no_expand = 1
-      if (do_expand != null) no_expand = ''
+        let no_expand = 1
+        if (do_expand != null) no_expand = ''
 
         this.axios
           .post(_this.api_host+"/api/graph/query_entity", qs.stringify({
@@ -346,10 +346,8 @@
     remove_entity (tid) {
       let _this = this
       this.axios
-        .get(this.api_host + '/api/remove_entity', {
-          params: {
+        .post(this.api_host + '/api/remove_entity', qs.stringify({
             id: tid
-          }
         })
         .then(function (response) {
           _this.nodes.splice(_this.nodes.indexOf(_this.ent_dels.related_node), 1)
@@ -379,10 +377,8 @@
       let _this = this
       this.ent_dels.eid = eid
       this.axios
-        .get(this.api_host + '/api/info_remove_entity', {
-          params: {
+        .post(this.api_host + '/api/info_remove_entity', qs.stringify({
             id: eid
-          }
         })
         .then(function (response) {
           _this.delEntData = response.data.ret

@@ -348,7 +348,7 @@
       this.axios
         .post(this.api_host + '/api/remove_entity', qs.stringify({
             id: tid
-        })
+        }))
         .then(function (response) {
           _this.nodes.splice(_this.nodes.indexOf(_this.ent_dels.related_node), 1)
           _this.spliceLinksForNode(_this.ent_dels.related_node)
@@ -379,7 +379,7 @@
       this.axios
         .post(this.api_host + '/api/info_remove_entity', qs.stringify({
             id: eid
-        })
+        }))
         .then(function (response) {
           _this.delEntData = response.data.ret
           _this.entDelDialogVisible = true

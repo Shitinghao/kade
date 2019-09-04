@@ -37,10 +37,13 @@ router.beforeEach((to, from, next) => {
       next()
     }
   } else {
-    if (to.path === '/') {
-      next()
-    } else {
-      next({path: '/'})
-    }
+    // if (to.path === '/list') {
+    //   alert('登录失败')
+    //   // next()
+    // } else {
+    //   // next()
+    //   // next({path: '/'})
+    // }
+    alert('非法操作')
   }
 })

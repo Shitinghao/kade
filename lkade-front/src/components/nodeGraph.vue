@@ -30,6 +30,21 @@
       <el-tooltip content="隐藏孤立点" placement="bottom" effect="light">
         <el-button type="info" size="mini" circle icon="el-icon-zoom-out" class="delete circle" @click="hideSingle_option"></el-button>
       </el-tooltip>
+      <el-select
+        v-model="value2"
+        multiple
+        collapse-tags
+        style="margin-left: 20px;"
+        @change="showSelect(value2)"
+
+        placeholder="筛选实体关系">
+        <el-option
+          v-for="item in options"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value">
+        </el-option>
+      </el-select>
     </el-row>
     <!-- link edit input -->
     <div id="edit" class="edit">
@@ -132,7 +147,8 @@ export default {
       ent_inserts: { ename: '' },
       inserts: { sid: '', p: '', oid: '', oname: '', old_tid: '' },
       searchWords: global.main_entity,
-      selectedNode: '12312'
+      options:[],
+      value2:[]
     }
   },
   methods: {
@@ -378,11 +394,40 @@ export default {
       _this.showEntity(_this.selectedNode.idx, true)
       $('#button_group').css('display', 'none')
     },
+
     hideSingle_option () {
       let _this = this
       _this.hide()
     },
-    showRemoveEntDialog (eid) {
+    showSelect(value) {
+      let _this = this;
+      //value放置选择的数据
+      console.log(value);
+      //根据value的值进行links的匹配
+      // console.log(_this.links);
+      var databox = [_this.nodes,_this.links]
+      var linksRelations = [];
+      _this.links.forEach(function (item) {
+        linksRelations.push(item.relation);
+      });
+      var noSelectLinks = linksRelations.filter(item => value.indexOf(item) < 0);
+      var selectLinks = _this.links.filter(item => noSelectLinks.indexOf(item.relation) < 0);
+      console.log(selectLinks);
+      // var noselect = _this.links.filter(item => noSelectLinks.indexOf(item.relation) < 0);
+      var snodes = []
+      selectLinks.forEach(function (item) {
+        snodes.push(item.target);
+        snodes.push(item.source);
+      })
+      snodes = [...new Set(snodes)];
+      console.log(snodes);
+      _this.nodes = snodes;
+      _this.links = selectLinks;
+      _this.restart(true);
+      _this.links = databox[1];
+      _this.nodes = databox[0];
+      },
+      showRemoveEntDialog (eid) {
       let _this = this
       this.ent_dels.eid = eid
       this.axios
@@ -452,7 +497,7 @@ export default {
 
     var path, path_text, circle, drag_line
 
-    function restart () {
+    function restart (isselect) {
       let force = _this.force
       if (!force) return
 
@@ -494,7 +539,13 @@ export default {
       // 1.path
 
       // path (link) group
-      path = path.data(links)
+      if (isselect){
+        console.log(323);
+        path = path.data(_this.links);
+      }else{
+        path = path.data(links)
+      }
+
 
       // update existing links
       path.classed('selected', function (d) { return d === selected_link })
@@ -527,8 +578,11 @@ export default {
       // 2.path text
 
       // path text(link) group
-      path_text = path_text.data(links)
-
+      if (isselect){
+        path_text = path_text.data(_this.links)
+      }else{
+        path_text = path_text.data(links)
+      }
       // update exite path text
       path_text.attr({
         'class': 'edgelabel',
@@ -597,7 +651,12 @@ export default {
 
       // circle (node) group
       // NB: the function arg is crucial here! nodes are known by id, not by index!
-      circle = circle.data(nodes, function (d) { return d.id })
+      if (isselect){
+        circle = circle.data(_this.nodes, function (d) { return d.id });
+      }else{
+        circle = circle.data(nodes, function (d) { return d.id })
+      }
+
 
       // update existing nodes (reflexive & selected visual states)
       circle.selectAll('circle')
@@ -782,8 +841,8 @@ export default {
 
     _this.restart = restart
 
-    start()
-    function start () {
+    start(_this.nodes,_this.links)
+    function start (nodes,links) {
       var force = d3.layout.force()
         .nodes(nodes)
         .links(links)

@@ -18,7 +18,7 @@
           <el-button type="info" size="mini" circle icon="el-icon-minus"  class="node_hide circle" @click="hide_option"></el-button>
         </el-tooltip>
         <el-tooltip content="功能扩展" placement="bottom" effect="light">
-          <el-button type="primary" size="mini" circle icon="el-icon-magic-stick" class="edit_word circle" ></el-button>
+          <el-button type="primary" size="mini" circle icon="el-icon-magic-stick" class="edit_word circle" @click="enter_option"></el-button>
         </el-tooltip>
         <el-tooltip content="删除节点" placement="bottom" effect="light">
           <el-button type="danger" size="mini" circle icon="el-icon-close" class="delete circle" @click="remove_option"></el-button>
@@ -111,194 +111,199 @@
 </template>
 
 <script>
-  import * as d3 from 'd3'
-  import global from './nav.vue'
-  import qs from 'Qs'
-  export default {
-    name: "nodeGraph",
-    data() {
-      return {
-        api_host: global.api_host,
-        table: false,
-        dialog: false,
-        loading: false,
-        gridData: global.entityInfo,
-        ent_dels: {eid: ""},
-        delEntData: [],
-        entDelDialogVisible: false,
-        showEntDialogVisible: false,
-        dialogVisible: false,
-        ent_select: { ename:"", eid: "", options:[]},
-        ent_inserts: { ename: '' },
-        inserts: { sid: '', p: '', oid: '', oname: '', old_tid: '' },
-        searchWords: global.main_entity,
-        selectedNode: '12312',
-      };
-
+import * as d3 from 'd3'
+import global from './nav.vue'
+import qs from 'Qs'
+export default {
+  name: 'nodeGraph',
+  data () {
+    return {
+      api_host: global.api_host,
+      table: false,
+      dialog: false,
+      loading: false,
+      gridData: global.entityInfo,
+      ent_dels: {eid: ''},
+      delEntData: [],
+      entDelDialogVisible: false,
+      showEntDialogVisible: false,
+      dialogVisible: false,
+      ent_select: { ename: '', eid: '', options: []},
+      ent_inserts: { ename: '' },
+      inserts: { sid: '', p: '', oid: '', oname: '', old_tid: '' },
+      searchWords: global.main_entity,
+      selectedNode: '12312'
+    }
+  },
+  methods: {
+    make_readable_id (name, id) {
+      if (name === id) return id
+      return name + '<id:' + id + '>'
     },
-    methods: {
-      make_readable_id(name, id) {
-        if (name === id) return id;
-        return name + "<id:" + id + ">";
-      },
-      handleClose(done) {
-        return done();
-        this.$confirm('确定要提交表单吗？')
-          .then(_ => {
-            this.loading = true;
-            setTimeout(() => {
-              this.loading = false;
-              done();
-            }, 2000);
-          })
-          .catch(_ => {});
-      },
-      checkAndSubmit(_this, url, pparams, succ_func, fail_func) {
-        pparams["precheck"] = 1
-        _this.axios
-          .post(url, qs.stringify(pparams))
-          .then(function (response) {
-            if (response.data.status !== "ok") {
-              fail_func(response, _this)
-            } else {
-              delete pparams["precheck"];
-              _this.axios
-                .post(url, qs.stringify(pparams))
-                .then(response => succ_func(response, _this))
-                .catch(function (error) {
-                  console.log(error);
-                });
-            }
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
-      },
-      submitNewEntity(callback) {
-        let _this = this;
-        this.checkAndSubmit(this, this.api_host+'/api/new_entity', {
-              name: this.ent_inserts.ename
-          },
-          function (response, _this) {
-            let ename = _this.ent_inserts.ename;
-            _this.ent_inserts.ename = "";
-            _this.svg.classed('active', true);
-            callback(response);
-          },
-          function (response, _this) {
-            _this.$message.error(response.data.msg);
+    handleClose (done) {
+      return done()
+      this.$confirm('确定要提交表单吗？')
+        .then(_ => {
+          this.loading = true
+          setTimeout(() => {
+            this.loading = false
+            done()
+          }, 2000)
+        })
+        .catch(_ => {})
+    },
+    checkAndSubmit (_this, url, pparams, succ_func, fail_func) {
+      pparams['precheck'] = 1
+      _this.axios
+        .post(url, qs.stringify(pparams))
+        .then(function (response) {
+          if (response.data.status !== 'ok') {
+            fail_func(response, _this)
+          } else {
+            delete pparams['precheck']
+            _this.axios
+              .post(url, qs.stringify(pparams))
+              .then(response => succ_func(response, _this))
+              .catch(function (error) {
+                console.log(error)
+              })
           }
+        })
+        .catch(function (error) {
+          console.log(error)
+        })
+    },
+    submitNewEntity (callback) {
+      let _this = this
+      this.checkAndSubmit(this, this.api_host + '/api/new_entity', {
+        name: this.ent_inserts.ename
+      },
+      function (response, _this) {
+        let ename = _this.ent_inserts.ename
+        _this.ent_inserts.ename = ''
+        _this.svg.classed('active', true)
+        callback(response)
+      },
+      function (response, _this) {
+        _this.$message.error(response.data.msg)
+      }
+      )
+    },
+
+    objectSuggestion (query, cb) {
+      let _this = this
+      this.axios
+        .post(_this.api_host + '/api/ment2ent', qs.stringify({
+          q: query,
+          no_other_m: 1
+        })
         )
-      },
-
-      objectSuggestion(query, cb) {
-        let _this = this;
-        this.axios
-          .post(_this.api_host+'/api/ment2ent', qs.stringify({
-              q: query,
-              no_other_m: 1
+        .then(function (response) {
+          let ents = response.data.ret
+          let options = []
+          ents.forEach(function (x) {
+            options.push({
+              link: x.ename,
+              value: _this.make_readable_id(x.ename, x.eid)
             })
-          )
-          .then(function (response) {
-            let ents = response.data.ret;
-            let options = [];
-            ents.forEach(function (x) {
-              options.push({
-                link: x.ename,
-                value: _this.make_readable_id(x.ename, x.eid)
-              });
-            });
-            cb(options);
           })
-          .catch(function (error) {
-            console.log(error);
-          });
-      },
-      findNode(idx) {
-        let xx = this.nodes.filter(x => (x.idx === idx));
-        return xx[0];
-      },
-      checkRepNodes(node) {
-        let xx = this.nodes.filter(x => (x.idx === node.idx));
-        return xx.length == 0;
-      },
-      checkRepLinks(link) {
-        let xx = this.links.filter(x => (x.triple.idx === link.triple.idx));
-        return xx.length == 0;
-      },
-      showEntity(eeid, do_expand) {
-        let _this = this;
-        let point = null;
-        let exid = eeid;
+          cb(options)
+        })
+        .catch(function (error) {
+          console.log(error)
+        })
+    },
+    findNode (idx) {
+      let xx = this.nodes.filter(x => (x.idx === idx))
+      return xx[0]
+    },
+    checkRepNodes (node) {
+      let xx = this.nodes.filter(x => (x.idx === node.idx))
+      return xx.length == 0
+    },
+    checkRepLinks (link) {
+      let xx = this.links.filter(x => (x.triple.idx === link.triple.idx))
+      return xx.length == 0
+    },
+    showEntity (eeid, do_expand) {
+      let _this = this
+      let point = null
+      let exid = eeid
 
-        if (eeid == null) {
+      if (eeid == null) {
         point = _this.ent_select.point
         exid = _this.ent_select.eid
       }
 
-        if (_this.nodes.length == 0) do_expand = 1
+      if (_this.nodes.length == 0) do_expand = 1
 
-        let no_expand = 1
-        if (do_expand != null) no_expand = ''
+      let no_expand = 1
+      if (do_expand != null) no_expand = ''
 
-        this.axios
-          .post(_this.api_host+"/api/graph/query_entity", qs.stringify({
-              idx: exid,
-              no_expand: no_expand
+      this.axios
+        .post(_this.api_host + '/api/graph/query_entity', qs.stringify({
+          idx: exid,
+          no_expand: no_expand
+        })
+        )
+        .then(function (response) {
+          if (response.data.nodes.length === 0) {
+            _this.ent_inserts.ename = exid
+            _this.$confirm('是否新建名为 ' + exid + ' 的实体？', '提示', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'info'
+            }).then(() => {
+              _this.submitNewEntity(function (response) {
+                let node = {
+                  id: ++_this.lastNodeId,
+                  idx: response.data.eid,
+                  name: exid,
+                  reflexive: false,
+                  info: []
+                }
+                if (point != null) {
+                  node.x = point[0]
+                  node.y = point[1]
+                } else {
+                  node.x = 0
+                  node.y = 1
+                }
+                _this.nodes.push(node)
+                _this.showEntDialogVisible = false
+                _this.restart()
+              })
+            }).catch(() => {
             })
-          )
-          .then(function (response) {
-            if (response.data.nodes.length === 0) {
-              _this.ent_inserts.ename = exid;
-              _this.$confirm('是否新建名为 ' + exid + ' 的实体？', '提示', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'info'
-              }).then(() => {
-                _this.submitNewEntity(function (response) {
-                  let node = {
-                    id: ++_this.lastNodeId, idx: response.data.eid,
-                    name: exid, reflexive: false, info: []
-                  };
-                  if (point != null) {
-                    node.x = point[0];
-                    node.y = point[1];
-                  } else {
-                    node.x = 0;
-                    node.y = 1;
-                  }
-                  _this.nodes.push(node);
-                  _this.showEntDialogVisible = false;
-                  _this.restart();
-                });
-              }).catch(() => {   
-              });
-              return;
+            return
+          }
+          $.each(response.data.nodes, function (i, val) {
+            let node = { id: ++_this.lastNodeId, idx: val.idx, name: val.idx, reflexive: false, info: val.attr }
+            if (val.name != null) node.name = val.name
+            if (point != null) {
+              node.x = point[0]
+              node.y = point[1]
+            } else {
+              node.x = 0
+              node.y = 1
             }
-            $.each(response.data.nodes, function(i,val) {
-              let node = { id: ++_this.lastNodeId, idx: val.idx, name: val.idx, reflexive: false, info: val.attr };
-              if (val.name != null)  node.name = val.name;
-              if (point != null) {
-                 node.x = point[0];
-                 node.y = point[1];
-              } else {
-                 node.x = 0;
-                 node.y = 1;
-              }
-              if (_this.checkRepNodes(node)) _this.nodes.push(node);
-            });
-            $.each(response.data.links, function (i, val) {
-              let snode = _this.findNode(response.data.nodes[val.source].idx);
-              let onode = _this.findNode(response.data.nodes[val.target].idx);
-              let link = {source: snode, target: onode,
-                left: false, right: true, relation: val.triple.p,
-                triple: val.triple
-              }
-              if (_this.checkRepLinks(link)) _this.links.push(link);
-            });
+            if (_this.checkRepNodes(node)) _this.nodes.push(node)
+          })
+          $.each(response.data.links, function (i, val) {
+            let snode = _this.findNode(response.data.nodes[val.source].idx)
+            let onode = _this.findNode(response.data.nodes[val.target].idx)
+            let link = {source: snode,
+              target: onode,
+              left: false,
+              right: true,
+              relation: val.triple.p,
+              triple: val.triple
+            }
+            if (_this.checkRepLinks(link)) _this.links.push(link)
+          })
 
-          _this.showEntDialogVisible = false;
-          _this.selectOption(_this.links);
+          _this.showEntDialogVisible = false
+          _this.selectOption(_this.links)
           _this.restart()
         })
         .catch(function (error) {
@@ -319,7 +324,6 @@
         //  _this.remove_triple(_this.inserts.old_tid);
         //  _this.inserts.old_tid = "";
         // }
-        console.log(response)
         _this.inserts.link.triple.idx = response.data.eid
         _this.inserts.link.relation = _this.inserts.p
         _this.inserts.link.triple.p = _this.inserts.p
@@ -347,7 +351,7 @@
       let _this = this
       this.axios
         .post(this.api_host + '/api/remove_entity', qs.stringify({
-            id: tid
+          id: tid
         }))
         .then(function (response) {
           _this.nodes.splice(_this.nodes.indexOf(_this.ent_dels.related_node), 1)
@@ -367,18 +371,23 @@
     },
     hide_option () {
       let _this = this
-      _this.hide(_this.selectedNode);
+      _this.hide(_this.selectedNode)
+    },
+    enter_option () {
+      let _this = this
+      _this.showEntity(_this.selectedNode.idx, true)
+      $('#button_group').css('display', 'none')
     },
     hideSingle_option () {
       let _this = this
-      _this.hide();
+      _this.hide()
     },
     showRemoveEntDialog (eid) {
       let _this = this
       this.ent_dels.eid = eid
       this.axios
         .post(this.api_host + '/api/info_remove_entity', qs.stringify({
-            id: eid
+          id: eid
         }))
         .then(function (response) {
           _this.delEntData = response.data.ret
@@ -392,43 +401,43 @@
   mounted () {
     var _this = this
 
-    //初始化放置svg的框高
+    // 初始化放置svg的框高
     var width = $('.left_graph').width(),
-        height = window.innerHeight - 79; //去掉头部导航
+        height = window.innerHeight - 79 // 去掉头部导航
 
-    //显示提示信息
+    // 显示提示信息
     _this.show_help()
 
-    //初始化svg
+    // 初始化svg
     var svg = d3.select('.left_graph')
-        .append('svg')
-        .attr('class', 'layout')
-        .attr('width', width)
-        .attr('height', height)
+      .append('svg')
+      .attr('class', 'layout')
+      .attr('width', width)
+      .attr('height', height)
 
     var nodes = []
     var links = []
-    var inputEdit = true                //判断是否是绑定enter提交
-    var max_x = null                    //x，y的最大值最小值
+    var inputEdit = true // 判断是否是绑定enter提交
+    var max_x = null // x，y的最大值最小值
     var max_y = null
     var min_x = null
     var min_y = null
-    var selected = ''                   // 全局的node，用来功能扩展的时候用的
-    var edit_relation = false           //node与link公用一个input的情况下，判断是否是编辑关系link
-    var click_edit = false              //判断是否点击编辑按钮，用于功能扩展（目前这部分被屏蔽）
-    var api_host = _this.api_host       //api
-    var removeLine = []                 //删除的关系，一般用于关系的隐藏
+    var selected = '' // 全局的node，用来功能扩展的时候用的
+    var edit_relation = false // node与link公用一个input的情况下，判断是否是编辑关系link
+    var click_edit = false // 判断是否点击编辑按钮，用于功能扩展（目前这部分被屏蔽）
+    var api_host = _this.api_host // api
+    var removeLine = [] // 删除的关系，一般用于关系的隐藏
 
     // mouse event vars
     var selected_node = null,
-        selected_link = null,
-        selected_link_text = null,
-        mousedown_link = null,
-        mousedown_link_text = null,
-        mousedown_node = null,
-        mouseup_node = null
+      selected_link = null,
+      selected_link_text = null,
+      mousedown_link = null,
+      mousedown_link_text = null,
+      mousedown_node = null,
+      mouseup_node = null
 
-    _this.nodes = nodes                 //绑定this进行全局调用
+    _this.nodes = nodes // 绑定this进行全局调用
     _this.links = links
     _this.svg = svg
     _this.lastNodeId = null
@@ -436,12 +445,12 @@
     _this.selected_node = selected_node
     _this.select_link_text = selected_link_text
 
-    var tooltip = d3.select('body')     //用来显示节点的详细信息
-        .append('div')                  // 添加div并设置成透明
-        .attr('class', 'tooltip')
-        .style('opacity', 0.0)
+    var tooltip = d3.select('body') // 用来显示节点的详细信息
+      .append('div') // 添加div并设置成透明
+      .attr('class', 'tooltip')
+      .style('opacity', 0.0)
 
-    var path, path_text, circle, drag_line;
+    var path, path_text, circle, drag_line
 
     function restart () {
       let force = _this.force
@@ -488,17 +497,17 @@
       path = path.data(links)
 
       // update existing links
-      path.classed('selected', function (d) {return d === selected_link})
-        .style('marker-start', function (d) {return d.left ? 'url(#start-arrow)' : ''})
-        .style('marker-end', function (d) {return d.right ? 'url(#end-arrow)' : ''})
+      path.classed('selected', function (d) { return d === selected_link })
+        .style('marker-start', function (d) { return d.left ? 'url(#start-arrow)' : '' })
+        .style('marker-end', function (d) { return d.right ? 'url(#end-arrow)' : '' })
 
       // add new links
       path.enter().append('svg:path')
         .attr('class', 'link')
         .attr('id', function (d, i) { return 'edgepath' + i })
-        .classed('selected', function (d) {return d === selected_link})
-        .style('marker-start', function (d) {return d.left ? 'url(#start-arrow)' : ''})
-        .style('marker-end', function (d) {return d.right ? 'url(#end-arrow)' : ''})
+        .classed('selected', function (d) { return d === selected_link })
+        .style('marker-start', function (d) { return d.left ? 'url(#start-arrow)' : '' })
+        .style('marker-end', function (d) { return d.right ? 'url(#end-arrow)' : '' })
         .style({
           'stroke': 'lavender',
           'stroke-width': '2px'
@@ -506,7 +515,6 @@
         .on('mousedown', function (d) {
           if (d3.event.ctrlKey) return
           mousedown_link = d
-          console.log(d);
           if (mousedown_link === selected_link) selected_link = null
           else selected_link = mousedown_link
           selected_node = null
@@ -542,9 +550,9 @@
         .style('pointer-events', 'auto')
         .attr('class', 'ptext')
         .text(function (d) { return d.relation })
-        .on('mouseover', function (d) {d3.select(this).style('cursor', 'pointer')})
+        .on('mouseover', function (d) { d3.select(this).style('cursor', 'pointer') })
         .on('mousedown', function (d) {
-          if (d3.event.ctrlKey) return;
+          if (d3.event.ctrlKey) return
           mousedown_link_text = d
           selected = mousedown_link_text
 
@@ -553,9 +561,9 @@
 
           edit_relation = true
           svg.selectAll('.ptext')
-             .style('fill', 'black')
+            .style('fill', 'black')
 
-          if (mousedown_link_text === selected_link_text) selected_link_text = null;
+          if (mousedown_link_text === selected_link_text) selected_link_text = null
           else {
             selected_link_text = mousedown_link_text
             selected_link = mousedown_link_text
@@ -564,15 +572,15 @@
             d3.select(this).style('fill', 'black')
             $('#edit').css({'display': 'none'})
           } else {
-            d3.select(this).style('fill', '#1E90FF');
+            d3.select(this).style('fill', '#1E90FF')
             $('#edit').css({
               'display': 'inline-block',
               'top': (d.target.y - d.source.y) / 2 + d.source.y + 70 + 'px',
               'left': (d.target.x - d.source.x) / 2 + d.source.x + 'px'
-            });
-            selected_node = null;
+            })
+            selected_node = null
             if (selected_node == null) {
-              $('#button_group').css('display', 'none');
+              $('#button_group').css('display', 'none')
               svg.selectAll('.node').style('fill', d3.rgb(150, 215, 250))
             }
           }
@@ -593,16 +601,20 @@
 
       // update existing nodes (reflexive & selected visual states)
       circle.selectAll('circle')
-        .style('fill', d3.rgb(150, 215, 250))
+        .style('fill', function (d) {
+          return (d === selected_node) ? d3.rgb(150, 215, 250).brighter().toString() : d3.rgb(150, 215, 250)
+        })
         .classed('reflexive', function (d) { return d.reflexive })
 
       // add new nodes
-      var g = circle.enter().append('svg:g');
+      var g = circle.enter().append('svg:g')
 
       g.append('svg:circle')
         .attr('class', 'node')
-        .attr('r', function (d) {return d.name == nodes[0].name ? 15 : 10;})
-        .style('fill',d3.rgb(150, 215, 250))
+        .attr('r', function (d) { return d.name == nodes[0].name ? 15 : 10 })
+        .style('fill', function (d) {
+          return (d === selected_node) ? d3.rgb(150, 215, 250).brighter().toString() : d3.rgb(150, 215, 250)
+        })
         .classed('reflexive', function (d) { return d.reflexive })
         .on('mouseover', function (d) {
           d3.select(this).style('cursor', 'pointer')
@@ -628,14 +640,14 @@
             .style('display', 'block')
             .style('opacity', 1.0)
 
-          if (!mousedown_node || d === mousedown_node) return;
+          if (!mousedown_node || d === mousedown_node) return
           // enlarge target node
           d3.select(this).attr('transform', 'scale(1.1)')
         })
         .on('mouseout', function (d) {
           tooltip.style('opacity', 0.0)
           tooltip.style('display', 'none')
-          if (!mousedown_node || d === mousedown_node) return;
+          if (!mousedown_node || d === mousedown_node) return
           // unenlarge target node
           d3.select(this).attr('transform', '')
         })
@@ -650,15 +662,16 @@
           }
           if (selected_node == null) {
             $('#button_group').css({'display': 'none'})
-            d3.select(this).style('fill',d3.rgb(150, 215, 250));
+            d3.select(this).style('fill', d3.rgb(150, 215, 250))
           } else {
             $('#button_group').css({
               'display': 'inline-block',
               'top': selected_node.y - 20 + 70 + 'px',
               'left': selected_node.x + 30 + 'px'
             })
-            svg.selectAll('.node').style('fill',d3.rgb(150, 215, 250));
-            d3.select(this).style('fill',d3.rgb(150, 215, 250).brighter().toString());
+
+            svg.selectAll('.node').style('fill', d3.rgb(150, 215, 250))
+            d3.select(this).style('fill', d3.rgb(150, 215, 250).brighter().toString())
             selected_link = null
             selected_link_text = null
             _this.selectedNode = selected_node
@@ -687,7 +700,7 @@
             // restart();
         })
         .on('mouseup', function (d) { // 拖动新增关系
-          if (!mousedown_node) return;
+          if (!mousedown_node) return
           $('#edit input').focus()
           // needed by FF
           drag_line
@@ -723,10 +736,6 @@
           link = links.filter(function (l) {
             return (l.source === source && l.target === target)
           })[0]
-          console.log(link)
-
-          console.log(source)
-          console.log(target)
           _this.inserts.sid = mousedown_node.idx
           if (mousedown_node.name !== mousedown_node.idx) { _this.inserts.sid = _this.make_readable_id(mousedown_node.name, mousedown_node.idx) }
           _this.inserts.p = ''
@@ -743,25 +752,24 @@
             triple: { idx: '', o: _this.inserts.oid, p: '', s: _this.inserts.sid }
           }
           link[direction] = true
-          console.log(links)
           _this.inserts.link = link
         })
 
       // show node IDs
       g.append('svg:text')
-        .attr('x', function (d) { return d.name == nodes[0].name ? -30 : -16;})
-        .attr('y', function (d) {return d.name == nodes[0].name ? 5 : -16;})
+        .attr('x', function (d) { return d.name == nodes[0].name ? -30 : -16 })
+        .attr('y', function (d) { return d.name == nodes[0].name ? 5 : -16 })
         .attr('class', 'id')
         .style({
-          'fill': function (d) {return d.name == nodes[0].name ? 'black':'rgb(125,129,128)'},
-          'font-weight': function (d) {return d.name == nodes[0].name ? '500': null}})
-        .text(function (d){
+          'fill': function (d) { return d.name == nodes[0].name ? 'black' : 'rgb(125,129,128)' },
+          'font-weight': function (d) { return d.name == nodes[0].name ? '500' : null }})
+        .text(function (d) {
           if (d.name.length > 10) {
-            var name = d.name;
-             name = name.substr(0, 10) + '...';
-            return name;
+            var name = d.name
+            name = name.substr(0, 10) + '...'
+            return name
           } else {
-            return d.name;
+            return d.name
           }
         })
 
@@ -776,35 +784,36 @@
 
     start()
     function start () {
-
       var force = d3.layout.force()
-          .nodes(nodes)
-          .links(links)
-          .size([width, height])
-          .linkDistance(150)
-          .charge(-500)
-          .on('tick', tick)
+        .nodes(nodes)
+        .links(links)
+        .size([width, height])
+        .linkDistance(150)
+        .charge(-500)
+        .on('tick', tick)
 
       _this.force = force
       // update force layout (called automatically each iteration)
       function tick () {
-
         // draw directed edges with proper padding from node centers
         path.attr('d', function (d) {
-          var deltaX = d.target.x - d.source.x,
-            deltaY = d.target.y - d.source.y,
-            dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY),
-            normX = deltaX / dist,
-            normY = deltaY / dist,
-            sourcePadding = d.left ? 17 : 12,
-            targetPadding = d.right ? 17 : 12,
-            sourceX = d.source.x + (sourcePadding * normX),
-            sourceY = d.source.y + (sourcePadding * normY),
-            targetX = d.target.x - (targetPadding * normX),
-            targetY = d.target.y - (targetPadding * normY)
-          return 'M' + sourceX + ',' + sourceY + 'L' + targetX + ',' + targetY
+          // console.log(d);//这里会存在source.x && target.x存在一模一样的情况，也就是自己指向自己的情况（一般显示不出来）
+          if (d.target.x != d.source.x && d.target.y != d.source.y) {
+            var deltaX = d.target.x - d.source.x,
+              deltaY = d.target.y - d.source.y,
+              dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY),
+              normX = deltaX / dist,
+              normY = deltaY / dist,
+              sourcePadding = d.left ? 17 : 12,
+              targetPadding = d.right ? 17 : 12,
+              sourceX = d.source.x + (sourcePadding * normX),
+              sourceY = d.source.y + (sourcePadding * normY),
+              targetX = d.target.x - (targetPadding * normX),
+              targetY = d.target.y - (targetPadding * normY)
+            return 'M' + sourceX + ',' + sourceY + 'L' + targetX + ',' + targetY
+          }
         })
-        circle.attr('transform', function (d) {return 'translate(' + d.x + ',' + d.y + ')'});
+        circle.attr('transform', function (d) { return 'translate(' + d.x + ',' + d.y + ')' })
       }
 
       if (_this.searchWords !== '') {
@@ -812,7 +821,7 @@
       }
       // function start  end
     }
-    _this.start = start;
+    _this.start = start
 
     function spliceLinksForNode (node) {
       var toSplice = links.filter(function (l) {
@@ -899,8 +908,13 @@
         case 46: // delete
           deleteNode(selected_node)
           break
-        case 13: // enter
-          _this.showEntity(selected_node.idx, true)
+        case 13: // enter input框只编辑文字
+          if (selected_node) {
+            _this.showEntity(selected_node.idx, true)
+
+            $('#button_group').css('display', 'none')
+          }
+          restart()
           break
         case 37:// left
           if (selected_node) {
@@ -1006,34 +1020,31 @@
 
     // delete
     function deleteNode (selected_node) {
-        if (selected_node) {
-          let should_remove_eid = selected_node.idx
-          _this.ent_dels.related_node = selected_node
-          _this.showRemoveEntDialog(should_remove_eid)
-        } else if (selected_link) {
-          let should_remove_link = selected_link
-          _this.$confirm('确定要删除关系吗？')
-            .then(_ => {
-              _this.axios
-                .get(_this.api_host + '/api/remove_triple', {
-                  params: {
-                    id: should_remove_link.triple.idx
-                  }
-                })
-                .then(function (response) {
-                  console.log(should_remove_link)
-                  console.log(_this.links)
-                  _this.links.splice(_this.links.indexOf(should_remove_link), 1)
-                  console.log(_this.links)
-                  _this.restart()
-                })
-                .catch(function (error) {
-                  console.log(error)
-                })
-            })
-            .catch(_ => {
-            })
-        }
+      if (selected_node) {
+        let should_remove_eid = selected_node.idx
+        _this.ent_dels.related_node = selected_node
+        _this.showRemoveEntDialog(should_remove_eid)
+      } else if (selected_link) {
+        let should_remove_link = selected_link
+        _this.$confirm('确定要删除关系吗？')
+          .then(_ => {
+            _this.axios
+              .get(_this.api_host + '/api/remove_triple', {
+                params: {
+                  id: should_remove_link.triple.idx
+                }
+              })
+              .then(function (response) {
+                _this.links.splice(_this.links.indexOf(should_remove_link), 1)
+                _this.restart()
+              })
+              .catch(function (error) {
+                console.log(error)
+              })
+          })
+          .catch(_ => {
+          })
+      }
       selected_link = null
       selected_node = null
       // 删除节点后，将原本的id换成新的id因为原本的node的自带的索引会自动减少，而元素的id属性不会自动减少，所以需要重新刷新id，否则会报错
@@ -1047,66 +1058,66 @@
       tooltip.style('opacity', 0.0)
       tooltip.style('display', 'none')
     }
-    _this.deleteNode = deleteNode;
+    _this.deleteNode = deleteNode
 
-    //hide
-    function hide(selected_node){
-      if(selected_node){
+    // hide
+    function hide (selected_node) {
+      if (selected_node) {
         _this.nodes.splice(_this.nodes.indexOf(selected_node), 1)
-        spliceLinksForNode(selected_node);
-        var NodeGroup = []; //拿到选中节点的相关联的节点
-        $.each(_this.removeLine,function(i,val){
-            NodeGroup.push(val.source);
-            NodeGroup.push(val.target);
+        spliceLinksForNode(selected_node)
+        var NodeGroup = [] // 拿到选中节点的相关联的节点
+        $.each(_this.removeLine, function (i, val) {
+          NodeGroup.push(val.source)
+          NodeGroup.push(val.target)
         })
         NodeGroup = [...new Set(NodeGroup)].filter(function (el) {
-          if(el.idx != selected_node.idx){return el;}
-        });
-        var nodeMap = new Map();
-        $.each(_this.nodes,function(i,val){
-          nodeMap.set(val.name,{sourceList:[],targetList:[]});
+          if (el.idx != selected_node.idx) { return el }
         })
-        $.each(_this.links,function(i,val){
-          var source = val.source.name;
-          var target = val.target.name;
-          nodeMap.get(source).targetList.push(val.target);
-          nodeMap.get(target).sourceList.push(val.source);
+        var nodeMap = new Map()
+        $.each(_this.nodes, function (i, val) {
+          nodeMap.set(val.name, {sourceList: [], targetList: []})
         })
-        var sNode = [];//这里拿到所有的孤立点
-        nodeMap.forEach(function (value,key) {
-          if (value.targetList.length == 0 && value.sourceList.length == 0){
-            sNode.push(key);
+        $.each(_this.links, function (i, val) {
+          var source = val.source.name
+          var target = val.target.name
+          nodeMap.get(source).targetList.push(val.target)
+          nodeMap.get(target).sourceList.push(val.source)
+        })
+        var sNode = []// 这里拿到所有的孤立点
+        nodeMap.forEach(function (value, key) {
+          if (value.targetList.length == 0 && value.sourceList.length == 0) {
+            sNode.push(key)
           }
         })
-        var hideNode = [];
-        $.each(NodeGroup,function (i,val) {
-          var index = val.idx;
-          $.each(sNode,function (j,val2) {
-            if(index == val2){
-               hideNode.push(val);
+        var hideNode = []
+        $.each(NodeGroup, function (i, val) {
+          var index = val.idx
+          $.each(sNode, function (j, val2) {
+            if (index == val2) {
+              hideNode.push(val)
             }
           })
-        });
+        })
         $.each(hideNode, function (i, val) {
-          nodes.splice(nodes.indexOf(val), 1);
-          --_this.lastNodeId;
+          nodes.splice(nodes.indexOf(val), 1)
+          --_this.lastNodeId
         })
-      }else{
-        var NodeGroup = [];
-        $.each(links,function(i,val){
-          NodeGroup.push(val.source);
-          NodeGroup.push(val.target);
+      } else {
+        var NodeGroup = []
+        $.each(links, function (i, val) {
+          NodeGroup.push(val.source)
+          NodeGroup.push(val.target)
         })
-        NodeGroup = [...new Set(NodeGroup)];
-        var singleNodes = [];
-        if (NodeGroup.length != nodes.length && nodes.length > NodeGroup.length){
-          singleNodes = $.grep(nodes,function(value){
-            return $.inArray(value,NodeGroup)< 0;
+        NodeGroup = [...new Set(NodeGroup)]
+        var singleNodes = []
+        if (NodeGroup.length != nodes.length && nodes.length > NodeGroup.length) {
+          singleNodes = $.grep(nodes, function (value) {
+            return $.inArray(value, NodeGroup) < 0
           })
         }
         $.each(singleNodes, function (i, val) {
-          nodes.splice(nodes.indexOf(val), 1);
-          --_this.lastNodeId;
+          nodes.splice(nodes.indexOf(val), 1)
+          --_this.lastNodeId
         })
       }
       selected_link = null
@@ -1120,23 +1131,22 @@
       tooltip.style('opacity', 0.0)
       tooltip.style('display', 'none')
     }
-    _this.hide = hide;
-    //筛选关系
-    function selectOption(links) {
-      // console.log(links);
-      var relationsName = [];
-      var selectOptionGroup = [];
-      $.each(links,function (i,val) {
-        relationsName.push(val.relation);
-      });
-      relationsName = [...new Set(relationsName)];
-      $.each(relationsName,function (i,val) {
-        selectOptionGroup.push({value:val,label:val});
+    _this.hide = hide
+    // 筛选关系
+    function selectOption (links) {
+      var relationsName = []
+      var selectOptionGroup = []
+      $.each(links, function (i, val) {
+        relationsName.push(val.relation)
       })
-      _this.options = selectOptionGroup;
+      relationsName = [...new Set(relationsName)]
+      $.each(relationsName, function (i, val) {
+        selectOptionGroup.push({value: val, label: val})
+      })
+      _this.options = selectOptionGroup
       // _this.select_option
     }
-    _this.selectOption = selectOption;
+    _this.selectOption = selectOption
     // 关于数据的整理
     function tabNode (selected_node) {
       var arr_x = []
@@ -1215,7 +1225,6 @@
       $.each(newresultdata, function (i, val) {
         newResult.push(val.data)
       })
-      // console.log(newResult);
       return newResult
     }
     // 排序
@@ -1239,7 +1248,6 @@
         var a = calcAngleDegrees(selected_node.x, selected_node.y, val.x, val.y)
         angleNode.push({'result': a, 'data': val})
       })
-      // console.log(angleNode);
       $.each(angleNode, function (i, val) {
         if (val.result > 0 && val.result <= 45 || val.result > 315 && val.result < 360) {
           rightArray.push(val)
@@ -1254,13 +1262,11 @@
           upArray.push(val)
         }
       })
-      // console.log(rightArray);
       right = nodeDistance(selected_node, rightArray)
       down = nodeDistance(selected_node, downArray)
       left = nodeDistance(selected_node, leftArray)
       up = nodeDistance(selected_node, upArray)
       return {'selected_node': selected_node, 'right': right, 'down': down, 'left': left, 'up': up }
-      console.log({'selected_node': selected_node, 'right': right, 'down': down, 'left': left, 'up': up })
     }
     // 计算两点之间的距离
     function nodeDistance (selected_node, array) {
@@ -1282,8 +1288,6 @@
       selected_node = null
 
       svg.selectAll().remove()
-
-      console.log(_this.searchWords)
       _this.nodes.length = 0
       _this.links.length = 0
       restart()
@@ -1335,9 +1339,9 @@
             .style('fill', 'black')
             .text(function (selected) { return selected.relation })
             // 发送数据请求
-          console.log(selected_link_text)
+          // console.log(selected_link_text)
           $.post(api_host + '/api/graph/update_triple_p', {'idx': selected_link_text.triple.idx, 'new_p': selected.relation}, function (result) {
-            console.log(result)
+            // console.log(result)
           })
           // 修改完成之后再次将修改节点的状态设置为false
           edit_relation = false

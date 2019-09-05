@@ -346,6 +346,7 @@ export default {
         _this.links.push(_this.inserts.link)
         _this.inserts = { sid: '', p: '', oid: '', old_tid: '' }
         _this.dialogVisible = false
+        _this.selectOption(_this.links)
         _this.restart()
       },
       function (response, _this) {
@@ -375,6 +376,7 @@ export default {
           $('.tooltip').css('display', 'none')
           _this.entDelDialogVisible = false
           _this.ent_dels.eid = ''
+          _this.selectOption(_this.links)
           _this.restart()
         })
         .catch(function (error) {
@@ -402,7 +404,7 @@ export default {
     showSelect(value) {
       let _this = this;
       //value放置选择的数据
-      console.log(value);
+      // console.log(value);
       //根据value的值进行links的匹配
       // console.log(_this.links);
       var databox = [_this.nodes,_this.links]
@@ -412,7 +414,7 @@ export default {
       });
       var noSelectLinks = linksRelations.filter(item => value.indexOf(item) < 0);
       var selectLinks = _this.links.filter(item => noSelectLinks.indexOf(item.relation) < 0);
-      console.log(selectLinks);
+      // console.log(selectLinks);
       // var noselect = _this.links.filter(item => noSelectLinks.indexOf(item.relation) < 0);
       var snodes = []
       selectLinks.forEach(function (item) {
@@ -420,14 +422,19 @@ export default {
         snodes.push(item.source);
       })
       snodes = [...new Set(snodes)];
-      console.log(snodes);
+      // console.log(snodes);
       _this.nodes = snodes;
       _this.links = selectLinks;
       _this.restart(true);
+      $('#button_group').css('display','none');
       _this.links = databox[1];
       _this.nodes = databox[0];
-      },
-      showRemoveEntDialog (eid) {
+      if (value.length == 0){
+        _this.restart();
+      }
+
+    },
+    showRemoveEntDialog (eid) {
       let _this = this
       this.ent_dels.eid = eid
       this.axios
@@ -540,13 +547,10 @@ export default {
 
       // path (link) group
       if (isselect){
-        console.log(323);
         path = path.data(_this.links);
       }else{
         path = path.data(links)
       }
-
-
       // update existing links
       path.classed('selected', function (d) { return d === selected_link })
         .style('marker-start', function (d) { return d.left ? 'url(#start-arrow)' : '' })
@@ -1405,7 +1409,12 @@ export default {
           // console.log(selected_link_text)
           $.post(api_host + '/api/graph/update_triple_p', {'idx': selected_link_text.triple.idx, 'new_p': selected.relation}, function (result) {
             // console.log(result)
+            result = JSON.parse(result);
+            if (result.status == 'success'){
+              selectOption (links);
+            }
           })
+
           // 修改完成之后再次将修改节点的状态设置为false
           edit_relation = false
         }

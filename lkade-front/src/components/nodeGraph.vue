@@ -1073,10 +1073,12 @@ export default {
         NodeGroup = [...new Set(NodeGroup)].filter(function (el) {
           if (el.idx != selected_node.idx) { return el }
         })
+        console.log(NodeGroup);
         var nodeMap = new Map()
         $.each(_this.nodes, function (i, val) {
           nodeMap.set(val.name, {sourceList: [], targetList: []})
         })
+        console.log(nodeMap);
         $.each(_this.links, function (i, val) {
           var source = val.source.name
           var target = val.target.name
@@ -1089,15 +1091,17 @@ export default {
             sNode.push(key)
           }
         })
+        console.log(sNode);
         var hideNode = []
         $.each(NodeGroup, function (i, val) {
-          var index = val.idx
+          var index = val.name
           $.each(sNode, function (j, val2) {
             if (index == val2) {
               hideNode.push(val)
             }
           })
         })
+        console.log(hideNode);
         $.each(hideNode, function (i, val) {
           nodes.splice(nodes.indexOf(val), 1)
           --_this.lastNodeId

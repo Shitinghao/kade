@@ -4,7 +4,7 @@ from beaker.middleware import SessionMiddleware
 from bson.objectid import ObjectId
 
 def check_authority(write=False):
-	#return True
+	return True
 	sess = request.environ.get('beaker.session')
 	islogin = sess.get('issLogin', False)
 	canwrite = sess.get('canWrite', False)

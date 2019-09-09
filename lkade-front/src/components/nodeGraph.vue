@@ -974,7 +974,6 @@ export default {
         case 13: // enter input框只编辑文字
           if (selected_node) {
             _this.showEntity(selected_node.idx, true)
-
             $('#button_group').css('display', 'none')
           }
           restart()
@@ -1169,6 +1168,7 @@ export default {
           nodes.splice(nodes.indexOf(val), 1)
           --_this.lastNodeId
         })
+        selectOption (_this.links);
       } else {
         var NodeGroup = []
         $.each(links, function (i, val) {

@@ -394,6 +394,7 @@ export default {
     enter_option () {
       let _this = this
       _this.showEntity(_this.selectedNode.idx, true)
+      _this.value2 = [];
       $('#button_group').css('display', 'none')
     },
 

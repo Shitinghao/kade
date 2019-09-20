@@ -31,6 +31,7 @@
         <el-button type="info" size="mini" circle icon="el-icon-zoom-out" class="delete circle" @click="hideSingle_option"></el-button>
       </el-tooltip>
       <el-select
+        class="hide"
         v-model="value2"
         multiple
         collapse-tags
@@ -394,7 +395,7 @@ export default {
     enter_option () {
       let _this = this
       _this.showEntity(_this.selectedNode.idx, true)
-      _this.value2 = [];
+      // _this.value2 = [];
       $('#button_group').css('display', 'none')
     },
 
@@ -404,10 +405,6 @@ export default {
     },
     showSelect(value) {
       let _this = this;
-      //value放置选择的数据
-      // console.log(value);
-      //根据value的值进行links的匹配
-      // console.log(_this.links);
       var databox = [_this.nodes,_this.links]
       var linksRelations = [];
       _this.links.forEach(function (item) {
@@ -415,15 +412,12 @@ export default {
       });
       var noSelectLinks = linksRelations.filter(item => value.indexOf(item) < 0);
       var selectLinks = _this.links.filter(item => noSelectLinks.indexOf(item.relation) < 0);
-      // console.log(selectLinks);
-      // var noselect = _this.links.filter(item => noSelectLinks.indexOf(item.relation) < 0);
       var snodes = []
       selectLinks.forEach(function (item) {
         snodes.push(item.target);
         snodes.push(item.source);
       })
       snodes = [...new Set(snodes)];
-      // console.log(snodes);
       _this.nodes = snodes;
       _this.links = selectLinks;
       _this.restart(true);

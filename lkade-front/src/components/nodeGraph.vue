@@ -147,8 +147,11 @@ export default {
       ent_inserts: { ename: '' },
       inserts: { sid: '', p: '', oid: '', oname: '', old_tid: '' },
       searchWords: global.main_entity,
-      options:[],
-      value2:[]
+      options:[], //select的选项
+      value2:[],  //放置选中的选项的数组
+      filterNodes:[], //渲染图形节点数组
+      filterLinks:[], //渲染图形关系数组
+      s_relations:[], //关系集合
     }
   },
   methods: {
@@ -287,7 +290,7 @@ export default {
                 }
                 _this.nodes.push(node)
                 _this.showEntDialogVisible = false
-                _this.restart()
+                _this.restart(_this.value2,_this.s_relations);
               })
             }).catch(() => {
             })
@@ -320,7 +323,8 @@ export default {
 
           _this.showEntDialogVisible = false
           _this.selectOption(_this.links)
-          _this.restart()
+          _this.restart(_this.value2,_this.s_relations);
+          // _this.value2 = [];
         })
         .catch(function (error) {
           // console.log(error);
@@ -347,7 +351,7 @@ export default {
         _this.inserts = { sid: '', p: '', oid: '', old_tid: '' }
         _this.dialogVisible = false
         _this.selectOption(_this.links)
-        _this.restart()
+        _this.restart(_this.value2,_this.s_relations)
       },
       function (response, _this) {
         _this.$message.error(response.data.msg)
@@ -377,7 +381,7 @@ export default {
           _this.entDelDialogVisible = false
           _this.ent_dels.eid = ''
           _this.selectOption(_this.links)
-          _this.restart()
+          _this.restart(_this.value2,_this.s_relations)
         })
         .catch(function (error) {
           console.log(error)
@@ -394,45 +398,37 @@ export default {
     enter_option () {
       let _this = this
       _this.showEntity(_this.selectedNode.idx, true)
-      _this.value2 = [];
+      let historySelect = _this.value2;
+
+      // _this.value2 = [];
+      console.log(historySelect);
+      _this.showSelect(_this.value2);
+      // _this.value2 = [];//操作将原本的选中复原。
+      console.log(historySelect);
+      _this.showSelect(historySelect);
       $('#button_group').css('display', 'none')
     },
-
     hideSingle_option () {
       let _this = this
       _this.hide()
     },
     showSelect(value) {
       let _this = this;
-      //value放置选择的数据
-      // console.log(value);
-      //根据value的值进行links的匹配
-      // console.log(_this.links);
       var databox = [_this.nodes,_this.links]
       var linksRelations = [];
       _this.links.forEach(function (item) {
         linksRelations.push(item.relation);
       });
-      var noSelectLinks = linksRelations.filter(item => value.indexOf(item) < 0);
-      var selectLinks = _this.links.filter(item => noSelectLinks.indexOf(item.relation) < 0);
-      // console.log(selectLinks);
-      // var noselect = _this.links.filter(item => noSelectLinks.indexOf(item.relation) < 0);
-      var snodes = []
-      selectLinks.forEach(function (item) {
-        snodes.push(item.target);
-        snodes.push(item.source);
-      })
-      snodes = [...new Set(snodes)];
-      // console.log(snodes);
-      _this.nodes = snodes;
-      _this.links = selectLinks;
-      _this.restart(true);
+      _this.s_relations = linksRelations;
+      _this.restart(value,linksRelations);
       $('#button_group').css('display','none');
       _this.links = databox[1];
       _this.nodes = databox[0];
       if (value.length == 0){
         _this.restart();
+        // _this.restart(_this.value2,_this.s_relations)
       }
+
 
     },
     showRemoveEntDialog (eid) {
@@ -497,7 +493,6 @@ export default {
     _this.removeLine = removeLine
     _this.selected_node = selected_node
     _this.select_link_text = selected_link_text
-
     var tooltip = d3.select('body') // 用来显示节点的详细信息
       .append('div') // 添加div并设置成透明
       .attr('class', 'tooltip')
@@ -505,7 +500,7 @@ export default {
 
     var path, path_text, circle, drag_line
 
-    function restart (isselect) {
+    function restart (value,linksRelations) {
       let force = _this.force
       if (!force) return
 
@@ -545,13 +540,44 @@ export default {
         .attr('fill', 'lavender')
 
       // 1.path
-
       // path (link) group
-      if (isselect){
-        path = path.data(_this.links);
-      }else{
-        path = path.data(links)
+      console.log(value);
+      // if (isselect){
+      //   path = path.data(_this.links);
+      // }else{
+      //   path = path.data(links)
+      // }
+      _this.filterLinks = links;
+      _this.filterNodes = nodes
+      console.log(_this.filterLinks);
+      console.log(_this.filterNodes);
+
+      // if(value == undefined){
+      //   _this.filterLinks = links;
+      //   _this.filterNodes = nodes;
+      // }else{
+      //   _this.filterNodes = snode;
+      //   _this.filterLinks = selectlinks;
+      // }
+      if (value!=undefined){
+        var noSelectLinks = linksRelations.filter(item => value.indexOf(item) < 0);
+        var selectLinks = _this.links.filter(item => noSelectLinks.indexOf(item.relation) < 0);
+        var snodes = []
+        selectLinks.forEach(function (item) {
+          snodes.push(item.target);
+          snodes.push(item.source);
+        })
+        snodes = [...new Set(snodes)];
+        console.log(snodes);
+        console.log(selectLinks);
+        console.log(_this.filterLinks);
+        console.log(_this.filterNodes);
+        _this.filterLinks = selectLinks
+        _this.filterNodes = snodes;
       }
+
+
+      path = path.data(_this.filterLinks)
       // update existing links
       path.classed('selected', function (d) { return d === selected_link })
         .style('marker-start', function (d) { return d.left ? 'url(#start-arrow)' : '' })
@@ -574,7 +600,7 @@ export default {
           if (mousedown_link === selected_link) selected_link = null
           else selected_link = mousedown_link
           selected_node = null
-          restart()
+          _this.restart(_this.value2,_this.s_relations)
         })
 
       // remove old links
@@ -583,11 +609,13 @@ export default {
       // 2.path text
 
       // path text(link) group
-      if (isselect){
-        path_text = path_text.data(_this.links)
-      }else{
-        path_text = path_text.data(links)
-      }
+      // if (isselect){
+      //   path_text = path_text.data(_this.links)
+      // }else{
+      //   path_text = path_text.data(links)
+      // }
+      // _this.filterLinks = links;
+      path_text = path_text.data(_this.filterLinks);
       // update exite path text
       path_text.attr({
         'class': 'edgelabel',
@@ -656,13 +684,13 @@ export default {
 
       // circle (node) group
       // NB: the function arg is crucial here! nodes are known by id, not by index!
-      if (isselect){
-        circle = circle.data(_this.nodes, function (d) { return d.id });
-      }else{
-        circle = circle.data(nodes, function (d) { return d.id })
-      }
-
-
+      // if (isselect){
+      //   circle = circle.data(_this.nodes, function (d) { return d.id });
+      // }else{
+      //   circle = circle.data(nodes, function (d) { return d.id })
+      // }
+      // _this.filterNodes = nodes;
+      circle = circle.data(_this.filterNodes, function (d) { return d.id })
       // update existing nodes (reflexive & selected visual states)
       circle.selectAll('circle')
         .style('fill', function (d) {
@@ -964,6 +992,7 @@ export default {
       if (d3.event.keyCode === 17) {
         circle.call(force.drag)
         svg.classed('ctrl', true)
+        $("button_group").css('display',none);
       }
 
       if (!selected_node && !selected_link) return
@@ -974,10 +1003,11 @@ export default {
           break
         case 13: // enter input框只编辑文字
           if (selected_node) {
+            // _this.value2 = []
             _this.showEntity(selected_node.idx, true)
             $('#button_group').css('display', 'none')
           }
-          restart()
+          _this.restart(_this.value2,_this.s_relations)
           break
         case 37:// left
           if (selected_node) {
@@ -993,7 +1023,7 @@ export default {
               })
             }
           }
-          restart()
+          _this.restart(_this.value2,_this.s_relations)
           break
         case 38:// up target
           if (selected_node) {
@@ -1009,7 +1039,7 @@ export default {
               })
             }
           }
-          restart()
+          _this.restart(_this.value2,_this.s_relations)
           break
         case 39:// right
           if (selected_node) {
@@ -1025,7 +1055,7 @@ export default {
               })
             }
           }
-          restart()
+          _this.restart(_this.value2,_this.s_relations)
           break
         case 40:// down source
           if (selected_node) {
@@ -1041,7 +1071,7 @@ export default {
               })
             }
           }
-          restart()
+          _this.restart(_this.value2,_this.s_relations)
           break
         case 32:// space
           if (selected_node) {
@@ -1054,7 +1084,7 @@ export default {
             }
             i++
           }
-          restart()
+          _this.restart(_this.value2,_this.s_relations)
           break
         case 27:// esc
           if (selected_node) {
@@ -1064,7 +1094,7 @@ export default {
           if (selected_link_text) {
             $('#edit').css({'display': 'none'})
           }
-          restart()
+          _this.restart(_this.value2,_this.s_relations)
           break
         case 72:// hide
           hide(selected_node)
@@ -1099,7 +1129,8 @@ export default {
               })
               .then(function (response) {
                 _this.links.splice(_this.links.indexOf(should_remove_link), 1)
-                _this.restart()
+                // _this.restart()
+                _this.restart(_this.value2,_this.s_relations)
               })
               .catch(function (error) {
                 console.log(error)
@@ -1112,7 +1143,7 @@ export default {
       selected_node = null
       // 删除节点后，将原本的id换成新的id因为原本的node的自带的索引会自动减少，而元素的id属性不会自动减少，所以需要重新刷新id，否则会报错
       --_this.lastNodeId
-      restart()
+      _this.restart(_this.value2,_this.s_relations)
       $.each(nodes, function (i, val) {
         val.id = i
       })
@@ -1190,7 +1221,7 @@ export default {
       }
       selected_link = null
       selected_node = null
-      restart()
+      _this.restart(_this.value2,_this.s_relations)
       $.each(nodes, function (i, val) {
         val.id = i
       })
@@ -1358,7 +1389,7 @@ export default {
       svg.selectAll().remove()
       _this.nodes.length = 0
       _this.links.length = 0
-      restart()
+      _this.restart(_this.value2,_this.s_relations)
 
       _this.lastNodeId = null
       start()

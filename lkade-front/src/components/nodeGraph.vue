@@ -31,6 +31,7 @@
         <el-button type="info" size="mini" circle icon="el-icon-zoom-out" class="delete circle" @click="hideSingle_option"></el-button>
       </el-tooltip>
       <el-select
+        class="hide"
         v-model="value2"
         multiple
         collapse-tags
@@ -398,14 +399,7 @@ export default {
     enter_option () {
       let _this = this
       _this.showEntity(_this.selectedNode.idx, true)
-      let historySelect = _this.value2;
-
-      // _this.value2 = [];
-      console.log(historySelect);
       _this.showSelect(_this.value2);
-      // _this.value2 = [];//操作将原本的选中复原。
-      console.log(historySelect);
-      _this.showSelect(historySelect);
       $('#button_group').css('display', 'none')
     },
     hideSingle_option () {

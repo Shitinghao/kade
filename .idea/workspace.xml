@@ -2,7 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b21652ef-0561-437d-b4ff-4f3a11252775" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/lkade-backend/vdist/static/js/app.a593d705c1e5c2bd1fc9.js.map" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/lkade-backend/vdist/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/css/app.ea1a5aae1f50ec65b205985caed5f270.css" beforeDir="false" afterPath="$PROJECT_DIR$/lkade-backend/vdist/static/css/app.d2c58c2bb6f120c7e06ce27e0fdfe7ab.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/css/app.ea1a5aae1f50ec65b205985caed5f270.css.map" beforeDir="false" afterPath="$PROJECT_DIR$/lkade-backend/vdist/static/css/app.d2c58c2bb6f120c7e06ce27e0fdfe7ab.css.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/js/app.4fedbee5f26d142e80a8.js" beforeDir="false" afterPath="$PROJECT_DIR$/lkade-backend/vdist/static/js/app.a593d705c1e5c2bd1fc9.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/js/app.4fedbee5f26d142e80a8.js.map" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/js/manifest.eeb2c031c0c552bd70ec.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/lkade-backend/vdist/static/js/manifest.eeb2c031c0c552bd70ec.js.map" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue" beforeDir="false" afterPath="$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
@@ -23,12 +30,13 @@
           <entry key="project.open.time.1" value="7" />
           <entry key="project.open.time.13" value="1" />
           <entry key="project.open.time.2" value="1" />
+          <entry key="project.open.time.3" value="1" />
           <entry key="project.open.time.5" value="2" />
           <entry key="project.open.time.6" value="2" />
           <entry key="project.open.time.7" value="1" />
           <entry key="project.open.time.8" value="2" />
           <entry key="project.open.time.9" value="1" />
-          <entry key="project.opened" value="18" />
+          <entry key="project.opened" value="19" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.js.language.service.starts">
@@ -105,8 +113,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="697">
-              <caret line="358" column="7" lean-forward="true" selection-start-line="358" selection-start-column="7" selection-end-line="358" selection-end-column="7" />
+            <state relative-caret-position="642">
+              <caret line="358" column="7" selection-start-line="358" selection-start-column="7" selection-end-line="358" selection-end-column="7" />
               <folding>
                 <element signature="n#style#0;n#div#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
                 <element signature="n#style#0;n#el-select#0;n#el-row#1;n#div#0;n#template#0;n#!!top" expanded="true" />
@@ -117,13 +125,6 @@
                 <element signature="n#style#0;n#label#0;n#div#0;n#el-dialog#2;n#div#0;n#template#0;n#!!top" expanded="true" />
                 <element signature="n#style#0;n#label#0;n#div#1;n#el-dialog#2;n#div#0;n#template#0;n#!!top" expanded="true" />
                 <element signature="n#style#0;n#label#0;n#div#2;n#el-dialog#2;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="e#5746#5770#0" expanded="true" />
-                <element signature="n#style#0;n#span#0;n#div#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#div#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#div#0;n#div#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#span#0;n#div#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#span#0;n#div#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#span#0;n#div#0;n#!!top" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -260,8 +261,8 @@
     </packageJsonPaths>
   </component>
   <component name="ProjectFrameBounds" extendedState="1">
-    <option name="x" value="327" />
-    <option name="y" value="50" />
+    <option name="x" value="564" />
+    <option name="y" value="69" />
     <option name="width" value="1436" />
     <option name="height" value="811" />
   </component>
@@ -377,17 +378,17 @@
       <workItem from="1568009118941" duration="2384000" />
       <workItem from="1568014752252" duration="1057000" />
       <workItem from="1568876551182" duration="5687000" />
+      <workItem from="1568957646602" duration="1000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="275281000" />
+    <option name="totallyTimeSpent" value="258902000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="327" y="50" width="1436" height="811" extended-state="0" />
-    <editor active="true" />
+    <frame x="564" y="69" width="1436" height="811" extended-state="0" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49928468" visible="true" weight="0.089045934" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49928468" visible="true" weight="0.1795053" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" sideWeight="0.5007153" side_tool="true" weight="0.10108865" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -438,8 +439,103 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
-          <line>678</line>
+          <line>309</line>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>359</line>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>1086</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>1106</line>
+          <option name="timeStamp" value="10" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>644</line>
           <option name="timeStamp" value="11" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>1116</line>
+          <option name="timeStamp" value="12" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>1108</line>
+          <option name="timeStamp" value="14" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>1117</line>
+          <option name="timeStamp" value="18" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>1076</line>
+          <option name="timeStamp" value="20" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>1079</line>
+          <option name="timeStamp" value="22" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>1131</line>
+          <option name="timeStamp" value="23" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>1090</line>
+          <option name="timeStamp" value="24" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>1077</line>
+          <option name="timeStamp" value="29" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>1100</line>
+          <option name="timeStamp" value="31" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>832</line>
+          <option name="timeStamp" value="37" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>826</line>
+          <option name="timeStamp" value="38" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>824</line>
+          <option name="timeStamp" value="39" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>1093</line>
+          <option name="timeStamp" value="41" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>1082</line>
+          <option name="timeStamp" value="42" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue</url>
+          <line>1107</line>
+          <option name="timeStamp" value="46" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -637,8 +733,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="697">
-          <caret line="358" column="7" lean-forward="true" selection-start-line="358" selection-start-column="7" selection-end-line="358" selection-end-column="7" />
+        <state relative-caret-position="642">
+          <caret line="358" column="7" selection-start-line="358" selection-start-column="7" selection-end-line="358" selection-end-column="7" />
           <folding>
             <element signature="n#style#0;n#div#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
             <element signature="n#style#0;n#el-select#0;n#el-row#1;n#div#0;n#template#0;n#!!top" expanded="true" />
@@ -649,13 +745,6 @@
             <element signature="n#style#0;n#label#0;n#div#0;n#el-dialog#2;n#div#0;n#template#0;n#!!top" expanded="true" />
             <element signature="n#style#0;n#label#0;n#div#1;n#el-dialog#2;n#div#0;n#template#0;n#!!top" expanded="true" />
             <element signature="n#style#0;n#label#0;n#div#2;n#el-dialog#2;n#div#0;n#template#0;n#!!top" expanded="true" />
-            <element signature="e#5746#5770#0" expanded="true" />
-            <element signature="n#style#0;n#span#0;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#0;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#span#0;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#span#0;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#span#0;n#div#0;n#!!top" expanded="true" />
           </folding>
         </state>
       </provider>

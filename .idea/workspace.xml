@@ -2,7 +2,22 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b21652ef-0561-437d-b4ff-4f3a11252775" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue" beforeDir="false" afterPath="$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/css/app.ea1a5aae1f50ec65b205985caed5f270.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/css/app.ea1a5aae1f50ec65b205985caed5f270.css.map" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/fonts/element-icons.535877f.woff" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/fonts/element-icons.732389d.ttf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/fonts/glyphicons-halflings-regular.448c34a.woff2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/fonts/glyphicons-halflings-regular.e18bbf6.ttf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/fonts/glyphicons-halflings-regular.f4769f9.eot" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/fonts/glyphicons-halflings-regular.fa27723.woff" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/img/glyphicons-halflings-regular.8988968.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/js/app.4fedbee5f26d142e80a8.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/js/app.4fedbee5f26d142e80a8.js.map" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/js/manifest.eeb2c031c0c552bd70ec.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/js/manifest.eeb2c031c0c552bd70ec.js.map" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lkade-backend/vdist/static/logo1.png" beforeDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -104,8 +119,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="247">
-              <caret line="386" column="22" lean-forward="true" selection-start-line="386" selection-start-column="22" selection-end-line="386" selection-end-column="22" />
+            <state relative-caret-position="82">
+              <caret line="375" column="49" selection-start-line="375" selection-start-column="49" selection-end-line="375" selection-end-column="49" />
               <folding>
                 <element signature="n#style#0;n#div#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
                 <element signature="n#style#0;n#el-select#0;n#el-row#1;n#div#0;n#template#0;n#!!top" expanded="true" />
@@ -258,11 +273,11 @@
       <path value="$PROJECT_DIR$/lkade-front/package.json" />
     </packageJsonPaths>
   </component>
-  <component name="ProjectFrameBounds">
-    <option name="x" value="567" />
-    <option name="y" value="79" />
-    <option name="width" value="1440" />
-    <option name="height" value="808" />
+  <component name="ProjectFrameBounds" extendedState="1">
+    <option name="x" value="564" />
+    <option name="y" value="69" />
+    <option name="width" value="1436" />
+    <option name="height" value="811" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -280,20 +295,12 @@
             <path>
               <item name="lkade" type="b2602c69:ProjectViewProjectNode" />
               <item name="lkade" type="462c0819:PsiDirectoryNode" />
-              <item name="lkade-front" type="462c0819:PsiDirectoryNode" />
+              <item name="lkade-backend" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="lkade" type="b2602c69:ProjectViewProjectNode" />
               <item name="lkade" type="462c0819:PsiDirectoryNode" />
               <item name="lkade-front" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="lkade" type="b2602c69:ProjectViewProjectNode" />
-              <item name="lkade" type="462c0819:PsiDirectoryNode" />
-              <item name="lkade-front" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="router" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -386,13 +393,12 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="258169000" />
+    <option name="totallyTimeSpent" value="258901000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="327" y="50" width="1436" height="811" extended-state="0" />
-    <editor active="true" />
+    <frame x="564" y="69" width="1436" height="811" extended-state="1" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49928468" visible="true" weight="0.089045934" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49928468" visible="true" weight="0.1795053" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" sideWeight="0.5007153" side_tool="true" weight="0.10108865" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -720,8 +726,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/lkade-front/src/components/nodeGraph.vue">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="247">
-          <caret line="386" column="22" lean-forward="true" selection-start-line="386" selection-start-column="22" selection-end-line="386" selection-end-column="22" />
+        <state relative-caret-position="82">
+          <caret line="375" column="49" selection-start-line="375" selection-start-column="49" selection-end-line="375" selection-end-column="49" />
           <folding>
             <element signature="n#style#0;n#div#0;n#el-row#0;n#div#0;n#template#0;n#!!top" expanded="true" />
             <element signature="n#style#0;n#el-select#0;n#el-row#1;n#div#0;n#template#0;n#!!top" expanded="true" />
